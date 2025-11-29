@@ -66,30 +66,31 @@ export const generateBlogPostContent = async (
     Tone: ${tone}
     Language: Korean
     
+    CRITICAL INSTRUCTIONS FOR CONTENT:
+    1.  **Conciseness**: Avoid long paragraphs. Use short sentences.
+    2.  **Visual Structure**: You MUST include at least one **Markdown Table** to compare data or summarize key points. Use bullet points (-) frequently.
+    3.  **Real Links**: When citing sources, use actual clickable URLs in the format [Source Name](URL). Do not use fake links.
+    4.  **3-Line Summary**: The post MUST end with a section exactly named "## ⚡ 3줄 요약" containing 3 bullet points summarizing the entire post.
+    
     CRITICAL INSTRUCTIONS FOR SOURCE CREDIBILITY:
     1.  **Fact-Based**: All content must be based on verified facts.
-    2.  **Source Prioritization**: Prioritize information from:
-        - Major News Outlets (verified journalism)
-        - Academic Journals & Papers
-        - Official Government/Organization Reports
-        - Trusted Tech/Economy Documentation
-    3.  **No Hallucinations**: Do not invent statistics or citations. If exact data isn't known, speak in general verified trends.
-    4.  **References Section**: At the very end of the post, add a section named "## 📚 신뢰할 수 있는 출처 및 참고 자료". List the types of sources or specific public names used (e.g., "Statistics Korea 2024 Report", "Nature Journal related articles").
+    2.  **Source Prioritization**: Prioritize information from Major News Outlets, Academic Journals, and Official Reports.
+    3.  **References Section**: Before the 3-line summary, add a section "## 📚 참고 자료".
     
     FORMATTING REQUIREMENTS:
     - Use Markdown formatting.
-    - **Headers**: Use ## for main sections, ### for subsections.
+    - **Headers**: Use ## for main sections.
+    - **Tables**: Use standard Markdown table syntax (| Header | ... |).
+    - **Links**: [Text](URL).
     - **Emphasis**: Use **bold** for key insights.
-    - **Lists**: Use bullet points (-) for readability.
-    - **Blockquotes**: Use > for summaries or important takeaways.
-    - **Structure**: Introduction -> Body -> Conclusion -> References.
+    - **Blockquotes**: Use > for important takeaways.
   `;
 
   const response = await ai.models.generateContent({
     model: modelId,
     contents: prompt,
     config: {
-      systemInstruction: "You are a professional analyst and writer. Your goal is to provide accurate, insightful, and verifiable information. Writing style should be suitable for a high-quality tech/economy blog.",
+      systemInstruction: "You are a professional analyst. You write concise, data-driven content with tables and charts. You never write long, boring walls of text.",
     },
   });
 
@@ -149,15 +150,15 @@ export const generateBlogImage = async (title: string): Promise<string | undefin
 
   try {
     const prompt = `
-      A professional, minimalist, abstract header image representing: "${title}".
+      A photorealistic, cinematic, high-quality photography style image representing: "${title}".
       
       CRITICAL:
+      - STYLE: Real life photography, Shot on DSLR, 4k resolution, Highly detailed.
       - NO TEXT, NO LETTERS, NO NUMBERS inside the image.
       - NO WATERMARKS.
-      - Photorealistic or high-end 3D render style.
-      - Soft, natural lighting.
-      - Landscape aspect ratio.
-      - Theme: Modern Technology / Business / Economy / Nature (depending on title).
+      - Lighting: Natural, cinematic lighting.
+      - Aspect Ratio: 16:9 (Landscape).
+      - NOT abstract art, NOT illustration, NOT cartoon.
     `;
 
     const response = await ai.models.generateContent({
