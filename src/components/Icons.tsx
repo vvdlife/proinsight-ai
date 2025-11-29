@@ -47,3 +47,16 @@ export const CopyIcon = ({ className }: { className?: string }) => (
       <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
     </svg>
 );
+
+export const NaverIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727v12.845z"/>
+  </svg>
+);
+
+export const TistoryIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <circle cx="12" cy="12" r="12" />
+    <path d="M12 6a2 2 0 1 1 0 4 2 2 0 0 1 0-4zm-5 7a2 2 0 1 1 4 0 2 2 0 0 1-4 0zm10 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm-5 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4z" fill="#fff"/>
+  </svg>
+);

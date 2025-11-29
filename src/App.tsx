@@ -8,6 +8,7 @@ import { AppStep, BlogTone, OutlineData, BlogPost, LoadingState } from './types'
 import { AuthGate } from './components/AuthGate';
 import { SettingsModal } from './components/SettingsModal';
 import { SocialGenerator } from './components/SocialGenerator';
+import { ExportManager } from './components/ExportManager';
 
 const App: React.FC = () => {
   // Authentication State
@@ -21,6 +22,17 @@ const App: React.FC = () => {
   const [selectedTone, setSelectedTone] = useState<BlogTone>(BlogTone.PROFESSIONAL);
   const [finalPost, setFinalPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState<LoadingState>({ isLoading: false, message: '' });
+
+  // Cleanup old local storage data on mount
+  React.useEffect(() => {
+    const keysToRemove = [
+      'blogflow_autosave_draft', 
+      'blogflow_history', 
+      'proinsight_autosave_draft', 
+      'proinsight_history'
+    ];
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+  }, []);
 
   // Handlers
   const handleGenerateOutline = useCallback(async () => {
@@ -57,10 +69,7 @@ const App: React.FC = () => {
         generateBlogImage(outline.title)
       ]);
 
-      // 2. Generate Social Posts based on the generated content
-      // We do this after content generation to use the actual content summary if needed,
-      // but here we use title/outline for speed.
-      // Let's create a summary from the content first 500 chars.
+      // 2. Generate Social Posts
       const summary = content.substring(0, 500);
       const socialPosts = await generateSocialPosts(outline.title, summary);
 
@@ -86,14 +95,7 @@ const App: React.FC = () => {
     setFinalPost(null);
   };
 
-  const copyToClipboard = () => {
-     if(!finalPost) return;
-     const textToCopy = `# ${finalPost.title}\n\n${finalPost.content}`;
-     navigator.clipboard.writeText(textToCopy);
-     alert("클립보드에 복사되었습니다!");
-  };
-
-  // If not authenticated (Access Code check), show Auth Gate
+  // If not authenticated, show Auth Gate
   if (!isAuthenticated) {
     return <AuthGate onAuthenticated={() => setIsAuthenticated(true)} />;
   }
@@ -229,12 +231,6 @@ const App: React.FC = () => {
                 >
                     <RefreshIcon className="w-4 h-4" /> 새 글 쓰기
                 </button>
-                <button 
-                  onClick={copyToClipboard}
-                  className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium shadow-md transition-all flex items-center gap-2"
-                >
-                    <CopyIcon className="w-4 h-4"/> 본문 복사하기
-                </button>
              </div>
 
             <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
@@ -269,6 +265,9 @@ const App: React.FC = () => {
                 </div>
             </div>
             
+            {/* Export Manager (Naver/Tistory Copy) */}
+            {finalPost && <ExportManager post={finalPost} />}
+            
             {/* Social Generator Section */}
             {finalPost?.socialPosts && <SocialGenerator posts={finalPost.socialPosts} />}
           </div>
@@ -284,10 +283,10 @@ const App: React.FC = () => {
         <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
         
         {/* Header */}
-        <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
+        <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40">
             <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white">
+                    <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-md shadow-indigo-200">
                         <PenIcon className="w-5 h-5" />
                     </div>
                     <span className="font-bold text-xl text-slate-900 tracking-tight">ProInsight AI</span>
@@ -295,7 +294,7 @@ const App: React.FC = () => {
                 <div className="flex items-center gap-4">
                   <button 
                     onClick={() => setIsSettingsOpen(true)}
-                    className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100"
+                    className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
                     title="설정"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>

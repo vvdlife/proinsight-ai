@@ -56,29 +56,40 @@ export const generateBlogPostContent = async (
   tone: BlogTone
 ): Promise<string> => {
   const ai = getGenAI();
-  const modelId = "gemini-2.5-flash"; 
+  const modelId = "gemini-2.5-flash"; // Using Flash for speed
 
   const prompt = `
-    Write a complete blog post based on this outline:
+    Write a high-quality, professional blog post based on this outline:
     Title: ${outline.title}
     Sections: ${outline.sections.join(", ")}
     
     Tone: ${tone}
     Language: Korean
     
-    Requirements:
-    - Use Markdown formatting (headers, bold, lists).
-    - Structure the post with a clear Introduction, Body paragraphs corresponding to sections, and a Conclusion.
-    - Add a "FAQ" section at the end if relevant.
-    - Keep paragraphs concise and readable (mobile-friendly).
-    - ensure the content is high quality and informative.
+    CRITICAL INSTRUCTIONS FOR SOURCE CREDIBILITY:
+    1.  **Fact-Based**: All content must be based on verified facts.
+    2.  **Source Prioritization**: Prioritize information from:
+        - Major News Outlets (verified journalism)
+        - Academic Journals & Papers
+        - Official Government/Organization Reports
+        - Trusted Tech/Economy Documentation
+    3.  **No Hallucinations**: Do not invent statistics or citations. If exact data isn't known, speak in general verified trends.
+    4.  **References Section**: At the very end of the post, add a section named "## 📚 신뢰할 수 있는 출처 및 참고 자료". List the types of sources or specific public names used (e.g., "Statistics Korea 2024 Report", "Nature Journal related articles").
+    
+    FORMATTING REQUIREMENTS:
+    - Use Markdown formatting.
+    - **Headers**: Use ## for main sections, ### for subsections.
+    - **Emphasis**: Use **bold** for key insights.
+    - **Lists**: Use bullet points (-) for readability.
+    - **Blockquotes**: Use > for summaries or important takeaways.
+    - **Structure**: Introduction -> Body -> Conclusion -> References.
   `;
 
   const response = await ai.models.generateContent({
     model: modelId,
     contents: prompt,
     config: {
-      systemInstruction: "You are a professional blog writer. Your writing is engaging, SEO-friendly, and easy to read. Do not output any system messages, just the blog content.",
+      systemInstruction: "You are a professional analyst and writer. Your goal is to provide accurate, insightful, and verifiable information. Writing style should be suitable for a high-quality tech/economy blog.",
     },
   });
 
@@ -94,12 +105,12 @@ export const generateSocialPosts = async (title: string, summary: string): Promi
 
   const prompt = `
     Create promotional social media posts for a blog article titled: "${title}".
-    Summary of content: "${summary.substring(0, 500)}..."
+    Summary context: "${summary.substring(0, 300)}..."
     
-    Generate 3 distinct posts:
-    1. Instagram: Engaging, uses emojis, includes 10-15 popular hashtags.
-    2. LinkedIn: Professional tone, business insights, 3-5 hashtags.
-    3. Twitter (X): Short, punchy, under 280 characters, 2-3 hashtags.
+    Generate 3 distinct posts optimized for engagement:
+    1. Instagram: Visual & Emotional focus. Use line breaks. Include 10-15 relevant hashtags.
+    2. LinkedIn: Professional & Insightful. Focus on business value. 3-5 professional hashtags.
+    3. Twitter (X): Hook-based, punchy, under 280 chars. 2-3 trending hashtags.
     
     Output in JSON format.
   `;
@@ -137,16 +148,16 @@ export const generateBlogImage = async (title: string): Promise<string | undefin
   const modelId = "gemini-2.5-flash-image";
 
   try {
-    // Enhanced prompt to prevent text and ensure quality
     const prompt = `
-      A high-quality, photorealistic or digital art style header image for a blog post about: "${title}".
+      A professional, minimalist, abstract header image representing: "${title}".
       
-      CRITICAL REQUIREMENTS:
-      - ABSOLUTELY NO TEXT inside the image.
-      - NO WATERMARKS, NO LABELS, NO SIGNATURES.
-      - Clean, modern, minimalist composition.
-      - Professional lighting and color grading.
-      - Aspect ratio suitable for web headers (landscape).
+      CRITICAL:
+      - NO TEXT, NO LETTERS, NO NUMBERS inside the image.
+      - NO WATERMARKS.
+      - Photorealistic or high-end 3D render style.
+      - Soft, natural lighting.
+      - Landscape aspect ratio.
+      - Theme: Modern Technology / Business / Economy / Nature (depending on title).
     `;
 
     const response = await ai.models.generateContent({
