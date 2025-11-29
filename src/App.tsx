@@ -329,6 +329,13 @@ const App: React.FC = () => {
                               alt={`${finalPost.title} - ${idx + 1}`} 
                               className="w-full h-auto max-h-[500px] object-cover"
                           />
+                          <a 
+                            href={img} 
+                            download={`proinsight-image-${idx+1}.png`}
+                            className="absolute bottom-4 right-4 bg-white/90 hover:bg-white text-slate-800 px-4 py-2 rounded-lg font-bold text-sm shadow-lg flex items-center gap-2 transition-all opacity-0 group-hover:opacity-100"
+                          >
+                            <CopyIcon className="w-4 h-4" /> 이미지 다운로드
+                          </a>
                         </div>
                       ))}
                     </div>
@@ -370,12 +377,12 @@ const App: React.FC = () => {
         {/* Header */}
         <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40">
             <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-                <div className="flex items-center gap-2">
+                <button onClick={handleReset} className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity focus:outline-none">
                     <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-md shadow-indigo-200">
                         <PenIcon className="w-5 h-5" />
                     </div>
                     <span className="font-bold text-xl text-slate-900 tracking-tight">ProInsight AI</span>
-                </div>
+                </button>
                 <div className="flex items-center gap-4">
                   <button 
                     onClick={() => setIsSettingsOpen(true)}
