@@ -1,8 +1,9 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { BlogTone, OutlineData } from "../types";
+import { BlogTone, OutlineData, SocialPost } from "../types";
 
-// Helper to get client securely
+// Helper to get client securely only when needed
 const getGenAI = () => {
+  // Try session storage first (secure), then local storage (legacy/dev)
   const key = sessionStorage.getItem('proinsight_api_key') || localStorage.getItem('proinsight_api_key');
   
   if (!key) {
@@ -66,22 +67,66 @@ export const generateBlogPostContent = async (
     Language: Korean
     
     Requirements:
-    - Use Markdown formatting.
-    - Write a compelling introduction.
-    - Elaborate on each section with valuable details.
-    - Include a conclusion.
-    - Keep paragraphs concise.
+    - Use Markdown formatting (headers, bold, lists).
+    - Structure the post with a clear Introduction, Body paragraphs corresponding to sections, and a Conclusion.
+    - Add a "FAQ" section at the end if relevant.
+    - Keep paragraphs concise and readable (mobile-friendly).
+    - ensure the content is high quality and informative.
   `;
 
   const response = await ai.models.generateContent({
     model: modelId,
     contents: prompt,
     config: {
-      systemInstruction: "You are a professional blog writer. Your writing is engaging, SEO-friendly, and easy to read.",
+      systemInstruction: "You are a professional blog writer. Your writing is engaging, SEO-friendly, and easy to read. Do not output any system messages, just the blog content.",
     },
   });
 
   return response.text || "Failed to generate content.";
+};
+
+/**
+ * Generates social media promotional posts.
+ */
+export const generateSocialPosts = async (title: string, summary: string): Promise<SocialPost[]> => {
+  const ai = getGenAI();
+  const modelId = "gemini-2.5-flash";
+
+  const prompt = `
+    Create promotional social media posts for a blog article titled: "${title}".
+    Summary of content: "${summary.substring(0, 500)}..."
+    
+    Generate 3 distinct posts:
+    1. Instagram: Engaging, uses emojis, includes 10-15 popular hashtags.
+    2. LinkedIn: Professional tone, business insights, 3-5 hashtags.
+    3. Twitter (X): Short, punchy, under 280 characters, 2-3 hashtags.
+    
+    Output in JSON format.
+  `;
+
+  const response = await ai.models.generateContent({
+    model: modelId,
+    contents: prompt,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            platform: { type: Type.STRING, enum: ["Instagram", "LinkedIn", "Twitter"] },
+            content: { type: Type.STRING },
+            hashtags: { type: Type.ARRAY, items: { type: Type.STRING } }
+          },
+          required: ["platform", "content", "hashtags"]
+        }
+      }
+    }
+  });
+
+  const text = response.text;
+  if (!text) return [];
+  return JSON.parse(text) as SocialPost[];
 };
 
 /**
@@ -92,9 +137,21 @@ export const generateBlogImage = async (title: string): Promise<string | undefin
   const modelId = "gemini-2.5-flash-image";
 
   try {
+    // Enhanced prompt to prevent text and ensure quality
+    const prompt = `
+      A high-quality, photorealistic or digital art style header image for a blog post about: "${title}".
+      
+      CRITICAL REQUIREMENTS:
+      - ABSOLUTELY NO TEXT inside the image.
+      - NO WATERMARKS, NO LABELS, NO SIGNATURES.
+      - Clean, modern, minimalist composition.
+      - Professional lighting and color grading.
+      - Aspect ratio suitable for web headers (landscape).
+    `;
+
     const response = await ai.models.generateContent({
       model: modelId,
-      contents: `A high quality, modern, blog header image representing the topic: "${title}". Minimalist, clean, bright colors, digital art style. No text in the image.`,
+      contents: prompt,
     });
 
     if (response.candidates && response.candidates[0].content.parts) {

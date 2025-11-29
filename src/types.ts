@@ -10,10 +10,17 @@ export interface OutlineData {
   sections: string[];
 }
 
+export interface SocialPost {
+  platform: 'Instagram' | 'LinkedIn' | 'Twitter';
+  content: string;
+  hashtags: string[];
+}
+
 export interface BlogPost {
   title: string;
   content: string; // Markdown formatted string
-  imageUrl?: string;
+  images: string[]; // Changed from single imageUrl to array
+  socialPosts?: SocialPost[];
 }
 
 export enum AppStep {

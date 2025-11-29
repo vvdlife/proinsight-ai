@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { StepWizard } from './components/StepWizard';
 import { LoadingOverlay } from './components/LoadingOverlay';
 import { SparklesIcon, ChevronRightIcon, RefreshIcon, PenIcon, ImageIcon, CopyIcon } from './components/Icons';
 import { MarkdownRenderer } from './components/MarkdownRenderer';
-import { generateOutline, generateBlogPostContent, generateBlogImage } from './services/geminiService';
+import { generateOutline, generateBlogPostContent, generateBlogImage, generateSocialPosts } from './services/geminiService';
 import { AppStep, BlogTone, OutlineData, BlogPost, LoadingState } from './types';
 import { AuthGate } from './components/AuthGate';
 import { SettingsModal } from './components/SettingsModal';
+import { SocialGenerator } from './components/SocialGenerator';
 
 const App: React.FC = () => {
   // Authentication State
@@ -20,15 +21,6 @@ const App: React.FC = () => {
   const [selectedTone, setSelectedTone] = useState<BlogTone>(BlogTone.PROFESSIONAL);
   const [finalPost, setFinalPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState<LoadingState>({ isLoading: false, message: '' });
-
-  // Cleanup old local storage data on mount to prevent quota errors
-  useEffect(() => {
-    const keysToRemove = [
-      'proinsight_autosave_draft', 
-      'proinsight_history'
-    ];
-    keysToRemove.forEach(key => localStorage.removeItem(key));
-  }, []);
 
   // Handlers
   const handleGenerateOutline = useCallback(async () => {
@@ -57,18 +49,26 @@ const App: React.FC = () => {
   const handleGenerateFullPost = useCallback(async () => {
     if (!outline) return;
 
-    setLoading({ isLoading: true, message: '블로그 본문을 작성하고 이미지를 생성 중입니다...' });
+    setLoading({ isLoading: true, message: '블로그 본문과 이미지를 생성 중입니다...' });
     try {
-      // Run both generations in parallel for efficiency
+      // 1. Generate Content and Image in parallel
       const [content, imageUrl] = await Promise.all([
         generateBlogPostContent(outline, selectedTone),
         generateBlogImage(outline.title)
       ]);
 
+      // 2. Generate Social Posts based on the generated content
+      // We do this after content generation to use the actual content summary if needed,
+      // but here we use title/outline for speed.
+      // Let's create a summary from the content first 500 chars.
+      const summary = content.substring(0, 500);
+      const socialPosts = await generateSocialPosts(outline.title, summary);
+
       setFinalPost({
         title: outline.title,
         content,
-        imageUrl
+        images: imageUrl ? [imageUrl] : [],
+        socialPosts
       });
       setCurrentStep(AppStep.FINAL_RESULT);
     } catch (error) {
@@ -108,7 +108,7 @@ const App: React.FC = () => {
               어떤 글을 쓰고 싶으신가요?
             </h1>
             <p className="text-slate-500 mb-10 text-lg">
-              키워드만 입력하세요. 구조 잡기부터 이미지 생성까지 AI가 도와드립니다.
+              키워드만 입력하세요. 구조 잡기부터 이미지 생성, SNS 홍보글까지 AI가 도와드립니다.
             </p>
             
             <div className="relative group">
@@ -134,14 +134,6 @@ const App: React.FC = () => {
                   <SparklesIcon className="w-5 h-5" />
                 </button>
               </div>
-            </div>
-            
-            <div className="mt-8 flex justify-center gap-4 text-sm text-slate-400">
-              <span>✨ 자동 개요 생성</span>
-              <span>•</span>
-              <span>🎨 AI 이미지 제작</span>
-              <span>•</span>
-              <span>✍️ SEO 최적화 글쓰기</span>
             </div>
           </div>
         );
@@ -172,12 +164,6 @@ const App: React.FC = () => {
                       </button>
                     ))}
                   </div>
-                </div>
-                
-                <div className="bg-blue-50 p-5 rounded-2xl border border-blue-100">
-                  <p className="text-sm text-blue-800 leading-relaxed">
-                    💡 <strong>팁:</strong> 오른쪽 개요를 수정하면 더 정확한 글이 생성됩니다. 섹션을 추가하거나 불필요한 내용을 삭제해보세요.
-                  </p>
                 </div>
               </div>
 
@@ -247,21 +233,23 @@ const App: React.FC = () => {
                   onClick={copyToClipboard}
                   className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium shadow-md transition-all flex items-center gap-2"
                 >
-                    <CopyIcon className="w-4 h-4"/> 복사하기
+                    <CopyIcon className="w-4 h-4"/> 본문 복사하기
                 </button>
              </div>
 
             <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
-                {finalPost?.imageUrl ? (
-                    <div className="w-full h-80 bg-slate-100 overflow-hidden relative group">
-                        <img 
-                            src={finalPost.imageUrl} 
-                            alt={finalPost.title} 
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                        />
-                         <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                            <SparklesIcon className="w-3 h-3 text-yellow-400" /> AI Generated Image
+                {/* Image Section */}
+                {finalPost?.images && finalPost.images.length > 0 ? (
+                    <div className="w-full bg-slate-100">
+                      {finalPost.images.map((img, idx) => (
+                        <div key={idx} className="relative group">
+                          <img 
+                              src={img} 
+                              alt={`${finalPost.title} - ${idx + 1}`} 
+                              className="w-full h-auto max-h-[500px] object-cover"
+                          />
                         </div>
+                      ))}
                     </div>
                 ) : (
                     <div className="w-full h-48 bg-slate-100 flex flex-col items-center justify-center text-slate-400 border-b">
@@ -280,6 +268,9 @@ const App: React.FC = () => {
                     </div>
                 </div>
             </div>
+            
+            {/* Social Generator Section */}
+            {finalPost?.socialPosts && <SocialGenerator posts={finalPost.socialPosts} />}
           </div>
         );
       default:
@@ -302,12 +293,10 @@ const App: React.FC = () => {
                     <span className="font-bold text-xl text-slate-900 tracking-tight">ProInsight AI</span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="text-sm font-medium text-slate-500 hidden sm:block">
-                      Powered by Gemini 2.5
-                  </div>
                   <button 
                     onClick={() => setIsSettingsOpen(true)}
                     className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100"
+                    title="설정"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                   </button>
