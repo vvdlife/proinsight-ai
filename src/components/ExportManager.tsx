@@ -12,8 +12,6 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
   const copyToHtmlClipboard = async (platform: 'NAVER' | 'TISTORY') => {
     try {
       // 1. Markdown to HTML Conversion with Inline Styles for Editors
-      // Note: This is a simplified parser. For complex logic, libraries like 'marked' are better,
-      // but here we use regex for zero-dependency.
       let html = post.content
         .replace(/^### (.*$)/gim, '<h3 style="font-size: 19px; font-weight: bold; margin-top: 24px; margin-bottom: 12px; color: #333;">$1</h3>')
         .replace(/^## (.*$)/gim, '<h2 style="font-size: 24px; font-weight: bold; margin-top: 32px; margin-bottom: 16px; border-left: 5px solid #4f46e5; padding-left: 12px; color: #111;">$1</h2>')
@@ -22,10 +20,6 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
         .replace(/^\> (.*$)/gim, '<blockquote style="background-color: #f8fafc; border-left: 4px solid #cbd5e1; padding: 16px; margin: 16px 0; font-style: italic; color: #475569;">$1</blockquote>')
         .replace(/^- (.*$)/gim, '<li style="margin-left: 20px; margin-bottom: 8px; line-height: 1.6;">$1</li>')
         .replace(/\n/gim, '<br />');
-      
-      // Wrap list items
-      // Simple heuristic for wrapping lists (imperfect but functional for simple lists)
-      // For better list handling, a real parser is recommended.
       
       const titleHtml = `<h1 style="font-size: 36px; font-weight: 900; margin-bottom: 30px; letter-spacing: -0.5px;">${post.title}</h1><hr style="margin-bottom: 30px; border: 0; border-top: 1px solid #eee;" />`;
       
