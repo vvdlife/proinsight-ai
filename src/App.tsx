@@ -24,8 +24,6 @@ const App: React.FC = () => {
   // Cleanup old local storage data on mount to prevent quota errors
   useEffect(() => {
     const keysToRemove = [
-      'blogflow_autosave_draft', 
-      'blogflow_history', 
       'proinsight_autosave_draft', 
       'proinsight_history'
     ];
