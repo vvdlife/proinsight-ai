@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { BlogTone, OutlineData, SocialPost } from "../types";
+import { BlogTone, OutlineData, SocialPost, ImageStyle } from "../types";
 
 // Helper to get client securely only when needed
 const getGenAI = () => {
@@ -144,21 +144,38 @@ export const generateSocialPosts = async (title: string, summary: string): Promi
 /**
  * Generates a hero image.
  */
-export const generateBlogImage = async (title: string): Promise<string | undefined> => {
+export const generateBlogImage = async (title: string, style: ImageStyle): Promise<string | undefined> => {
   const ai = getGenAI();
   const modelId = "gemini-2.5-flash-image";
 
+  // Construct prompt based on selected style
+  let stylePrompt = "";
+  switch (style) {
+    case ImageStyle.PHOTOREALISTIC:
+      stylePrompt = "STYLE: Real life photography, Shot on DSLR, 4k resolution, Cinematic lighting. Aspect Ratio: 16:9.";
+      break;
+    case ImageStyle.DIGITAL_ART:
+      stylePrompt = "STYLE: High-end Digital Art, Vibrant colors, Clean composition, Modern Tech aesthetics. Aspect Ratio: 16:9.";
+      break;
+    case ImageStyle.MINIMALIST:
+      stylePrompt = "STYLE: Minimalist flat illustration, Pastel colors, Clean lines, Negative space. Aspect Ratio: 16:9.";
+      break;
+    case ImageStyle.RENDER_3D:
+      stylePrompt = "STYLE: 3D Render, Blender style, Isometric view, Soft lighting, High detail. Aspect Ratio: 16:9.";
+      break;
+    default:
+      stylePrompt = "STYLE: Photorealistic, 4k resolution. Aspect Ratio: 16:9.";
+  }
+
   try {
     const prompt = `
-      A photorealistic, cinematic, high-quality photography style image representing: "${title}".
+      Create a high-quality blog header image representing: "${title}".
       
-      CRITICAL:
-      - STYLE: Real life photography, Shot on DSLR, 4k resolution, Highly detailed.
-      - NO TEXT, NO LETTERS, NO NUMBERS inside the image.
-      - NO WATERMARKS.
-      - Lighting: Natural, cinematic lighting.
-      - Aspect Ratio: 16:9 (Landscape).
-      - NOT abstract art, NOT illustration, NOT cartoon.
+      ${stylePrompt}
+      
+      CRITICAL NEGATIVE CONSTRAINTS:
+      - NO TEXT, NO LETTERS, NO NUMBERS, NO WATERMARKS inside the image.
+      - Do not include messy details or distorted faces.
     `;
 
     const response = await ai.models.generateContent({

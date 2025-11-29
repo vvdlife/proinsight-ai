@@ -5,6 +5,13 @@ export enum BlogTone {
   STORYTELLING = '감성적인/스토리텔링',
 }
 
+export enum ImageStyle {
+  PHOTOREALISTIC = '실사 사진 (DSLR)',
+  DIGITAL_ART = '디지털 아트',
+  MINIMALIST = '미니멀 일러스트',
+  RENDER_3D = '3D 렌더링',
+}
+
 export interface OutlineData {
   title: string;
   sections: string[];
