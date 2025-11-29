@@ -1,19 +1,36 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { StepWizard } from './components/StepWizard';
 import { LoadingOverlay } from './components/LoadingOverlay';
 import { SparklesIcon, ChevronRightIcon, RefreshIcon, PenIcon, ImageIcon, CopyIcon } from './components/Icons';
 import { MarkdownRenderer } from './components/MarkdownRenderer';
 import { generateOutline, generateBlogPostContent, generateBlogImage } from './services/geminiService';
 import { AppStep, BlogTone, OutlineData, BlogPost, LoadingState } from './types';
+import { AuthGate } from './components/AuthGate';
+import { SettingsModal } from './components/SettingsModal';
 
 const App: React.FC = () => {
-  // State
+  // Authentication State
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // App State
   const [currentStep, setCurrentStep] = useState<AppStep>(AppStep.TOPIC_INPUT);
   const [topic, setTopic] = useState('');
   const [outline, setOutline] = useState<OutlineData | null>(null);
   const [selectedTone, setSelectedTone] = useState<BlogTone>(BlogTone.PROFESSIONAL);
   const [finalPost, setFinalPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState<LoadingState>({ isLoading: false, message: '' });
+
+  // Cleanup old local storage data on mount to prevent quota errors
+  useEffect(() => {
+    const keysToRemove = [
+      'blogflow_autosave_draft', 
+      'blogflow_history', 
+      'proinsight_autosave_draft', 
+      'proinsight_history'
+    ];
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+  }, []);
 
   // Handlers
   const handleGenerateOutline = useCallback(async () => {
@@ -25,7 +42,7 @@ const App: React.FC = () => {
       setOutline(data);
       setCurrentStep(AppStep.OUTLINE_REVIEW);
     } catch (error) {
-      alert('개요 생성에 실패했습니다. 다시 시도해주세요.');
+      alert('개요 생성에 실패했습니다. API Key를 확인하거나 다시 시도해주세요.');
       console.error(error);
     } finally {
       setLoading({ isLoading: false, message: '' });
@@ -77,6 +94,11 @@ const App: React.FC = () => {
      navigator.clipboard.writeText(textToCopy);
      alert("클립보드에 복사되었습니다!");
   };
+
+  // If not authenticated (Access Code check), show Auth Gate
+  if (!isAuthenticated) {
+    return <AuthGate onAuthenticated={() => setIsAuthenticated(true)} />;
+  }
 
   // Render Steps
   const renderStepContent = () => {
@@ -270,6 +292,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
         <LoadingOverlay isLoading={loading.isLoading} message={loading.message} />
+        <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
         
         {/* Header */}
         <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
@@ -280,8 +303,16 @@ const App: React.FC = () => {
                     </div>
                     <span className="font-bold text-xl text-slate-900 tracking-tight">ProInsight AI</span>
                 </div>
-                <div className="text-sm font-medium text-slate-500">
-                    Powered by Gemini 2.5
+                <div className="flex items-center gap-4">
+                  <div className="text-sm font-medium text-slate-500 hidden sm:block">
+                      Powered by Gemini 2.5
+                  </div>
+                  <button 
+                    onClick={() => setIsSettingsOpen(true)}
+                    className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  </button>
                 </div>
             </div>
         </header>

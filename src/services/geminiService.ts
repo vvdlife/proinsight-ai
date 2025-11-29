@@ -1,14 +1,21 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { BlogTone, OutlineData } from "../types";
 
-// Initialize Gemini Client
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Helper to get client securely
+const getGenAI = () => {
+  const key = sessionStorage.getItem('proinsight_api_key') || localStorage.getItem('proinsight_api_key');
+  
+  if (!key) {
+    throw new Error("API Key가 없습니다. 설정에서 키를 등록해주세요.");
+  }
+  return new GoogleGenAI({ apiKey: key });
+};
 
 /**
  * Generates a blog post outline based on a topic.
- * Returns a JSON object with a title and a list of section headers.
  */
 export const generateOutline = async (topic: string): Promise<OutlineData> => {
+  const ai = getGenAI();
   const modelId = "gemini-2.5-flash";
   
   const response = await ai.models.generateContent({
@@ -41,13 +48,14 @@ export const generateOutline = async (topic: string): Promise<OutlineData> => {
 };
 
 /**
- * Generates the full blog post content based on the approved outline and tone.
+ * Generates the full blog post content.
  */
 export const generateBlogPostContent = async (
   outline: OutlineData,
   tone: BlogTone
 ): Promise<string> => {
-  const modelId = "gemini-2.5-flash"; // Using Flash for speed, Pro could be used for deeper reasoning
+  const ai = getGenAI();
+  const modelId = "gemini-2.5-flash"; 
 
   const prompt = `
     Write a complete blog post based on this outline:
@@ -77,24 +85,18 @@ export const generateBlogPostContent = async (
 };
 
 /**
- * Generates a hero image for the blog post.
+ * Generates a hero image.
  */
 export const generateBlogImage = async (title: string): Promise<string | undefined> => {
+  const ai = getGenAI();
   const modelId = "gemini-2.5-flash-image";
 
   try {
     const response = await ai.models.generateContent({
       model: modelId,
       contents: `A high quality, modern, blog header image representing the topic: "${title}". Minimalist, clean, bright colors, digital art style. No text in the image.`,
-      config: {
-        // Image generation configs can go here if using Imagen models, 
-        // but for gemini-2.5-flash-image we handle it via prompt mostly.
-        // Aspect ratio is not directly configurable in flash-image prompt config usually,
-        // but the model tries to follow prompt instructions.
-      }
     });
 
-    // Extract image from response parts
     if (response.candidates && response.candidates[0].content.parts) {
       for (const part of response.candidates[0].content.parts) {
         if (part.inlineData) {
@@ -106,7 +108,6 @@ export const generateBlogImage = async (title: string): Promise<string | undefin
     return undefined;
   } catch (error) {
     console.error("Image generation failed:", error);
-    // Fail gracefully without crashing the text generation
     return undefined; 
   }
 };
