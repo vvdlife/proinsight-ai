@@ -1,7 +1,8 @@
+
 import React, { useState, useCallback } from 'react';
 import { StepWizard } from './components/StepWizard';
 import { LoadingOverlay } from './components/LoadingOverlay';
-import { SparklesIcon, ChevronRightIcon, RefreshIcon, PenIcon, ImageIcon, CopyIcon, TrendIcon, ChartIcon, CodeIcon, LinkIcon, UploadIcon, TrashIcon, FileTextIcon, PlusIcon } from './components/Icons';
+import { SparklesIcon, ChevronRightIcon, RefreshIcon, PenIcon, ImageIcon, CopyIcon, TrendIcon, ChartIcon, CodeIcon, LinkIcon, UploadIcon, TrashIcon, FileTextIcon, PlusIcon, MemoIcon } from './components/Icons';
 import { MarkdownRenderer } from './components/MarkdownRenderer';
 import { generateOutline, generateBlogPostContent, generateBlogImage, generateSocialPosts } from './services/geminiService';
 import { AppStep, BlogTone, OutlineData, BlogPost, LoadingState, ImageStyle, UploadedFile } from './types';
@@ -28,6 +29,7 @@ const App: React.FC = () => {
   const [sourceUrls, setSourceUrls] = useState<string[]>([]);
   const [newUrl, setNewUrl] = useState('');
   const [sourceFiles, setSourceFiles] = useState<UploadedFile[]>([]);
+  const [memo, setMemo] = useState('');
 
   // Cleanup old local storage data on mount
   React.useEffect(() => {
@@ -55,10 +57,13 @@ const App: React.FC = () => {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
-      if (file.type !== 'application/pdf') {
-        alert('PDF 파일만 업로드 가능합니다.');
+      
+      // Allow PDF and Images
+      if (!['application/pdf', 'image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+        alert('PDF, JPG, PNG 파일만 업로드 가능합니다.');
         return;
       }
+      
       if (file.size > 10 * 1024 * 1024) { // 10MB limit
          alert('파일 크기는 10MB 이하여야 합니다.');
          return;
@@ -90,7 +95,8 @@ const App: React.FC = () => {
     
     setLoading({ isLoading: true, message: 'Gemini가 자료를 분석하고 개요를 작성하고 있습니다...' });
     try {
-      const data = await generateOutline(topic, sourceFiles, sourceUrls);
+      // Pass memo to generateOutline
+      const data = await generateOutline(topic, sourceFiles, sourceUrls, memo);
       setOutline(data);
       setCurrentStep(AppStep.OUTLINE_REVIEW);
     } catch (error) {
@@ -99,7 +105,7 @@ const App: React.FC = () => {
     } finally {
       setLoading({ isLoading: false, message: '' });
     }
-  }, [topic, sourceFiles, sourceUrls]);
+  }, [topic, sourceFiles, sourceUrls, memo]);
 
   const handleUpdateOutlineSection = (index: number, value: string) => {
     if (!outline) return;
@@ -114,8 +120,9 @@ const App: React.FC = () => {
     setLoading({ isLoading: true, message: '블로그 본문과 이미지를 생성 중입니다...' });
     try {
       // 1. Generate Content and Image in parallel
+      // Pass memo to generateBlogPostContent
       const [content, imageUrl] = await Promise.all([
-        generateBlogPostContent(outline, selectedTone, sourceFiles, sourceUrls),
+        generateBlogPostContent(outline, selectedTone, sourceFiles, sourceUrls, memo),
         generateBlogImage(outline.title, selectedImageStyle)
       ]);
 
@@ -136,7 +143,7 @@ const App: React.FC = () => {
     } finally {
       setLoading({ isLoading: false, message: '' });
     }
-  }, [outline, selectedTone, selectedImageStyle, sourceFiles, sourceUrls]);
+  }, [outline, selectedTone, selectedImageStyle, sourceFiles, sourceUrls, memo]);
 
   const handleReset = () => {
     setCurrentStep(AppStep.TOPIC_INPUT);
@@ -145,6 +152,7 @@ const App: React.FC = () => {
     setFinalPost(null);
     setSourceFiles([]);
     setSourceUrls([]);
+    setMemo('');
   };
 
   const copyToClipboard = () => {
@@ -182,7 +190,7 @@ const App: React.FC = () => {
                 어떤 글을 쓰시겠습니까?
               </h1>
               <p className="text-slate-500 text-lg max-w-lg mx-auto leading-relaxed">
-                키워드만 던져주세요. 또는 PDF와 URL을 제공하면 AI가 정밀 분석하여 전문적인 글을 완성해 드립니다.
+                키워드만 던져주세요. 또는 PDF, 이미지, URL을 제공하면 AI가 정밀 분석하여 전문적인 글을 완성해 드립니다.
               </p>
             </div>
             
@@ -218,7 +226,7 @@ const App: React.FC = () => {
                     <LinkIcon className="w-4 h-4" /> 참고 자료 추가 (선택)
                 </h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-6">
                     {/* URL Input */}
                     <div className="space-y-3">
                         <label className="text-sm font-semibold text-slate-700">웹 페이지 (URL)</label>
@@ -249,36 +257,55 @@ const App: React.FC = () => {
                         </ul>
                     </div>
 
-                    {/* File Upload */}
-                    <div className="space-y-3">
-                        <label className="text-sm font-semibold text-slate-700">문서 업로드 (PDF)</label>
-                        <div className="relative">
-                            <input 
-                                type="file" 
-                                accept="application/pdf"
-                                onChange={handleFileUpload}
-                                className="hidden" 
-                                id="file-upload"
-                            />
-                            <label 
-                                htmlFor="file-upload"
-                                className="flex items-center justify-center gap-2 w-full p-2 border-2 border-dashed border-slate-200 rounded-lg text-sm text-slate-500 hover:border-indigo-400 hover:text-indigo-600 cursor-pointer transition-colors"
-                            >
-                                <UploadIcon className="w-4 h-4" /> PDF 선택 (10MB 이하)
-                            </label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* File Upload */}
+                        <div className="space-y-3">
+                            <label className="text-sm font-semibold text-slate-700">파일 업로드 (PDF/이미지)</label>
+                            <div className="relative">
+                                <input 
+                                    type="file" 
+                                    accept="application/pdf, image/*"
+                                    onChange={handleFileUpload}
+                                    className="hidden" 
+                                    id="file-upload"
+                                />
+                                <label 
+                                    htmlFor="file-upload"
+                                    className="flex items-center justify-center gap-2 w-full p-4 border-2 border-dashed border-slate-200 rounded-lg text-sm text-slate-500 hover:border-indigo-400 hover:text-indigo-600 cursor-pointer transition-colors bg-slate-50/50"
+                                >
+                                    <UploadIcon className="w-4 h-4" /> 파일 선택 (10MB 이하)
+                                </label>
+                            </div>
+                            <ul className="space-y-2">
+                                {sourceFiles.map((file, idx) => (
+                                    <li key={idx} className="flex items-center justify-between text-xs bg-slate-50 p-2 rounded text-slate-600">
+                                        <span className="flex items-center gap-2 truncate flex-1 mr-2">
+                                            {file.mimeType.includes('image') ? <ImageIcon className="w-3 h-3 text-pink-500" /> : <FileTextIcon className="w-3 h-3 text-blue-500" />}
+                                            {file.name}
+                                        </span>
+                                        <button onClick={() => handleRemoveFile(idx)} className="text-red-400 hover:text-red-600">
+                                            <TrashIcon className="w-3 h-3" />
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
-                        <ul className="space-y-2">
-                            {sourceFiles.map((file, idx) => (
-                                <li key={idx} className="flex items-center justify-between text-xs bg-slate-50 p-2 rounded text-slate-600">
-                                    <span className="flex items-center gap-1 truncate flex-1 mr-2">
-                                        <FileTextIcon className="w-3 h-3" /> {file.name}
-                                    </span>
-                                    <button onClick={() => handleRemoveFile(idx)} className="text-red-400 hover:text-red-600">
-                                        <TrashIcon className="w-3 h-3" />
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
+
+                        {/* Memo Input */}
+                        <div className="space-y-3">
+                            <label className="text-sm font-semibold text-slate-700">직접 입력 (메모)</label>
+                            <div className="relative">
+                                <textarea 
+                                    value={memo}
+                                    onChange={(e) => setMemo(e.target.value)}
+                                    placeholder="핵심 키워드, 포함할 내용, 혹은 나만의 아이디어를 자유롭게 적어주세요."
+                                    className="w-full p-3 h-[100px] text-sm border border-slate-200 rounded-lg outline-none focus:border-indigo-500 resize-none bg-slate-50 focus:bg-white transition-colors"
+                                />
+                                <div className="absolute top-3 right-3 text-slate-400">
+                                    <MemoIcon className="w-4 h-4" />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -314,7 +341,7 @@ const App: React.FC = () => {
               </div>
                <div>
                  <div className="font-bold text-slate-800 mb-1">📚 자료 분석</div>
-                 <div className="text-xs text-slate-400">PDF/URL 심층 분석</div>
+                 <div className="text-xs text-slate-400">PDF/URL/메모 통합 분석</div>
               </div>
             </div>
           </div>
