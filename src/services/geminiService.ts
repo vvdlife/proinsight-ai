@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { BlogTone, OutlineData, SocialPost, ImageStyle, UploadedFile } from "../types";
 
@@ -18,6 +19,7 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
   const ai = getGenAI();
   const modelId = "gemini-2.5-flash";
   
+  // Construct the prompt with sources
   let promptText = `Write a blog post outline for the topic: "${topic}". The output must be in Korean.`;
   
   if (memo && memo.trim()) {
@@ -34,6 +36,7 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
 
   const parts: any[] = [{ text: promptText }];
   
+  // Attach files as parts
   files.forEach(file => {
       parts.push({
           inlineData: {
@@ -60,7 +63,7 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
         },
         required: ["title", "sections"],
       },
-      systemInstruction: "You are an expert content strategist. Create engaging, well-structured outlines.",
+      systemInstruction: "You are an expert content strategist. Create engaging, well-structured outlines based on the provided source materials (if any).",
     },
   });
 
@@ -119,6 +122,11 @@ export const generateBlogPostContent = async (
     2.  **Body**: Follow the outline sections. Use subheaders (##).
     3.  **## 📚 참고 자료**: List trusted sources. If URLs were provided, list them as [Name](URL). If files were used, mention the document name.
     4.  **## ⚡ 3줄 요약**: Exactly 3 bullet points summarizing the key takeaways.
+    
+    FORMATTING:
+    - Use ## for main sections.
+    - Use **bold** for emphasis.
+    - Use > blockquotes for key insights.
   `;
 
   const parts: any[] = [{ text: promptText }];
@@ -136,7 +144,7 @@ export const generateBlogPostContent = async (
     model: modelId,
     contents: { role: 'user', parts },
     config: {
-      systemInstruction: "You are a senior analyst. Your writing is extremely structured, data-driven, and easy to scan.",
+      systemInstruction: "You are a senior analyst. Your writing is extremely structured, data-driven, and easy to scan. You prioritize facts from provided documents.",
     },
   });
 
@@ -144,7 +152,7 @@ export const generateBlogPostContent = async (
 };
 
 /**
- * Generates social media promotional posts and an Instagram image.
+ * Generates social media promotional posts.
  */
 export const generateSocialPosts = async (title: string, summary: string): Promise<SocialPost[]> => {
   const ai = getGenAI();
@@ -154,12 +162,26 @@ export const generateSocialPosts = async (title: string, summary: string): Promi
     Create promotional social media posts for a blog article titled: "${title}".
     Summary context: "${summary.substring(0, 300)}..."
     
-    Generate 3 distinct posts:
-    1. **Instagram**: Carousel/Card News Plan. Use emojis.
-    2. **LinkedIn**: Professional Insight.
-    3. **Twitter (X)**: Thread Hook.
+    Generate 3 distinct posts optimized for each platform's culture:
     
-    IMPORTANT: Use the placeholder [Link] where the blog URL should go.
+    1. **Instagram**: Create a "Carousel/Card News" plan.
+       - Structure: "Slide 1: [Hook]", "Slide 2: [Point 1]", "Slide 3: [Point 2]", "Slide 4: [Conclusion]".
+       - Tone: Visual, Emoji-rich, Emotional.
+       - Hashtags: 10-15 relevant tags.
+       - Use placeholder [Link] or [Blog Link] for the bio link.
+       
+    2. **LinkedIn**: Professional Insight.
+       - Focus: Industry impact, professional growth, business value.
+       - Tone: Professional, Thought leadership.
+       - Hashtags: 3-5 professional tags.
+       - Include placeholder [Link] or [Blog Link] for the article.
+       
+    3. **Twitter (X)**: A Thread (Targeting high engagement).
+       - Structure: "1/5 [Hook]", "2/5 [Point]", ... "5/5 [Link]".
+       - Tone: Punchy, controversial or surprising.
+       - Hashtags: 2-3 trending tags.
+       - Include placeholder [Link] or [Blog Link].
+    
     Output in JSON format.
   `;
 
@@ -188,10 +210,9 @@ export const generateSocialPosts = async (title: string, summary: string): Promi
   
   let posts = JSON.parse(text) as SocialPost[];
 
-  // 1. Link Replacement (Smart Priority)
+  // 1. Post-processing: Link Replacement
   try {
     const userUrls = JSON.parse(localStorage.getItem('proinsight_blog_urls') || '{}');
-    // Priority: Naver > Tistory > Medium > WordPress > Substack
     const targetUrl = userUrls.NAVER || userUrls.TISTORY || userUrls.MEDIUM || userUrls.WORDPRESS || userUrls.SUBSTACK;
     
     if (targetUrl) {
@@ -201,15 +222,13 @@ export const generateSocialPosts = async (title: string, summary: string): Promi
         }));
     }
   } catch (e) {
-    console.error("Link replacement error", e);
+    console.error("Failed to replace links", e);
   }
 
   // 2. Generate Image for Instagram (1:1 Ratio)
-  // We explicitly check for Instagram and trigger a separate image generation
   const instaIndex = posts.findIndex(p => p.platform === 'Instagram');
   if (instaIndex !== -1) {
       try {
-          console.log("Generating Instagram image...");
           const instaImage = await generateBlogImage(title, ImageStyle.DIGITAL_ART, "1:1");
           if (instaImage) {
               posts[instaIndex].imageUrl = instaImage;
@@ -223,7 +242,8 @@ export const generateSocialPosts = async (title: string, summary: string): Promi
 };
 
 /**
- * Generates a hero image with support for Aspect Ratio.
+ * Generates a hero image.
+ * Now supports aspect ratio parameter.
  */
 export const generateBlogImage = async (title: string, style: ImageStyle, ratio: string = "16:9"): Promise<string | undefined> => {
   const ai = getGenAI();
@@ -232,30 +252,39 @@ export const generateBlogImage = async (title: string, style: ImageStyle, ratio:
   let stylePrompt = "";
   switch (style) {
     case ImageStyle.PHOTOREALISTIC:
-      stylePrompt = `STYLE: Real life photography, Shot on DSLR, 4k resolution.`;
+      stylePrompt = `STYLE: Real life photography, Shot on DSLR, 4k resolution, Cinematic lighting. Aspect Ratio: ${ratio}.`;
       break;
     case ImageStyle.DIGITAL_ART:
-      stylePrompt = `STYLE: High-end Digital Art, Vibrant colors, Modern aesthetics.`;
+      stylePrompt = `STYLE: High-end Digital Art, Vibrant colors, Clean composition, Modern Tech aesthetics. Aspect Ratio: ${ratio}.`;
       break;
     case ImageStyle.MINIMALIST:
-      stylePrompt = `STYLE: Minimalist flat illustration, Pastel colors, Clean lines.`;
+      stylePrompt = `STYLE: Minimalist flat illustration, Pastel colors, Clean lines, Negative space. Aspect Ratio: ${ratio}.`;
       break;
     case ImageStyle.RENDER_3D:
-      stylePrompt = `STYLE: 3D Render, Blender style, Isometric view, High detail.`;
+      stylePrompt = `STYLE: 3D Render, Blender style, Isometric view, Soft lighting, High detail. Aspect Ratio: ${ratio}.`;
+      break;
+    case ImageStyle.WATERCOLOR:
+      stylePrompt = `STYLE: Watercolor painting, soft strokes, artistic, dreamy atmosphere. Aspect Ratio: ${ratio}.`;
+      break;
+    case ImageStyle.CYBERPUNK:
+      stylePrompt = `STYLE: Cyberpunk aesthetics, neon lights, futuristic city, dark atmosphere with bright accents. Aspect Ratio: ${ratio}.`;
+      break;
+    case ImageStyle.ANIME:
+      stylePrompt = `STYLE: Anime style, Makoto Shinkai inspired, vibrant skies, detailed backgrounds. Aspect Ratio: ${ratio}.`;
       break;
     default:
-      stylePrompt = `STYLE: Photorealistic, 4k resolution.`;
+      stylePrompt = `STYLE: Photorealistic, 4k resolution. Aspect Ratio: ${ratio}.`;
   }
 
   try {
     const prompt = `
       Create a high-quality image representing: "${title}".
+      
       ${stylePrompt}
-      ASPECT RATIO: ${ratio}.
       
       CRITICAL NEGATIVE CONSTRAINTS:
       - NO TEXT, NO LETTERS, NO NUMBERS, NO WATERMARKS inside the image.
-      - Do not include messy details.
+      - Do not include messy details or distorted faces.
     `;
 
     const response = await ai.models.generateContent({

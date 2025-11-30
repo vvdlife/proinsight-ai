@@ -1,3 +1,4 @@
+
 export enum BlogTone {
   PROFESSIONAL = '전문적인',
   CASUAL = '편안한/일상적인',
@@ -10,6 +11,9 @@ export enum ImageStyle {
   DIGITAL_ART = '디지털 아트',
   MINIMALIST = '미니멀 일러스트',
   RENDER_3D = '3D 렌더링',
+  WATERCOLOR = '수채화',
+  CYBERPUNK = '사이버펑크',
+  ANIME = '애니메이션',
 }
 
 export interface OutlineData {
@@ -21,12 +25,12 @@ export interface SocialPost {
   platform: 'Instagram' | 'LinkedIn' | 'Twitter';
   content: string;
   hashtags: string[];
-  imageUrl?: string; // 인스타그램용 이미지 URL
+  imageUrl?: string; // Added for Instagram image support
 }
 
 export interface BlogPost {
   title: string;
-  content: string; 
+  content: string; // Markdown formatted string
   images: string[]; 
   socialPosts?: SocialPost[];
 }
@@ -34,7 +38,7 @@ export interface BlogPost {
 export interface UploadedFile {
   name: string;
   mimeType: string;
-  data: string; 
+  data: string; // Base64 string without prefix
 }
 
 export enum AppStep {
