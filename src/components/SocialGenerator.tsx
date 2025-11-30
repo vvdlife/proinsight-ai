@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { SocialPost } from '../types';
-import { CopyIcon, CheckIcon, HeartIcon, ChatBubbleIcon, RepeatIcon, ShareIcon } from './Icons';
+import { CopyIcon, CheckIcon, HeartIcon, ChatBubbleIcon, RepeatIcon, ShareIcon, ImageIcon } from './Icons';
 
 interface SocialGeneratorProps {
   posts: SocialPost[];
@@ -8,7 +9,7 @@ interface SocialGeneratorProps {
 
 export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const hasBlogUrl = !!localStorage.getItem('proinsight_blog_url');
+  const hasBlogUrl = !!localStorage.getItem('proinsight_blog_urls'); // Adjusted key check
 
   if (!posts || posts.length === 0) return null;
 
@@ -43,9 +44,22 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
             <span className="font-semibold text-xs text-slate-800">proinsight_ai</span>
             <span className="ml-auto text-slate-400">•••</span>
           </div>
-          {/* Insta Image Placeholder */}
-          <div className="aspect-square bg-slate-100 flex items-center justify-center text-slate-300">
-             <span className="text-xs">이미지 영역</span>
+          {/* Insta Image Placeholder or Generated Image */}
+          <div className="aspect-square bg-slate-100 flex items-center justify-center text-slate-300 relative group overflow-hidden">
+             {post.imageUrl ? (
+                 <>
+                    <img src={post.imageUrl} alt="Instagram Post" className="w-full h-full object-cover" />
+                    <a 
+                        href={post.imageUrl} 
+                        download={`instagram-post-${index}.png`}
+                        className="absolute bottom-4 right-4 bg-white/90 hover:bg-white text-slate-800 px-3 py-2 rounded-lg font-bold text-xs shadow-lg flex items-center gap-1 transition-all opacity-0 group-hover:opacity-100"
+                    >
+                        <ImageIcon className="w-3 h-3" /> 다운로드
+                    </a>
+                 </>
+             ) : (
+                 <span className="text-xs">이미지 생성 실패</span>
+             )}
           </div>
           {/* Insta Actions */}
           <div className="px-4 py-3 flex gap-4">

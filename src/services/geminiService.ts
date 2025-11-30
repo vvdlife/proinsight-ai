@@ -210,10 +210,9 @@ export const generateSocialPosts = async (title: string, summary: string): Promi
   
   let posts = JSON.parse(text) as SocialPost[];
 
-  // Post-processing: Replace [Link] placeholders with actual user blog URL if set
+  // 1. Post-processing: Link Replacement
   try {
     const userUrls = JSON.parse(localStorage.getItem('proinsight_blog_urls') || '{}');
-    // Priority: Naver > Tistory > Medium > Wordpress > Substack
     const targetUrl = userUrls.NAVER || userUrls.TISTORY || userUrls.MEDIUM || userUrls.WORDPRESS || userUrls.SUBSTACK;
     
     if (targetUrl) {
@@ -226,37 +225,51 @@ export const generateSocialPosts = async (title: string, summary: string): Promi
     console.error("Failed to replace links", e);
   }
 
+  // 2. Generate Image for Instagram (1:1 Ratio)
+  const instaIndex = posts.findIndex(p => p.platform === 'Instagram');
+  if (instaIndex !== -1) {
+      try {
+          const instaImage = await generateBlogImage(title, ImageStyle.DIGITAL_ART, "1:1");
+          if (instaImage) {
+              posts[instaIndex].imageUrl = instaImage;
+          }
+      } catch (e) {
+          console.error("Failed to generate Instagram image", e);
+      }
+  }
+
   return posts;
 };
 
 /**
  * Generates a hero image.
+ * Now supports aspect ratio parameter.
  */
-export const generateBlogImage = async (title: string, style: ImageStyle): Promise<string | undefined> => {
+export const generateBlogImage = async (title: string, style: ImageStyle, ratio: string = "16:9"): Promise<string | undefined> => {
   const ai = getGenAI();
   const modelId = "gemini-2.5-flash-image";
 
   let stylePrompt = "";
   switch (style) {
     case ImageStyle.PHOTOREALISTIC:
-      stylePrompt = "STYLE: Real life photography, Shot on DSLR, 4k resolution, Cinematic lighting. Aspect Ratio: 16:9.";
+      stylePrompt = `STYLE: Real life photography, Shot on DSLR, 4k resolution, Cinematic lighting. Aspect Ratio: ${ratio}.`;
       break;
     case ImageStyle.DIGITAL_ART:
-      stylePrompt = "STYLE: High-end Digital Art, Vibrant colors, Clean composition, Modern Tech aesthetics. Aspect Ratio: 16:9.";
+      stylePrompt = `STYLE: High-end Digital Art, Vibrant colors, Clean composition, Modern Tech aesthetics. Aspect Ratio: ${ratio}.`;
       break;
     case ImageStyle.MINIMALIST:
-      stylePrompt = "STYLE: Minimalist flat illustration, Pastel colors, Clean lines, Negative space. Aspect Ratio: 16:9.";
+      stylePrompt = `STYLE: Minimalist flat illustration, Pastel colors, Clean lines, Negative space. Aspect Ratio: ${ratio}.`;
       break;
     case ImageStyle.RENDER_3D:
-      stylePrompt = "STYLE: 3D Render, Blender style, Isometric view, Soft lighting, High detail. Aspect Ratio: 16:9.";
+      stylePrompt = `STYLE: 3D Render, Blender style, Isometric view, Soft lighting, High detail. Aspect Ratio: ${ratio}.`;
       break;
     default:
-      stylePrompt = "STYLE: Photorealistic, 4k resolution. Aspect Ratio: 16:9.";
+      stylePrompt = `STYLE: Photorealistic, 4k resolution. Aspect Ratio: ${ratio}.`;
   }
 
   try {
     const prompt = `
-      Create a high-quality blog header image representing: "${title}".
+      Create a high-quality image representing: "${title}".
       
       ${stylePrompt}
       

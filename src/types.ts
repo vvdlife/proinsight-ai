@@ -1,3 +1,4 @@
+
 export enum BlogTone {
   PROFESSIONAL = '전문적인',
   CASUAL = '편안한/일상적인',
@@ -21,12 +22,13 @@ export interface SocialPost {
   platform: 'Instagram' | 'LinkedIn' | 'Twitter';
   content: string;
   hashtags: string[];
+  imageUrl?: string; // Added for Instagram image support
 }
 
 export interface BlogPost {
   title: string;
   content: string; // Markdown formatted string
-  images: string[]; // Changed from single imageUrl to array
+  images: string[]; 
   socialPosts?: SocialPost[];
 }
 
