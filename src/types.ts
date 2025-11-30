@@ -30,6 +30,12 @@ export interface BlogPost {
   socialPosts?: SocialPost[];
 }
 
+export interface UploadedFile {
+  name: string;
+  mimeType: string;
+  data: string; // Base64 string without prefix
+}
+
 export enum AppStep {
   TOPIC_INPUT = 0,
   OUTLINE_REVIEW = 1,

@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { StepWizard } from './components/StepWizard';
 import { LoadingOverlay } from './components/LoadingOverlay';
-import { SparklesIcon, ChevronRightIcon, RefreshIcon, PenIcon, ImageIcon, CopyIcon, TrendIcon, ChartIcon, CodeIcon } from './components/Icons';
+import { SparklesIcon, ChevronRightIcon, RefreshIcon, PenIcon, ImageIcon, CopyIcon, TrendIcon, ChartIcon, CodeIcon, LinkIcon, UploadIcon, TrashIcon, FileTextIcon, PlusIcon } from './components/Icons';
 import { MarkdownRenderer } from './components/MarkdownRenderer';
 import { generateOutline, generateBlogPostContent, generateBlogImage, generateSocialPosts } from './services/geminiService';
-import { AppStep, BlogTone, OutlineData, BlogPost, LoadingState, ImageStyle } from './types';
+import { AppStep, BlogTone, OutlineData, BlogPost, LoadingState, ImageStyle, UploadedFile } from './types';
 import { AuthGate } from './components/AuthGate';
 import { SettingsModal } from './components/SettingsModal';
 import { SocialGenerator } from './components/SocialGenerator';
@@ -24,6 +24,11 @@ const App: React.FC = () => {
   const [finalPost, setFinalPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState<LoadingState>({ isLoading: false, message: '' });
 
+  // Source Material State
+  const [sourceUrls, setSourceUrls] = useState<string[]>([]);
+  const [newUrl, setNewUrl] = useState('');
+  const [sourceFiles, setSourceFiles] = useState<UploadedFile[]>([]);
+
   // Cleanup old local storage data on mount
   React.useEffect(() => {
     const keysToRemove = [
@@ -35,13 +40,57 @@ const App: React.FC = () => {
     keysToRemove.forEach(key => localStorage.removeItem(key));
   }, []);
 
+  // Handlers for Sources
+  const handleAddUrl = () => {
+    if (newUrl.trim()) {
+      setSourceUrls([...sourceUrls, newUrl.trim()]);
+      setNewUrl('');
+    }
+  };
+
+  const handleRemoveUrl = (index: number) => {
+    setSourceUrls(sourceUrls.filter((_, i) => i !== index));
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      if (file.type !== 'application/pdf') {
+        alert('PDF 파일만 업로드 가능합니다.');
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+         alert('파일 크기는 10MB 이하여야 합니다.');
+         return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          // Extract base64 part
+          const base64Data = reader.result.split(',')[1];
+          setSourceFiles([...sourceFiles, {
+            name: file.name,
+            mimeType: file.type,
+            data: base64Data
+          }]);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setSourceFiles(sourceFiles.filter((_, i) => i !== index));
+  };
+
   // Handlers
   const handleGenerateOutline = useCallback(async () => {
     if (!topic.trim()) return;
     
-    setLoading({ isLoading: true, message: 'Gemini가 주제를 분석하고 개요를 작성하고 있습니다...' });
+    setLoading({ isLoading: true, message: 'Gemini가 자료를 분석하고 개요를 작성하고 있습니다...' });
     try {
-      const data = await generateOutline(topic);
+      const data = await generateOutline(topic, sourceFiles, sourceUrls);
       setOutline(data);
       setCurrentStep(AppStep.OUTLINE_REVIEW);
     } catch (error) {
@@ -50,7 +99,7 @@ const App: React.FC = () => {
     } finally {
       setLoading({ isLoading: false, message: '' });
     }
-  }, [topic]);
+  }, [topic, sourceFiles, sourceUrls]);
 
   const handleUpdateOutlineSection = (index: number, value: string) => {
     if (!outline) return;
@@ -66,7 +115,7 @@ const App: React.FC = () => {
     try {
       // 1. Generate Content and Image in parallel
       const [content, imageUrl] = await Promise.all([
-        generateBlogPostContent(outline, selectedTone),
+        generateBlogPostContent(outline, selectedTone, sourceFiles, sourceUrls),
         generateBlogImage(outline.title, selectedImageStyle)
       ]);
 
@@ -87,13 +136,15 @@ const App: React.FC = () => {
     } finally {
       setLoading({ isLoading: false, message: '' });
     }
-  }, [outline, selectedTone, selectedImageStyle]);
+  }, [outline, selectedTone, selectedImageStyle, sourceFiles, sourceUrls]);
 
   const handleReset = () => {
     setCurrentStep(AppStep.TOPIC_INPUT);
     setTopic('');
     setOutline(null);
     setFinalPost(null);
+    setSourceFiles([]);
+    setSourceUrls([]);
   };
 
   const copyToClipboard = () => {
@@ -121,7 +172,7 @@ const App: React.FC = () => {
     switch (currentStep) {
       case AppStep.TOPIC_INPUT:
         return (
-          <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
             <div className="text-center mb-10">
               <h1 className="text-5xl font-extrabold text-slate-900 mb-6 tracking-tight leading-tight">
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600">
@@ -131,8 +182,7 @@ const App: React.FC = () => {
                 어떤 글을 쓰시겠습니까?
               </h1>
               <p className="text-slate-500 text-lg max-w-lg mx-auto leading-relaxed">
-                키워드만 던져주세요. 심층 분석 개요, 고품질 이미지, SNS 홍보글까지 
-                AI가 단 1분 만에 완성해 드립니다.
+                키워드만 던져주세요. 또는 PDF와 URL을 제공하면 AI가 정밀 분석하여 전문적인 글을 완성해 드립니다.
               </p>
             </div>
             
@@ -160,6 +210,77 @@ const App: React.FC = () => {
                   <SparklesIcon className="w-5 h-5" />
                 </button>
               </div>
+            </div>
+
+            {/* Source Materials Section */}
+            <div className="bg-white rounded-xl border border-slate-200 p-6 mb-12 shadow-sm">
+                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <LinkIcon className="w-4 h-4" /> 참고 자료 추가 (선택)
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* URL Input */}
+                    <div className="space-y-3">
+                        <label className="text-sm font-semibold text-slate-700">웹 페이지 (URL)</label>
+                        <div className="flex gap-2">
+                            <input 
+                                type="text" 
+                                value={newUrl}
+                                onChange={(e) => setNewUrl(e.target.value)}
+                                placeholder="https://..." 
+                                className="flex-1 p-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-indigo-500"
+                            />
+                            <button 
+                                onClick={handleAddUrl}
+                                className="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200"
+                            >
+                                <PlusIcon className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <ul className="space-y-2">
+                            {sourceUrls.map((url, idx) => (
+                                <li key={idx} className="flex items-center justify-between text-xs bg-slate-50 p-2 rounded text-slate-600">
+                                    <span className="truncate flex-1 mr-2">{url}</span>
+                                    <button onClick={() => handleRemoveUrl(idx)} className="text-red-400 hover:text-red-600">
+                                        <TrashIcon className="w-3 h-3" />
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    {/* File Upload */}
+                    <div className="space-y-3">
+                        <label className="text-sm font-semibold text-slate-700">문서 업로드 (PDF)</label>
+                        <div className="relative">
+                            <input 
+                                type="file" 
+                                accept="application/pdf"
+                                onChange={handleFileUpload}
+                                className="hidden" 
+                                id="file-upload"
+                            />
+                            <label 
+                                htmlFor="file-upload"
+                                className="flex items-center justify-center gap-2 w-full p-2 border-2 border-dashed border-slate-200 rounded-lg text-sm text-slate-500 hover:border-indigo-400 hover:text-indigo-600 cursor-pointer transition-colors"
+                            >
+                                <UploadIcon className="w-4 h-4" /> PDF 선택 (10MB 이하)
+                            </label>
+                        </div>
+                        <ul className="space-y-2">
+                            {sourceFiles.map((file, idx) => (
+                                <li key={idx} className="flex items-center justify-between text-xs bg-slate-50 p-2 rounded text-slate-600">
+                                    <span className="flex items-center gap-1 truncate flex-1 mr-2">
+                                        <FileTextIcon className="w-3 h-3" /> {file.name}
+                                    </span>
+                                    <button onClick={() => handleRemoveFile(idx)} className="text-red-400 hover:text-red-600">
+                                        <TrashIcon className="w-3 h-3" />
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
             </div>
             
             {/* Suggestions Chips */}
@@ -192,8 +313,8 @@ const App: React.FC = () => {
                  <div className="text-xs text-slate-400">4K 해상도 자동 생성</div>
               </div>
                <div>
-                 <div className="font-bold text-slate-800 mb-1">📱 SNS 홍보</div>
-                 <div className="text-xs text-slate-400">인스타/링크드인용</div>
+                 <div className="font-bold text-slate-800 mb-1">📚 자료 분석</div>
+                 <div className="text-xs text-slate-400">PDF/URL 심층 분석</div>
               </div>
             </div>
           </div>
