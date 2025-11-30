@@ -11,8 +11,33 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
   const [previewType, setPreviewType] = useState<'NAVER' | 'TISTORY' | null>(null);
 
   const generateHtml = (type: 'NAVER' | 'TISTORY') => {
-    // 1. Markdown to HTML Conversion with Inline Styles for Editors
-    let html = post.content
+    let content = post.content;
+
+    // 0. Table Conversion (Markdown Table -> HTML Table with Inline Styles)
+    // Regex to identify table blocks
+    content = content.replace(/\|(.+)\|\n\|([-:| ]+)\|\n((?:\|.*\|\n?)+)/g, (match, header, separator, body) => {
+        const headers = header.split('|').filter((h: string) => h.trim()).map((h: string) => h.trim());
+        const rows = body.trim().split('\n').map((row: string) => row.split('|').filter((c: string) => c.trim()).map((c: string) => c.trim()));
+        
+        const thStyle = "background-color: #f1f5f9; border: 1px solid #cbd5e1; padding: 12px; font-weight: bold; text-align: center; color: #334155;";
+        const tdStyle = "border: 1px solid #cbd5e1; padding: 12px; color: #475569;";
+        
+        let tableHtml = '<table style="border-collapse: collapse; width: 100%; margin: 24px 0; font-size: 15px;"><thead><tr>';
+        headers.forEach((h: string) => tableHtml += `<th style="${thStyle}">${h}</th>`);
+        tableHtml += '</tr></thead><tbody>';
+        
+        rows.forEach((row: string[]) => {
+            tableHtml += '<tr>';
+            row.forEach((cell: string) => tableHtml += `<td style="${tdStyle}">${cell}</td>`);
+            tableHtml += '</tr>';
+        });
+        tableHtml += '</tbody></table>';
+        
+        return tableHtml;
+    });
+
+    // 1. Basic Markdown to HTML Conversion
+    let html = content
       .replace(/^### (.*$)/gim, type === 'NAVER' 
         ? '<h3 style="font-size: 19px; font-weight: bold; margin-top: 24px; margin-bottom: 12px; color: #333;">$1</h3>'
         : '<h3>$1</h3>')
@@ -25,6 +50,7 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
       .replace(/\*\*(.*?)\*\*/gim, '<strong style="color: #4f46e5; font-weight: bold;">$1</strong>')
       .replace(/^\> (.*$)/gim, '<blockquote style="background-color: #f8fafc; border-left: 4px solid #cbd5e1; padding: 16px; margin: 16px 0; font-style: italic; color: #475569;">$1</blockquote>')
       .replace(/^- (.*$)/gim, '<li style="margin-left: 20px; margin-bottom: 8px; line-height: 1.6;">$1</li>')
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" target="_blank" style="color: #4f46e5; text-decoration: underline;">$1</a>')
       .replace(/\n/gim, '<br />');
     
     const titleHtml = type === 'NAVER'

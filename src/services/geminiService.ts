@@ -1,22 +1,13 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { BlogTone, OutlineData, SocialPost, ImageStyle } from "../types";
 
-// Helper to get client securely only when needed
-const getGenAI = () => {
-  // Try session storage first (secure), then local storage (legacy/dev)
-  const key = sessionStorage.getItem('proinsight_api_key') || localStorage.getItem('proinsight_api_key');
-  
-  if (!key) {
-    throw new Error("API Key가 없습니다. 설정에서 키를 등록해주세요.");
-  }
-  return new GoogleGenAI({ apiKey: key });
-};
+// Initialize Gemini Client with environment variable
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
  * Generates a blog post outline based on a topic.
  */
 export const generateOutline = async (topic: string): Promise<OutlineData> => {
-  const ai = getGenAI();
   const modelId = "gemini-2.5-flash";
   
   const response = await ai.models.generateContent({
@@ -55,7 +46,6 @@ export const generateBlogPostContent = async (
   outline: OutlineData,
   tone: BlogTone
 ): Promise<string> => {
-  const ai = getGenAI();
   const modelId = "gemini-2.5-flash"; // Using Flash for speed
 
   const prompt = `
@@ -99,7 +89,6 @@ export const generateBlogPostContent = async (
  * Generates social media promotional posts.
  */
 export const generateSocialPosts = async (title: string, summary: string): Promise<SocialPost[]> => {
-  const ai = getGenAI();
   const modelId = "gemini-2.5-flash";
 
   const prompt = `
@@ -155,7 +144,6 @@ export const generateSocialPosts = async (title: string, summary: string): Promi
  * Generates a hero image.
  */
 export const generateBlogImage = async (title: string, style: ImageStyle): Promise<string | undefined> => {
-  const ai = getGenAI();
   const modelId = "gemini-2.5-flash-image";
 
   // Construct prompt based on selected style
