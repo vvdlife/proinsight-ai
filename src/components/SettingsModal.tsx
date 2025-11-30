@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -6,9 +6,31 @@ interface SettingsModalProps {
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
+  const [apiKey, setApiKey] = useState('');
+  const [newKey, setNewKey] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      const key = sessionStorage.getItem('proinsight_api_key') || localStorage.getItem('proinsight_api_key') || '';
+      setApiKey(key);
+    }
+  }, [isOpen]);
+
+  const handleUpdateKey = () => {
+    if (newKey.startsWith('AIza')) {
+        sessionStorage.setItem('proinsight_api_key', newKey);
+        setApiKey(newKey);
+        setNewKey('');
+        alert('API Key가 업데이트되었습니다.');
+    } else {
+        alert('유효한 API Key를 입력하세요.');
+    }
+  };
+
   const handleLogout = () => {
-    if (confirm('앱을 잠그시겠습니까? 다시 사용하려면 인증이 필요합니다.')) {
-      localStorage.removeItem('proinsight_access_code'); // Lock access code
+    if (confirm('앱을 잠그고 로그아웃 하시겠습니까?')) {
+      sessionStorage.removeItem('proinsight_api_key');
+      localStorage.removeItem('proinsight_access_code');
       window.location.reload();
     }
   };
@@ -26,6 +48,35 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         </div>
         
         <div className="p-6 space-y-6">
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">현재 API Key</label>
+            <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+              <span className="text-slate-600 text-sm font-mono flex-1 truncate">
+                {apiKey ? `${apiKey.substring(0, 5)}...${apiKey.substring(apiKey.length - 5)}` : '미설정'}
+              </span>
+            </div>
+          </div>
+
+          <div>
+             <label className="block text-sm font-semibold text-slate-700 mb-2">API Key 변경</label>
+             <div className="flex gap-2">
+                <input 
+                    type="text" 
+                    value={newKey}
+                    onChange={(e) => setNewKey(e.target.value)}
+                    placeholder="새 API Key 입력"
+                    className="flex-1 p-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500"
+                />
+                <button 
+                    onClick={handleUpdateKey}
+                    className="px-4 py-2 bg-slate-800 text-white text-sm rounded-lg hover:bg-slate-900"
+                >
+                    변경
+                </button>
+             </div>
+          </div>
+
           <button
             onClick={handleLogout}
             className="w-full py-3 border border-red-200 text-red-600 rounded-xl hover:bg-red-50 font-medium transition-colors flex items-center justify-center gap-2"
