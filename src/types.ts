@@ -16,6 +16,14 @@ export enum ImageStyle {
   ANIME = '애니메이션',
 }
 
+export enum BlogFont {
+  PRETENDARD = 'Pretendard (기본)',
+  NOTO_SERIF = 'Noto Serif (명조)',
+  NANUM_GOTHIC = '나눔고딕 (본문용)',
+  RIDIBATANG = '리디바탕 (이북스타일)',
+  NANUM_PEN = '나눔손글씨 (캐주얼)',
+}
+
 export interface OutlineData {
   title: string;
   sections: string[];

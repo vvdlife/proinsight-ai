@@ -1,11 +1,26 @@
+
 import React, { useMemo } from 'react';
+import { BlogFont } from '../types';
 
 interface MarkdownRendererProps {
   content: string;
+  font?: BlogFont;
 }
 
-export const MarkdownRenderer: React.FC<MarkdownRendererProps> = React.memo(({ content }) => {
+export const MarkdownRenderer: React.FC<MarkdownRendererProps> = React.memo(({ content, font = BlogFont.PRETENDARD }) => {
   
+  // Font Class Mapping
+  const fontClass = useMemo(() => {
+    switch(font) {
+        case BlogFont.PRETENDARD: return 'font-pretendard';
+        case BlogFont.NOTO_SERIF: return 'font-noto-serif';
+        case BlogFont.NANUM_GOTHIC: return 'font-nanum-gothic';
+        case BlogFont.RIDIBATANG: return 'font-ridibatang';
+        case BlogFont.NANUM_PEN: return 'font-nanum-pen';
+        default: return 'font-pretendard';
+    }
+  }, [font]);
+
   const renderedContent = useMemo(() => {
     // Advanced parser handling Block elements (Tables) and Inline elements (Bold, Links)
     const lines = content.split('\n');
@@ -29,7 +44,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = React.memo(({ c
            const bodyRows = tableRows.slice(2).map(row => row.split('|').filter(c => c.trim() !== '').map(c => c.trim()));
 
            elements.push(
-             <div key={`table-${i}`} className="my-10 overflow-hidden rounded-xl border border-slate-200 shadow-sm font-sans">
+             <div key={`table-${i}`} className={`my-10 overflow-hidden rounded-xl border border-slate-200 shadow-sm ${fontClass}`}>
                <table className="w-full text-left border-collapse bg-white">
                  <thead>
                    <tr className="bg-slate-100/80 border-b border-slate-200">
@@ -58,7 +73,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = React.memo(({ c
       if (line.startsWith('### ')) {
         // H3: Left border accent
         elements.push(
-            <h3 key={i} className="text-xl font-bold text-slate-800 mt-10 mb-4 flex items-center font-sans">
+            <h3 key={i} className={`text-xl font-bold text-slate-800 mt-10 mb-4 flex items-center ${fontClass}`}>
                 <span className="w-1.5 h-6 bg-indigo-500 rounded-full mr-3"></span>
                 {parseInline(line.replace('### ', ''))}
             </h3>
@@ -67,19 +82,19 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = React.memo(({ c
       else if (line.startsWith('## ')) {
         // H2: Bottom border, large size
         elements.push(
-            <h2 key={i} className="text-2xl font-bold text-slate-900 mt-16 mb-6 pb-3 border-b-2 border-slate-100 font-sans">
+            <h2 key={i} className={`text-2xl font-bold text-slate-900 mt-16 mb-6 pb-3 border-b-2 border-slate-100 ${fontClass}`}>
                 {parseInline(line.replace('## ', ''))}
             </h2>
         );
       }
       else if (line.startsWith('# ')) {
         // H1: Huge, extrabold
-        elements.push(<h1 key={i} className="text-4xl font-extrabold text-slate-900 mb-10 tracking-tight leading-tight font-sans">{parseInline(line.replace('# ', ''))}</h1>);
+        elements.push(<h1 key={i} className={`text-4xl font-extrabold text-slate-900 mb-10 tracking-tight leading-tight ${fontClass}`}>{parseInline(line.replace('# ', ''))}</h1>);
       }
       else if (line.startsWith('- ') || line.startsWith('* ')) {
         // List: Custom marker color
         elements.push(
-            <li key={i} className="ml-4 flex items-start gap-3 mb-3 text-[17px] text-slate-700 leading-relaxed font-sans">
+            <li key={i} className={`ml-4 flex items-start gap-3 mb-3 text-[17px] text-slate-700 leading-relaxed ${fontClass}`}>
                 <span className="mt-2.5 w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0"></span>
                 <span>{parseInline(line.substring(2))}</span>
             </li>
@@ -98,17 +113,17 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = React.memo(({ c
       }
       else {
         // Paragraph: Optimized for reading (size 17px, line-height 1.8)
-        elements.push(<p key={i} className="text-[17px] text-slate-700 leading-[1.8] mb-6 font-normal tracking-normal font-sans">{parseInline(line)}</p>);
+        elements.push(<p key={i} className={`text-[17px] text-slate-700 leading-[1.8] mb-6 font-normal tracking-normal ${fontClass}`}>{parseInline(line)}</p>);
       }
       
       i++;
     }
 
     return elements;
-  }, [content]);
+  }, [content, fontClass]);
 
   return (
-    <div className="prose prose-slate max-w-none">
+    <div className={`prose prose-slate max-w-none ${fontClass}`}>
       {renderedContent}
     </div>
   );
