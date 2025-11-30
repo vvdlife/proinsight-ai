@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { BlogPost } from '../types';
 import { CopyIcon, NaverIcon, TistoryIcon, MediumIcon, WordPressIcon, SubstackIcon, CheckIcon, EyeIcon, XIcon } from './Icons';
@@ -156,7 +157,7 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {platforms.map((p) => (
              <div key={p.id} className="relative group flex items-center justify-between p-4 rounded-xl border-2 border-slate-100 hover:border-indigo-500 transition-all duration-200 cursor-pointer" onClick={() => setPreviewType(p.id)}>
-                <div className="flex items-center gap-3 flex-1 overflow-hidden">
+                <div className="flex items-center gap-3 flex-1 min-w-0 overflow-hidden">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white shrink-0" style={{ backgroundColor: p.color }}>
                     {p.icon}
                 </div>
