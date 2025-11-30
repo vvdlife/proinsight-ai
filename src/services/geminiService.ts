@@ -3,7 +3,7 @@ import { BlogTone, OutlineData, SocialPost, ImageStyle, UploadedFile } from "../
 
 // Helper to get client securely
 const getGenAI = () => {
-  const key = sessionStorage.getItem('proinsight_api_key') || localStorage.getItem('proinsight_api_key') || process.env.API_KEY;
+  const key = sessionStorage.getItem('proinsight_api_key') || localStorage.getItem('proinsight_api_key') || (import.meta as any).env.VITE_API_KEY;
   
   if (!key) {
     throw new Error("API Key가 없습니다. 설정에서 키를 등록해주세요.");
@@ -18,7 +18,6 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
   const ai = getGenAI();
   const modelId = "gemini-2.5-flash";
   
-  // Construct the prompt with sources
   let promptText = `Write a blog post outline for the topic: "${topic}". The output must be in Korean.`;
   
   if (urls.length > 0) {
@@ -31,7 +30,6 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
 
   const parts: any[] = [{ text: promptText }];
   
-  // Attach files as parts
   files.forEach(file => {
       parts.push({
           inlineData: {
@@ -58,7 +56,7 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
         },
         required: ["title", "sections"],
       },
-      systemInstruction: "You are an expert content strategist. Create engaging, well-structured outlines based on the provided source materials (if any).",
+      systemInstruction: "You are an expert content strategist. Create engaging, well-structured outlines based on the provided source materials.",
     },
   });
 
@@ -82,6 +80,24 @@ export const generateBlogPostContent = async (
   const ai = getGenAI();
   const modelId = "gemini-2.5-flash"; 
 
+  // Construct precise reference list for the prompt
+  let referenceInstruction = "";
+  if (urls.length > 0 || files.length > 0) {
+      referenceInstruction = `
+      IMPORTANT: You MUST end the post with a section titled "## 📚 참고 자료 (References)".
+      In this section, you MUST list the following sources exactly as provided:
+      `;
+      
+      if (urls.length > 0) {
+          referenceInstruction += `\nURLs:\n${urls.map(url => `- ${url}`).join('\n')}`;
+      }
+      if (files.length > 0) {
+          referenceInstruction += `\nDocuments:\n${files.map(f => `- ${f.name} (Uploaded Document)`).join('\n')}`;
+      }
+      
+      referenceInstruction += "\n\n(Do not invent fake links. Use the provided ones.)";
+  }
+
   let promptText = `
     Write a high-quality, professional blog post based on this outline:
     Title: ${outline.title}
@@ -101,21 +117,21 @@ export const generateBlogPostContent = async (
 
   promptText += `
     CRITICAL WRITING INSTRUCTIONS:
-    1.  **NO EXCESSIVE BULLET POINTS**: Write primarily in **paragraphs**. Use bullet points (-) ONLY when listing items, never for main content flow.
+    1.  **Natural Paragraphs**: Write primarily in natural paragraphs (Seosul-hyeong). Do NOT use bullet points (-) for the main body unless listing specific items. Avoid excessive hyphenation.
     2.  **Visual Elements**: You MUST include at least one **Markdown Table** to compare data or summarize key points.
     3.  **Dense & Concise**: No fluff. Every sentence must provide value.
     4.  **Actionable**: Each section should answer "Why this matters" or "What to do".
-    5.  **Source Usage**: If source files/URLs are provided, you MUST base your content on them.
+    5.  **Source Integrity**: Base your arguments on the provided sources.
     
     REQUIRED SECTIONS:
-    1.  **Introduction**: Hook the reader immediately. State the problem and the solution.
-    2.  **Body**: Follow the outline sections. Use subheaders (##).
-    3.  **## 📚 참고 자료**: List trusted sources. If URLs were provided, list them as [Name](URL). If files were used, mention the document name.
-    4.  **## ⚡ 3줄 요약**: Exactly 3 bullet points summarizing the key takeaways.
+    1.  **Introduction**: Hook the reader immediately.
+    2.  **Body**: Follow the outline. Use subheaders (##).
+    3.  **## ⚡ 3줄 요약**: Exactly 3 bullet points summarizing the key takeaways.
+    ${referenceInstruction}
     
     FORMATTING:
     - Use ## for main sections.
-    - Use **bold** for emphasis.
+    - Use **bold** for emphasis (but do not over-use).
     - Use > blockquotes for key insights.
   `;
 
@@ -134,7 +150,7 @@ export const generateBlogPostContent = async (
     model: modelId,
     contents: { role: 'user', parts },
     config: {
-      systemInstruction: "You are a senior analyst. Your writing is extremely structured, data-driven, and easy to scan. You prioritize facts from provided documents.",
+      systemInstruction: "You are a senior analyst. Your writing is structured, data-driven, and easy to read. You prioritize facts from provided documents.",
     },
   });
 
@@ -148,29 +164,37 @@ export const generateSocialPosts = async (title: string, summary: string): Promi
   const ai = getGenAI();
   const modelId = "gemini-2.5-flash";
 
+  // Get user's saved blog URLs for context, but we will use the prompt to structure it.
+  let blogUrlContext = "";
+  try {
+    const userUrls = JSON.parse(localStorage.getItem('proinsight_blog_urls') || '{}');
+    const targetUrl = userUrls.NAVER || userUrls.TISTORY || userUrls.MEDIUM || userUrls.WORDPRESS || userUrls.SUBSTACK;
+    if (targetUrl) {
+        blogUrlContext = `The link to the blog post is: ${targetUrl}. Please include this link naturally in the posts where appropriate (e.g. "Link in bio" or directly).`;
+    } else {
+        blogUrlContext = `Use a placeholder [Link] for the blog post URL.`;
+    }
+  } catch (e) {
+      blogUrlContext = `Use a placeholder [Link] for the blog post URL.`;
+  }
+
   const prompt = `
     Create promotional social media posts for a blog article titled: "${title}".
     Summary context: "${summary.substring(0, 300)}..."
     
-    Generate 3 distinct posts optimized for each platform's culture:
+    ${blogUrlContext}
     
-    1. **Instagram**: Create a "Carousel/Card News" plan.
-       - Structure: "Slide 1: [Hook]", "Slide 2: [Point 1]", "Slide 3: [Point 2]", "Slide 4: [Conclusion]".
-       - Tone: Visual, Emoji-rich, Emotional.
-       - Hashtags: 10-15 relevant tags.
-       - Use placeholder [Link] or [Blog Link] for the bio link.
+    Generate 3 distinct posts:
+    
+    1. **Instagram**: Carousel/Card News Plan.
+       - Structure: Slide 1 (Hook), Slide 2-3 (Points), Slide 4 (CTA).
+       - Tone: Visual, Emojis.
        
     2. **LinkedIn**: Professional Insight.
-       - Focus: Industry impact, professional growth, business value.
-       - Tone: Professional, Thought leadership.
-       - Hashtags: 3-5 professional tags.
-       - Include placeholder [Link] or [Blog Link] for the article.
+       - Tone: Thought leadership.
        
-    3. **Twitter (X)**: A Thread (Targeting high engagement).
-       - Structure: "1/5 [Hook]", "2/5 [Point]", ... "5/5 [Link]".
-       - Tone: Punchy, controversial or surprising.
-       - Hashtags: 2-3 trending tags.
-       - Include placeholder [Link] or [Blog Link].
+    3. **Twitter (X)**: Thread Hook.
+       - Tone: Punchy, concise.
     
     Output in JSON format.
   `;
@@ -198,25 +222,7 @@ export const generateSocialPosts = async (title: string, summary: string): Promi
   const text = response.text;
   if (!text) return [];
   
-  let posts = JSON.parse(text) as SocialPost[];
-
-  // Post-processing: Replace [Link] placeholders with actual user blog URL if set
-  try {
-    const userUrls = JSON.parse(localStorage.getItem('proinsight_blog_urls') || '{}');
-    // Priority: Naver > Tistory > Medium > Wordpress > Substack
-    const targetUrl = userUrls.NAVER || userUrls.TISTORY || userUrls.MEDIUM || userUrls.WORDPRESS || userUrls.SUBSTACK;
-    
-    if (targetUrl) {
-        posts = posts.map(post => ({
-            ...post,
-            content: post.content.replace(/\[Link\]|\[Blog Link\]|\[블로그 링크\]/gi, targetUrl)
-        }));
-    }
-  } catch (e) {
-    console.error("Failed to replace links", e);
-  }
-
-  return posts;
+  return JSON.parse(text) as SocialPost[];
 };
 
 /**
