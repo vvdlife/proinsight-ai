@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SocialPost } from '../types';
 import { CopyIcon, CheckIcon, HeartIcon, ChatBubbleIcon, RepeatIcon, ShareIcon, ImageIcon } from './Icons';
@@ -9,7 +8,8 @@ interface SocialGeneratorProps {
 
 export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const hasBlogUrl = !!localStorage.getItem('proinsight_blog_urls'); // Adjusted key check
+  // Check if any blog URL is configured
+  const hasBlogUrl = !!localStorage.getItem('proinsight_blog_urls');
 
   if (!posts || posts.length === 0) return null;
 
@@ -26,7 +26,7 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
       } else if (post.platform === 'LinkedIn') {
           window.open(`https://www.linkedin.com/sharing/share-offsite/`, '_blank');
       } else {
-          alert('이 플랫폼은 자동 공유를 지원하지 않습니다. 텍스트를 복사해서 사용해주세요!');
+          alert('이 플랫폼은 자동 공유를 지원하지 않습니다. 텍스트와 이미지를 복사해서 사용해주세요!');
       }
   };
 
@@ -44,23 +44,31 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
             <span className="font-semibold text-xs text-slate-800">proinsight_ai</span>
             <span className="ml-auto text-slate-400">•••</span>
           </div>
-          {/* Insta Image Placeholder or Generated Image */}
+          
+          {/* Insta Image Area */}
           <div className="aspect-square bg-slate-100 flex items-center justify-center text-slate-300 relative group overflow-hidden">
              {post.imageUrl ? (
                  <>
                     <img src={post.imageUrl} alt="Instagram Post" className="w-full h-full object-cover" />
-                    <a 
-                        href={post.imageUrl} 
-                        download={`instagram-post-${index}.png`}
-                        className="absolute bottom-4 right-4 bg-white/90 hover:bg-white text-slate-800 px-3 py-2 rounded-lg font-bold text-xs shadow-lg flex items-center gap-1 transition-all opacity-0 group-hover:opacity-100"
-                    >
-                        <ImageIcon className="w-3 h-3" /> 다운로드
-                    </a>
+                    {/* Download Button Overlay */}
+                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <a 
+                            href={post.imageUrl} 
+                            download={`instagram-post-${index}.png`}
+                            className="bg-white text-slate-900 px-4 py-2 rounded-full font-bold text-xs shadow-lg flex items-center gap-2 hover:scale-105 transition-transform"
+                        >
+                            <ImageIcon className="w-4 h-4" /> 이미지 다운로드
+                        </a>
+                    </div>
                  </>
              ) : (
-                 <span className="text-xs">이미지 생성 실패</span>
+                 <div className="flex flex-col items-center gap-2">
+                    <ImageIcon className="w-8 h-8 opacity-50" />
+                    <span className="text-xs">이미지 생성 대기 중...</span>
+                 </div>
              )}
           </div>
+          
           {/* Insta Actions */}
           <div className="px-4 py-3 flex gap-4">
             <HeartIcon className="w-6 h-6 text-slate-800" />

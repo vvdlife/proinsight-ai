@@ -1,4 +1,3 @@
-
 export enum BlogTone {
   PROFESSIONAL = '전문적인',
   CASUAL = '편안한/일상적인',
@@ -22,12 +21,12 @@ export interface SocialPost {
   platform: 'Instagram' | 'LinkedIn' | 'Twitter';
   content: string;
   hashtags: string[];
-  imageUrl?: string; // Added for Instagram image support
+  imageUrl?: string; // 인스타그램용 이미지 URL
 }
 
 export interface BlogPost {
   title: string;
-  content: string; // Markdown formatted string
+  content: string; 
   images: string[]; 
   socialPosts?: SocialPost[];
 }
@@ -35,7 +34,7 @@ export interface BlogPost {
 export interface UploadedFile {
   name: string;
   mimeType: string;
-  data: string; // Base64 string without prefix
+  data: string; 
 }
 
 export enum AppStep {
