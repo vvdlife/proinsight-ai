@@ -201,12 +201,19 @@ export const generateSocialPosts = async (title: string, summary: string): Promi
   let posts = JSON.parse(text) as SocialPost[];
 
   // Post-processing: Replace [Link] placeholders with actual user blog URL if set
-  const userBlogUrl = localStorage.getItem('proinsight_blog_url');
-  if (userBlogUrl) {
-      posts = posts.map(post => ({
-          ...post,
-          content: post.content.replace(/\[Link\]|\[Blog Link\]|\[블로그 링크\]/gi, userBlogUrl)
-      }));
+  try {
+    const userUrls = JSON.parse(localStorage.getItem('proinsight_blog_urls') || '{}');
+    // Priority: Naver > Tistory > Medium > Wordpress > Substack
+    const targetUrl = userUrls.NAVER || userUrls.TISTORY || userUrls.MEDIUM || userUrls.WORDPRESS || userUrls.SUBSTACK;
+    
+    if (targetUrl) {
+        posts = posts.map(post => ({
+            ...post,
+            content: post.content.replace(/\[Link\]|\[Blog Link\]|\[블로그 링크\]/gi, targetUrl)
+        }));
+    }
+  } catch (e) {
+    console.error("Failed to replace links", e);
   }
 
   return posts;
