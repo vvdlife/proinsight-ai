@@ -19,9 +19,9 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
 
   const getPlatformColor = (platform: string) => {
     switch(platform) {
-      case 'Instagram': return 'bg-pink-500';
-      case 'LinkedIn': return 'bg-blue-600';
-      case 'Twitter': return 'bg-sky-500';
+      case 'Instagram': return 'bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500';
+      case 'LinkedIn': return 'bg-[#0077B5]';
+      case 'Twitter': return 'bg-black'; // X brand color
       default: return 'bg-indigo-600';
     }
   };
@@ -30,23 +30,24 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
     <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mt-8">
       <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
         <h3 className="font-bold text-slate-800 flex items-center gap-2">
-          📣 SNS 홍보 센터
+          📣 SNS 홍보 센터 (자동 생성됨)
         </h3>
       </div>
       
       <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
         {posts.map((post, index) => (
-          <div key={index} className="flex flex-col bg-slate-50 rounded-xl border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
+          <div key={index} className="flex flex-col bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
             {/* Header */}
-            <div className={`px-4 py-2 ${getPlatformColor(post.platform)} text-white font-bold text-sm flex justify-between items-center`}>
+            <div className={`px-4 py-3 ${getPlatformColor(post.platform)} text-white font-bold text-sm flex justify-between items-center`}>
               <span>{post.platform}</span>
-              <span className="text-xs bg-white/20 px-2 py-0.5 rounded text-white/90">추천</span>
             </div>
             
             {/* Content */}
-            <div className="p-4 flex-1 text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
-              {post.content}
-              <div className="mt-4 pt-3 border-t border-slate-200 text-blue-600 font-medium text-xs break-words">
+            <div className="p-5 flex-1 bg-slate-50/50">
+              <div className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed font-medium">
+                {post.content}
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-100 text-blue-600 font-medium text-xs break-words">
                 {post.hashtags.map(tag => tag.startsWith('#') ? tag : `#${tag}`).join(' ')}
               </div>
             </div>
@@ -55,7 +56,7 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
             <div className="p-3 bg-white border-t border-slate-100">
               <button
                 onClick={() => copyToClipboard(`${post.content}\n\n${post.hashtags.join(' ')}`, index)}
-                className={`w-full py-2 rounded-lg font-bold text-sm flex items-center justify-center gap-2 transition-all ${
+                className={`w-full py-2.5 rounded-lg font-bold text-sm flex items-center justify-center gap-2 transition-all ${
                   copiedIndex === index 
                     ? 'bg-green-100 text-green-700' 
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'

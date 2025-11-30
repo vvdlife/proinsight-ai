@@ -10,23 +10,25 @@ export const AuthGate: React.FC<AuthGateProps> = ({ onAuthenticated }) => {
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState('');
 
-  // The access code is set via environment variable
-  const REQUIRED_ACCESS_CODE = process.env.ACCESS_CODE;
+  // 환경 변수가 없으면 기본값 'proinsight'를 사용하여 무조건 잠금 화면이 뜨게 함
+  const REQUIRED_ACCESS_CODE = process.env.ACCESS_CODE || 'proinsight';
 
   useEffect(() => {
-    // 1. Check Access Code (Stored in LocalStorage for convenience)
+    // 1. Check Access Code
     const savedCode = localStorage.getItem('proinsight_access_code');
-    // If no access code is configured in env, skip this step
-    const isCodeValid = !REQUIRED_ACCESS_CODE || savedCode === REQUIRED_ACCESS_CODE;
+    // 코드 검증: 저장된 코드가 설정된 코드와 일치하는지 확인
+    const isCodeValid = savedCode === REQUIRED_ACCESS_CODE;
 
-    // 2. Check API Key (Stored in SessionStorage for security)
+    // 2. Check API Key
     const savedKey = sessionStorage.getItem('proinsight_api_key') || localStorage.getItem('proinsight_api_key');
     const isKeyValid = !!savedKey;
 
     if (isCodeValid && isKeyValid) {
       onAuthenticated();
     } else if (isCodeValid && !isKeyValid) {
-      setStep(1); // Skip to API Key input if access code is already valid
+      setStep(1); // 코드는 맞는데 키가 없으면 키 입력 단계로
+    } else {
+      setStep(0); // 코드가 없거나 틀리면 잠금 화면 유지
     }
   }, [onAuthenticated, REQUIRED_ACCESS_CODE]);
 
@@ -46,9 +48,7 @@ export const AuthGate: React.FC<AuthGateProps> = ({ onAuthenticated }) => {
     } else {
       // Validate & Save API Key
       if (inputValue.startsWith('AIza') && inputValue.length > 20) {
-        // Save to SessionStorage by default (more secure, clears on close)
         sessionStorage.setItem('proinsight_api_key', inputValue);
-        // Also remove from local storage if it existed there to enforce session security
         localStorage.removeItem('proinsight_api_key'); 
         onAuthenticated();
       } else {
@@ -70,9 +70,9 @@ export const AuthGate: React.FC<AuthGateProps> = ({ onAuthenticated }) => {
           {step === 0 ? 'ProInsight AI 잠금' : 'API Key 입력'}
         </h1>
         
-        <p className="text-slate-500 mb-8">
+        <p className="text-slate-500 mb-8 leading-relaxed">
           {step === 0 
-            ? '이 앱은 비공개로 운영됩니다. 액세스 코드를 입력하세요.' 
+            ? <>이 앱은 비공개로 운영됩니다.<br/>액세스 코드를 입력하세요.</>
             : '본인의 Gemini API Key를 입력하여 무료로 사용하세요.'}
         </p>
 
@@ -81,7 +81,7 @@ export const AuthGate: React.FC<AuthGateProps> = ({ onAuthenticated }) => {
             type={step === 0 ? "password" : "text"}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder={step === 0 ? "액세스 코드" : "API Key (AIza...)"}
+            placeholder={step === 0 ? "액세스 코드 (기본값: proinsight)" : "API Key (AIza...)"}
             className="w-full p-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
             autoFocus
           />

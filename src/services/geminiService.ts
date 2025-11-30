@@ -66,31 +66,29 @@ export const generateBlogPostContent = async (
     Tone: ${tone}
     Language: Korean
     
-    CRITICAL INSTRUCTIONS FOR CONTENT:
-    1.  **Conciseness**: Avoid long paragraphs. Use short sentences.
-    2.  **Visual Structure**: You MUST include at least one **Markdown Table** to compare data or summarize key points. Use bullet points (-) frequently.
-    3.  **Real Links**: When citing sources, use actual clickable URLs in the format [Source Name](URL). Do not use fake links.
-    4.  **3-Line Summary**: The post MUST end with a section exactly named "## ⚡ 3줄 요약" containing 3 bullet points summarizing the entire post.
+    CRITICAL STRUCTURE INSTRUCTIONS:
+    1.  **Dense & Concise**: No fluff. Every sentence must provide value. Max 3 sentences per paragraph.
+    2.  **Visual Elements**: You MUST include at least one **Markdown Table** to compare data or summarize key points.
+    3.  **Bullet Points**: Use bullet points (-) for at least 50% of the content to improve readability.
+    4.  **Actionable**: Each section should answer "Why this matters" or "What to do".
     
-    CRITICAL INSTRUCTIONS FOR SOURCE CREDIBILITY:
-    1.  **Fact-Based**: All content must be based on verified facts.
-    2.  **Source Prioritization**: Prioritize information from Major News Outlets, Academic Journals, and Official Reports.
-    3.  **References Section**: Before the 3-line summary, add a section "## 📚 참고 자료".
+    REQUIRED SECTIONS:
+    1.  **Introduction**: Hook the reader immediately. State the problem and the solution.
+    2.  **Body**: Follow the outline sections. Use subheaders (##).
+    3.  **## 📚 참고 자료**: List trusted sources (News, Journals) using [Name](URL) format.
+    4.  **## ⚡ 3줄 요약**: Exactly 3 bullet points summarizing the key takeaways.
     
-    FORMATTING REQUIREMENTS:
-    - Use Markdown formatting.
-    - **Headers**: Use ## for main sections.
-    - **Tables**: Use standard Markdown table syntax (| Header | ... |).
-    - **Links**: [Text](URL).
-    - **Emphasis**: Use **bold** for key insights.
-    - **Blockquotes**: Use > for important takeaways.
+    FORMATTING:
+    - Use ## for main sections.
+    - Use **bold** for emphasis.
+    - Use > blockquotes for key insights.
   `;
 
   const response = await ai.models.generateContent({
     model: modelId,
     contents: prompt,
     config: {
-      systemInstruction: "You are a professional analyst. You write concise, data-driven content with tables and charts. You never write long, boring walls of text.",
+      systemInstruction: "You are a senior analyst. Your writing is extremely structured, data-driven, and easy to scan.",
     },
   });
 
@@ -108,10 +106,22 @@ export const generateSocialPosts = async (title: string, summary: string): Promi
     Create promotional social media posts for a blog article titled: "${title}".
     Summary context: "${summary.substring(0, 300)}..."
     
-    Generate 3 distinct posts optimized for engagement:
-    1. Instagram: Visual & Emotional focus. Use line breaks. Include 10-15 relevant hashtags.
-    2. LinkedIn: Professional & Insightful. Focus on business value. 3-5 professional hashtags.
-    3. Twitter (X): Hook-based, punchy, under 280 chars. 2-3 trending hashtags.
+    Generate 3 distinct posts optimized for each platform's culture:
+    
+    1. **Instagram**: Create a "Carousel/Card News" plan.
+       - Structure: "Slide 1: [Hook]", "Slide 2: [Point 1]", "Slide 3: [Point 2]", "Slide 4: [Conclusion]".
+       - Tone: Visual, Emoji-rich, Emotional.
+       - Hashtags: 10-15 relevant tags.
+       
+    2. **LinkedIn**: Professional Insight.
+       - Focus: Industry impact, professional growth, business value.
+       - Tone: Professional, Thought leadership.
+       - Hashtags: 3-5 professional tags.
+       
+    3. **Twitter (X)**: A Thread (Targeting high engagement).
+       - Structure: "1/5 [Hook]", "2/5 [Point]", ... "5/5 [Link]".
+       - Tone: Punchy, controversial or surprising.
+       - Hashtags: 2-3 trending tags.
     
     Output in JSON format.
   `;
