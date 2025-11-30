@@ -29,12 +29,12 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = React.memo(({ c
            const bodyRows = tableRows.slice(2).map(row => row.split('|').filter(c => c.trim() !== '').map(c => c.trim()));
 
            elements.push(
-             <div key={`table-${i}`} className="my-8 overflow-x-auto rounded-lg border border-slate-200 shadow-sm">
+             <div key={`table-${i}`} className="my-10 overflow-hidden rounded-xl border border-slate-200 shadow-sm">
                <table className="w-full text-left border-collapse bg-white">
                  <thead>
-                   <tr className="bg-slate-100 border-b border-slate-200">
+                   <tr className="bg-slate-50 border-b border-slate-200">
                      {headerRow.map((cell, idx) => (
-                       <th key={idx} className="px-6 py-4 font-bold text-slate-700 text-sm uppercase tracking-wider">{parseInline(cell)}</th>
+                       <th key={idx} className="px-6 py-4 font-bold text-slate-800 text-sm uppercase tracking-wider whitespace-nowrap bg-indigo-50/50">{parseInline(cell)}</th>
                      ))}
                    </tr>
                  </thead>
@@ -42,7 +42,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = React.memo(({ c
                    {bodyRows.map((row, rIdx) => (
                      <tr key={rIdx} className="hover:bg-slate-50 transition-colors">
                        {row.map((cell, cIdx) => (
-                         <td key={cIdx} className="px-6 py-4 text-slate-600 text-sm whitespace-pre-wrap">{parseInline(cell)}</td>
+                         <td key={cIdx} className="px-6 py-4 text-slate-700 text-[15px] leading-relaxed">{parseInline(cell)}</td>
                        ))}
                      </tr>
                    ))}
@@ -52,31 +52,53 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = React.memo(({ c
            );
            continue; // Already incremented i in the while loop
         }
-        // Fallback if not a valid table structure, reset i to start of table block logic
-        // But for simplicity in this regex parser, we just proceed if it wasn't caught as a block.
       }
 
       // 2. Standard Line Parsing
       if (line.startsWith('### ')) {
-        elements.push(<h3 key={i} className="text-xl font-bold text-slate-800 mt-6 mb-3">{parseInline(line.replace('### ', ''))}</h3>);
+        // H3: Left border accent
+        elements.push(
+            <h3 key={i} className="text-xl font-bold text-slate-800 mt-10 mb-4 flex items-center">
+                <span className="w-1.5 h-6 bg-indigo-500 rounded-full mr-3"></span>
+                {parseInline(line.replace('### ', ''))}
+            </h3>
+        );
       }
       else if (line.startsWith('## ')) {
-        elements.push(<h2 key={i} className="text-2xl font-bold text-slate-900 mt-10 mb-5 pb-2 border-l-4 border-indigo-500 pl-4">{parseInline(line.replace('## ', ''))}</h2>);
+        // H2: Bottom border, large size
+        elements.push(
+            <h2 key={i} className="text-2xl font-bold text-slate-900 mt-16 mb-6 pb-3 border-b-2 border-slate-100">
+                {parseInline(line.replace('## ', ''))}
+            </h2>
+        );
       }
       else if (line.startsWith('# ')) {
-        elements.push(<h1 key={i} className="text-3xl font-extrabold text-slate-900 mb-6">{parseInline(line.replace('# ', ''))}</h1>);
+        // H1: Huge, extrabold
+        elements.push(<h1 key={i} className="text-4xl font-extrabold text-slate-900 mb-10 tracking-tight leading-tight">{parseInline(line.replace('# ', ''))}</h1>);
       }
       else if (line.startsWith('- ') || line.startsWith('* ')) {
-        elements.push(<li key={i} className="ml-4 list-disc text-slate-700 mb-2 pl-2 marker:text-indigo-400">{parseInline(line.substring(2))}</li>);
+        // List: Custom marker color
+        elements.push(
+            <li key={i} className="ml-4 flex items-start gap-3 mb-3 text-[17px] text-slate-700 leading-relaxed">
+                <span className="mt-2 w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0"></span>
+                <span>{parseInline(line.substring(2))}</span>
+            </li>
+        );
       }
       else if (line.startsWith('> ')) {
-        elements.push(<blockquote key={i} className="border-l-4 border-slate-300 pl-4 italic text-slate-600 my-4 bg-slate-50 py-3 pr-3 rounded-r shadow-sm">{parseInline(line.substring(2))}</blockquote>);
+        // Blockquote: Serif font, background styling
+        elements.push(
+            <blockquote key={i} className="font-serif-kr text-xl italic text-slate-700 my-8 pl-6 border-l-4 border-indigo-300 bg-slate-50/80 py-6 pr-6 rounded-r-xl leading-relaxed">
+                {parseInline(line.substring(2))}
+            </blockquote>
+        );
       }
       else if (line.trim() === '') {
-        elements.push(<div key={i} className="h-4"></div>);
+        elements.push(<div key={i} className="h-6"></div>);
       }
       else {
-        elements.push(<p key={i} className="text-slate-700 leading-relaxed mb-4 text-lg">{parseInline(line)}</p>);
+        // Paragraph: Optimized for reading (size 17px, line-height 1.8)
+        elements.push(<p key={i} className="text-[17px] text-slate-700 leading-[1.8] mb-6 font-normal tracking-normal">{parseInline(line)}</p>);
       }
       
       i++;
@@ -116,7 +138,7 @@ const parseInline = (text: string): React.ReactNode[] => {
                 href={match[2]} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-indigo-600 hover:text-indigo-800 underline decoration-indigo-300 hover:decoration-indigo-800 underline-offset-2 transition-all font-medium"
+                className="text-indigo-600 font-bold hover:text-indigo-800 underline decoration-2 decoration-indigo-200 hover:decoration-indigo-600 underline-offset-4 transition-all"
             >
                 {match[1]}
             </a>
@@ -135,7 +157,12 @@ const parseBold = (text: string): React.ReactNode[] => {
     const parts = text.split(/(\*\*.*?\*\*)/g);
     return parts.map((part, i) => {
         if (part.startsWith('**') && part.endsWith('**')) {
-            return <strong key={`b-${i}`} className="font-semibold text-indigo-900 bg-indigo-50 px-1 rounded">{part.slice(2, -2)}</strong>;
+            // Highlighter effect for bold text
+            return (
+                <strong key={`b-${i}`} className="font-bold text-slate-900 bg-yellow-100/80 px-1 rounded-sm shadow-sm decoration-clone">
+                    {part.slice(2, -2)}
+                </strong>
+            );
         }
         return part;
     });

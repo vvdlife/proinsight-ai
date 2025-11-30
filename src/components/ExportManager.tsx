@@ -18,10 +18,12 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
         const headers = header.split('|').filter((h: string) => h.trim()).map((h: string) => h.trim());
         const rows = body.trim().split('\n').map((row: string) => row.split('|').filter((c: string) => c.trim()).map((c: string) => c.trim()));
         
-        const thStyle = "background-color: #f1f5f9; border: 1px solid #cbd5e1; padding: 12px; font-weight: bold; text-align: center; color: #334155;";
-        const tdStyle = "border: 1px solid #cbd5e1; padding: 12px; color: #475569;";
+        // Professional Table Styles
+        const tableStyle = "border-collapse: collapse; width: 100%; margin: 30px 0; font-size: 15px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);";
+        const thStyle = "background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0; padding: 14px; font-weight: bold; text-align: left; color: #1e293b; text-transform: uppercase; font-size: 14px;";
+        const tdStyle = "border-bottom: 1px solid #f1f5f9; padding: 14px; color: #334155; line-height: 1.6;";
         
-        let tableHtml = '<table style="border-collapse: collapse; width: 100%; margin: 24px 0; font-size: 15px;"><thead><tr>';
+        let tableHtml = `<table style="${tableStyle}"><thead><tr>`;
         headers.forEach((h: string) => tableHtml += `<th style="${thStyle}">${h}</th>`);
         tableHtml += '</tr></thead><tbody>';
         
@@ -38,39 +40,47 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
     // Style Definitions per Platform
     const styles = {
         NAVER: {
-            h1: 'font-size: 32px; font-weight: 800; margin-bottom: 24px; color: #111;',
-            h2: 'font-size: 24px; font-weight: bold; margin-top: 32px; margin-bottom: 16px; border-left: 5px solid #03C75A; padding-left: 12px; color: #111;',
-            h3: 'font-size: 19px; font-weight: bold; margin-top: 24px; margin-bottom: 12px; color: #333;',
-            p: 'font-size: 16px; line-height: 1.8; color: #374151; margin-bottom: 16px;',
-            blockquote: 'background-color: #f8fafc; border-left: 4px solid #cbd5e1; padding: 16px; margin: 16px 0; font-style: italic; color: #475569;',
-            link: 'color: #03C75A; text-decoration: underline;'
+            container: "font-family: 'Pretendard', 'Malgun Gothic', sans-serif; color: #374151;",
+            h1: 'font-size: 34px; font-weight: 800; margin-bottom: 30px; color: #111; letter-spacing: -0.02em;',
+            h2: 'font-size: 26px; font-weight: bold; margin-top: 40px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #f1f5f9; color: #111;',
+            h3: 'font-size: 20px; font-weight: bold; margin-top: 30px; margin-bottom: 15px; color: #333; border-left: 4px solid #03C75A; padding-left: 12px;',
+            p: 'font-size: 17px; line-height: 1.8; color: #374151; margin-bottom: 20px;',
+            blockquote: 'background-color: #f8fafc; border-left: 4px solid #03C75A; padding: 24px; margin: 30px 0; font-style: italic; color: #475569; font-family: "Noto Serif KR", serif; font-size: 18px;',
+            link: 'color: #03C75A; text-decoration: underline; font-weight: bold;',
+            bold: 'background-color: #fef9c3; padding: 0 4px; border-radius: 2px; color: #000;'
         },
         TISTORY: {
-            h1: 'font-size: 30px; font-weight: bold; margin-bottom: 20px; color: #333;',
-            h2: 'font-size: 22px; font-weight: bold; margin-top: 30px; margin-bottom: 15px; color: #F44F05;',
-            h3: 'font-size: 18px; font-weight: bold; margin-top: 20px; margin-bottom: 10px; color: #444;',
-            p: 'font-size: 16px; line-height: 1.7; color: #555; margin-bottom: 15px;',
-            blockquote: 'border-left: 4px solid #F44F05; padding-left: 15px; margin: 15px 0; color: #666;',
-            link: 'color: #F44F05; text-decoration: none;'
+            container: "font-family: 'Pretendard', sans-serif; color: #333;",
+            h1: 'font-size: 32px; font-weight: bold; margin-bottom: 24px; color: #222;',
+            h2: 'font-size: 24px; font-weight: bold; margin-top: 40px; margin-bottom: 16px; color: #F44F05;',
+            h3: 'font-size: 19px; font-weight: bold; margin-top: 24px; margin-bottom: 12px; color: #333;',
+            p: 'font-size: 17px; line-height: 1.75; color: #444; margin-bottom: 18px;',
+            blockquote: 'border-left: 4px solid #F44F05; padding-left: 18px; margin: 24px 0; color: #666; font-style: italic;',
+            link: 'color: #F44F05; text-decoration: underline;',
+            bold: 'font-weight: bold; color: #000;'
         },
         MEDIUM: {
-            h1: 'font-family: serif; font-size: 42px; font-weight: 400; margin-bottom: 10px; color: #242424;',
+            container: "font-family: 'Times New Roman', serif; color: #242424;",
+            h1: 'font-size: 42px; font-weight: 400; margin-bottom: 10px; color: #242424;',
             h2: 'font-family: sans-serif; font-size: 24px; font-weight: 700; margin-top: 40px; margin-bottom: 14px; color: #242424;',
             h3: 'font-family: sans-serif; font-size: 20px; font-weight: 700; margin-top: 30px; margin-bottom: 10px; color: #242424;',
-            p: 'font-family: serif; font-size: 20px; line-height: 1.58; color: #242424; margin-bottom: 24px;',
-            blockquote: 'border-left: 3px solid #242424; padding-left: 20px; font-style: italic; font-family: serif; font-size: 24px;',
-            link: 'color: #1a8917; text-decoration: underline;'
+            p: 'font-size: 20px; line-height: 1.58; color: #242424; margin-bottom: 24px;',
+            blockquote: 'border-left: 3px solid #242424; padding-left: 20px; font-style: italic; font-size: 24px;',
+            link: 'color: #1a8917; text-decoration: underline;',
+            bold: 'font-weight: 700;'
         },
-        WORDPRESS: { // Clean HTML
-            h1: '', h2: '', h3: '', p: '', blockquote: '', link: ''
+        WORDPRESS: {
+            container: "", h1: "", h2: "", h3: "", p: "", blockquote: "", link: "", bold: ""
         },
         SUBSTACK: {
+             container: "font-family: sans-serif; color: #363636;",
              h1: 'font-size: 28px; font-weight: 800; margin-bottom: 16px; color: #1a1a1a;',
              h2: 'font-size: 20px; font-weight: 700; margin-top: 24px; margin-bottom: 12px; color: #1a1a1a;',
              h3: 'font-size: 18px; font-weight: 600; margin-top: 20px; margin-bottom: 8px;',
              p: 'font-size: 17px; line-height: 1.6; color: #363636; margin-bottom: 16px;',
              blockquote: 'padding-left: 16px; border-left: 3px solid #FF6719; font-style: italic;',
-             link: 'color: #FF6719; text-decoration: underline;'
+             link: 'color: #FF6719; text-decoration: underline;',
+             bold: 'font-weight: bold;'
         }
     };
 
@@ -81,20 +91,21 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
       .replace(/^### (.*$)/gim, `<h3 style="${s.h3}">$1</h3>`)
       .replace(/^## (.*$)/gim, `<h2 style="${s.h2}">$1</h2>`)
       .replace(/^# (.*$)/gim, `<h1 style="${s.h1}">$1</h1>`)
-      .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+      .replace(/\*\*(.*?)\*\*/gim, `<strong style="${s.bold}">$1</strong>`)
       .replace(/^\> (.*$)/gim, `<blockquote style="${s.blockquote}">$1</blockquote>`)
-      .replace(/^- (.*$)/gim, '<li>$1</li>') // Styling LI inline is tricky, better leave to platform defaults or wrapper
+      .replace(/^- (.*$)/gim, '<li>$1</li>')
       .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, `<a href="$2" target="_blank" style="${s.link}">$1</a>`)
       .replace(/\n/gim, '<br />');
     
     // Wrap Paragraphs (Simplistic approach)
-    // In a real app, use a proper parser. Here we just assume lines not starting with tags are paragraphs.
+    // We treat generic text blocks as paragraphs if possible, but regex replace is limited.
+    // For export simplicity, <br> is often safer for preserving structure unless we use a DOM parser.
     
     const titleHtml = type === 'MEDIUM' 
         ? `<h1 style="${s.h1}">${post.title}</h1>` 
-        : `<h1 style="font-size: 32px; font-weight: bold; margin-bottom: 24px;">${post.title}</h1><hr />`;
+        : `<h1 style="${s.h1}">${post.title}</h1><hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />`;
     
-    return `<div style="font-family: ${type === 'MEDIUM' ? 'Times New Roman, serif' : "'Pretendard', sans-serif"};">${titleHtml}${html}</div>`;
+    return `<div style="${s.container}">${titleHtml}${html}</div>`;
   };
 
   const copyToHtmlClipboard = async (platform: 'NAVER' | 'TISTORY' | 'MEDIUM' | 'WORDPRESS' | 'SUBSTACK') => {
@@ -144,26 +155,19 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
         
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {platforms.map((p) => (
-             <div key={p.id} className="relative group flex items-center justify-between p-4 rounded-xl border-2 border-slate-100 hover:border-indigo-500 transition-all duration-200">
+             <div key={p.id} className="relative group flex items-center justify-between p-4 rounded-xl border-2 border-slate-100 hover:border-indigo-500 transition-all duration-200 cursor-pointer" onClick={() => setPreviewType(p.id)}>
                 <div className="flex items-center gap-3 flex-1 overflow-hidden">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white shrink-0" style={{ backgroundColor: p.color }}>
                     {p.icon}
                 </div>
                 <div className="text-left truncate">
                     <div className="font-bold text-slate-800 truncate">{p.name}</div>
-                    <div className="text-[10px] text-slate-400">서식 복사</div>
+                    <div className="text-[10px] text-slate-400 group-hover:text-indigo-500">클릭하여 미리보기</div>
                 </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                 <button 
-                    onClick={() => setPreviewType(p.id)}
-                    className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                    title="미리보기"
-                >
-                    <EyeIcon className="w-4 h-4" />
-                </button>
-                <button 
-                    onClick={() => copyToHtmlClipboard(p.id)}
+                    onClick={(e) => { e.stopPropagation(); copyToHtmlClipboard(p.id); }}
                     className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                     title="복사하기"
                 >
@@ -180,18 +184,28 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-4xl h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-              <span className="font-bold text-slate-800">{previewType} 미리보기</span>
+              <span className="font-bold text-slate-800 flex items-center gap-2">
+                <EyeIcon className="w-5 h-5 text-indigo-500" /> {previewType} 스타일 미리보기
+              </span>
               <button onClick={() => setPreviewType(null)} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
                 <XIcon className="w-6 h-6 text-slate-500" />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-8 bg-slate-100">
-              <div className="mx-auto bg-white p-10 shadow-sm min-h-full max-w-3xl">
+              <div className="mx-auto bg-white p-12 shadow-lg min-h-full max-w-3xl rounded-xl border border-slate-200/60">
                 <div 
                   className="prose max-w-none"
                   dangerouslySetInnerHTML={{ __html: generateHtml(previewType) }}
                 />
               </div>
+            </div>
+            <div className="p-4 border-t border-slate-200 bg-white flex justify-end">
+                <button 
+                    onClick={() => copyToHtmlClipboard(previewType)}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-md"
+                >
+                    <CopyIcon className="w-4 h-4" /> 전체 복사하기
+                </button>
             </div>
           </div>
         </div>
