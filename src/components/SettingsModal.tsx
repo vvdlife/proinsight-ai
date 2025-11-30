@@ -8,11 +8,14 @@ interface SettingsModalProps {
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const [apiKey, setApiKey] = useState('');
   const [newKey, setNewKey] = useState('');
+  const [blogUrl, setBlogUrl] = useState('');
 
   useEffect(() => {
     if (isOpen) {
       const key = sessionStorage.getItem('proinsight_api_key') || localStorage.getItem('proinsight_api_key') || '';
+      const url = localStorage.getItem('proinsight_blog_url') || '';
       setApiKey(key);
+      setBlogUrl(url);
     }
   }, [isOpen]);
 
@@ -25,6 +28,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     } else {
         alert('유효한 API Key를 입력하세요.');
     }
+  };
+
+  const handleSaveUrl = () => {
+      localStorage.setItem('proinsight_blog_url', blogUrl);
+      alert('블로그 주소가 저장되었습니다.');
   };
 
   const handleLogout = () => {
@@ -47,43 +55,75 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           </button>
         </div>
         
-        <div className="p-6 space-y-6">
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">현재 API Key</label>
-            <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
-              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <span className="text-slate-600 text-sm font-mono flex-1 truncate">
-                {apiKey ? `${apiKey.substring(0, 5)}...${apiKey.substring(apiKey.length - 5)}` : '미설정'}
-              </span>
+        <div className="p-6 space-y-8">
+          {/* API Key Section */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">API 인증</h3>
+            <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">현재 API Key</label>
+                <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                <span className="text-slate-600 text-sm font-mono flex-1 truncate">
+                    {apiKey ? `${apiKey.substring(0, 5)}...${apiKey.substring(apiKey.length - 5)}` : '미설정'}
+                </span>
+                </div>
+            </div>
+
+            <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">API Key 변경</label>
+                <div className="flex gap-2">
+                    <input 
+                        type="text" 
+                        value={newKey}
+                        onChange={(e) => setNewKey(e.target.value)}
+                        placeholder="새 API Key 입력"
+                        className="flex-1 p-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500"
+                    />
+                    <button 
+                        onClick={handleUpdateKey}
+                        className="px-4 py-2 bg-slate-800 text-white text-sm rounded-lg hover:bg-slate-900"
+                    >
+                        변경
+                    </button>
+                </div>
             </div>
           </div>
 
-          <div>
-             <label className="block text-sm font-semibold text-slate-700 mb-2">API Key 변경</label>
-             <div className="flex gap-2">
-                <input 
-                    type="text" 
-                    value={newKey}
-                    onChange={(e) => setNewKey(e.target.value)}
-                    placeholder="새 API Key 입력"
-                    className="flex-1 p-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500"
-                />
-                <button 
-                    onClick={handleUpdateKey}
-                    className="px-4 py-2 bg-slate-800 text-white text-sm rounded-lg hover:bg-slate-900"
-                >
-                    변경
-                </button>
-             </div>
+          {/* Blog URL Section */}
+          <div className="space-y-4 pt-6 border-t border-slate-100">
+            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">블로그 정보</h3>
+            <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">내 블로그 주소 (SNS 홍보용)</label>
+                <div className="flex gap-2">
+                    <input 
+                        type="text" 
+                        value={blogUrl}
+                        onChange={(e) => setBlogUrl(e.target.value)}
+                        placeholder="예: https://blog.naver.com/myid"
+                        className="flex-1 p-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500"
+                    />
+                    <button 
+                        onClick={handleSaveUrl}
+                        className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700"
+                    >
+                        저장
+                    </button>
+                </div>
+                <p className="text-xs text-slate-400 mt-2">
+                    SNS 홍보글 생성 시 [블로그 링크] 부분이 이 주소로 자동 변경됩니다.
+                </p>
+            </div>
           </div>
 
-          <button
-            onClick={handleLogout}
-            className="w-full py-3 border border-red-200 text-red-600 rounded-xl hover:bg-red-50 font-medium transition-colors flex items-center justify-center gap-2"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-            앱 잠그기 (로그아웃)
-          </button>
+          <div className="pt-6 border-t border-slate-100">
+            <button
+                onClick={handleLogout}
+                className="w-full py-3 border border-red-200 text-red-600 rounded-xl hover:bg-red-50 font-medium transition-colors flex items-center justify-center gap-2"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                앱 잠그기 (로그아웃)
+            </button>
+          </div>
         </div>
       </div>
     </div>

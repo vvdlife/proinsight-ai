@@ -14,9 +14,15 @@ export const AuthGate: React.FC<AuthGateProps> = ({ onAuthenticated }) => {
   const REQUIRED_ACCESS_CODE = (import.meta as any).env.VITE_ACCESS_CODE;
 
   useEffect(() => {
+    // Strict Mode: If no access code is configured in env, block access with error
+    if (!REQUIRED_ACCESS_CODE) {
+        setError('시스템 설정 오류: 관리자 액세스 코드가 설정되지 않았습니다.');
+        return;
+    }
+
     // 1. Check Access Code
     const savedCode = localStorage.getItem('proinsight_access_code');
-    const isCodeValid = !REQUIRED_ACCESS_CODE || savedCode === REQUIRED_ACCESS_CODE;
+    const isCodeValid = savedCode === REQUIRED_ACCESS_CODE;
 
     // 2. Check API Key
     const savedKey = sessionStorage.getItem('proinsight_api_key') || localStorage.getItem('proinsight_api_key');
@@ -34,11 +40,14 @@ export const AuthGate: React.FC<AuthGateProps> = ({ onAuthenticated }) => {
     setError('');
 
     if (step === 0) {
+      if (!REQUIRED_ACCESS_CODE) {
+          setError('시스템 설정 오류: VITE_ACCESS_CODE 환경 변수가 없습니다.');
+          return;
+      }
+
       // Validate Access Code
-      if (!REQUIRED_ACCESS_CODE || inputValue === REQUIRED_ACCESS_CODE) {
-        if (REQUIRED_ACCESS_CODE) {
-            localStorage.setItem('proinsight_access_code', inputValue);
-        }
+      if (inputValue === REQUIRED_ACCESS_CODE) {
+        localStorage.setItem('proinsight_access_code', inputValue);
         setStep(1);
         setInputValue('');
       } else {

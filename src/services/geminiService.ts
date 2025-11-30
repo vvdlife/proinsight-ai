@@ -158,16 +158,19 @@ export const generateSocialPosts = async (title: string, summary: string): Promi
        - Structure: "Slide 1: [Hook]", "Slide 2: [Point 1]", "Slide 3: [Point 2]", "Slide 4: [Conclusion]".
        - Tone: Visual, Emoji-rich, Emotional.
        - Hashtags: 10-15 relevant tags.
+       - Use placeholder [Link] or [Blog Link] for the bio link.
        
     2. **LinkedIn**: Professional Insight.
        - Focus: Industry impact, professional growth, business value.
        - Tone: Professional, Thought leadership.
        - Hashtags: 3-5 professional tags.
+       - Include placeholder [Link] or [Blog Link] for the article.
        
     3. **Twitter (X)**: A Thread (Targeting high engagement).
        - Structure: "1/5 [Hook]", "2/5 [Point]", ... "5/5 [Link]".
        - Tone: Punchy, controversial or surprising.
        - Hashtags: 2-3 trending tags.
+       - Include placeholder [Link] or [Blog Link].
     
     Output in JSON format.
   `;
@@ -194,7 +197,19 @@ export const generateSocialPosts = async (title: string, summary: string): Promi
 
   const text = response.text;
   if (!text) return [];
-  return JSON.parse(text) as SocialPost[];
+  
+  let posts = JSON.parse(text) as SocialPost[];
+
+  // Post-processing: Replace [Link] placeholders with actual user blog URL if set
+  const userBlogUrl = localStorage.getItem('proinsight_blog_url');
+  if (userBlogUrl) {
+      posts = posts.map(post => ({
+          ...post,
+          content: post.content.replace(/\[Link\]|\[Blog Link\]|\[블로그 링크\]/gi, userBlogUrl)
+      }));
+  }
+
+  return posts;
 };
 
 /**

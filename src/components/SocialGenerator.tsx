@@ -8,6 +8,7 @@ interface SocialGeneratorProps {
 
 export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const hasBlogUrl = !!localStorage.getItem('proinsight_blog_url');
 
   if (!posts || posts.length === 0) return null;
 
@@ -22,8 +23,6 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
           const text = encodeURIComponent(`${post.content}\n\n${post.hashtags.join(' ')}`);
           window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
       } else if (post.platform === 'LinkedIn') {
-           // LinkedIn doesn't support pre-filling text easily via URL sharing without API, 
-           // but we can open the share dialog.
           window.open(`https://www.linkedin.com/sharing/share-offsite/`, '_blank');
       } else {
           alert('이 플랫폼은 자동 공유를 지원하지 않습니다. 텍스트를 복사해서 사용해주세요!');
@@ -31,9 +30,6 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
   };
 
   const renderMockup = (post: SocialPost, index: number) => {
-    // ... (Same mockup logic as before, omitting for brevity in this specific update but ensuring full file content is correct in real implementation) ...
-    // Since I need to return FULL content, I will include the full mockup logic here.
-    
     if (post.platform === 'Instagram') {
       return (
         <div key={index} className="flex flex-col bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm max-w-sm mx-auto w-full">
@@ -130,10 +126,15 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mt-8">
-      <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
+      <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
         <h3 className="font-bold text-slate-800 flex items-center gap-2">
           📣 SNS 홍보 센터 (미리보기)
         </h3>
+        {!hasBlogUrl && (
+            <span className="text-xs text-amber-600 bg-amber-50 px-3 py-1 rounded-full font-medium flex items-center gap-1">
+                ⚠️ 설정에서 블로그 주소를 입력하면 링크가 자동 삽입됩니다
+            </span>
+        )}
       </div>
       
       <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-8 bg-slate-50/50">
