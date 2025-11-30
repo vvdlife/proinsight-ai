@@ -17,9 +17,23 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
-  const renderMockup = (post: SocialPost, index: number) => {
-    const fullText = `${post.content}\n\n${post.hashtags.join(' ')}`;
+  const shareToPlatform = (post: SocialPost) => {
+      if (post.platform === 'Twitter') {
+          const text = encodeURIComponent(`${post.content}\n\n${post.hashtags.join(' ')}`);
+          window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+      } else if (post.platform === 'LinkedIn') {
+           // LinkedIn doesn't support pre-filling text easily via URL sharing without API, 
+           // but we can open the share dialog.
+          window.open(`https://www.linkedin.com/sharing/share-offsite/`, '_blank');
+      } else {
+          alert('이 플랫폼은 자동 공유를 지원하지 않습니다. 텍스트를 복사해서 사용해주세요!');
+      }
+  };
 
+  const renderMockup = (post: SocialPost, index: number) => {
+    // ... (Same mockup logic as before, omitting for brevity in this specific update but ensuring full file content is correct in real implementation) ...
+    // Since I need to return FULL content, I will include the full mockup logic here.
+    
     if (post.platform === 'Instagram') {
       return (
         <div key={index} className="flex flex-col bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm max-w-sm mx-auto w-full">
@@ -128,25 +142,26 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
              {/* Render Mockup */}
              {renderMockup(post, index)}
              
-             {/* Action Button */}
-             <button
-                onClick={() => copyToClipboard(`${post.content}\n\n${post.hashtags.join(' ')}`, index)}
-                className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-sm ${
-                  copiedIndex === index 
-                    ? 'bg-green-600 text-white' 
-                    : 'bg-white border border-slate-200 text-slate-600 hover:border-indigo-500 hover:text-indigo-600'
-                }`}
-              >
-                {copiedIndex === index ? (
-                  <>
-                    <CheckIcon className="w-4 h-4" /> 복사 완료!
-                  </>
-                ) : (
-                  <>
-                    <CopyIcon className="w-4 h-4" /> 텍스트 복사
-                  </>
-                )}
-              </button>
+             {/* Action Buttons */}
+             <div className="grid grid-cols-2 gap-2">
+                <button
+                    onClick={() => copyToClipboard(`${post.content}\n\n${post.hashtags.join(' ')}`, index)}
+                    className={`py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-sm ${
+                    copiedIndex === index 
+                        ? 'bg-green-600 text-white' 
+                        : 'bg-white border border-slate-200 text-slate-600 hover:border-indigo-500 hover:text-indigo-600'
+                    }`}
+                >
+                    {copiedIndex === index ? <CheckIcon className="w-4 h-4" /> : <CopyIcon className="w-4 h-4" />}
+                    복사
+                </button>
+                <button
+                    onClick={() => shareToPlatform(post)}
+                    className="py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-sm"
+                >
+                    <ShareIcon className="w-4 h-4" /> 공유
+                </button>
+             </div>
           </div>
         ))}
       </div>

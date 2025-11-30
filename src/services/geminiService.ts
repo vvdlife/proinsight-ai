@@ -65,10 +65,10 @@ export const generateBlogPostContent = async (
     Tone: ${tone}
     Language: Korean
     
-    CRITICAL STRUCTURE INSTRUCTIONS:
-    1.  **Dense & Concise**: No fluff. Every sentence must provide value. Max 3 sentences per paragraph.
+    CRITICAL WRITING INSTRUCTIONS:
+    1.  **NO EXCESSIVE BULLET POINTS**: Write primarily in **paragraphs**. Use bullet points (-) ONLY when listing items, never for main content flow.
     2.  **Visual Elements**: You MUST include at least one **Markdown Table** to compare data or summarize key points.
-    3.  **Bullet Points**: Use bullet points (-) for at least 50% of the content to improve readability.
+    3.  **Dense & Concise**: No fluff. Every sentence must provide value.
     4.  **Actionable**: Each section should answer "Why this matters" or "What to do".
     
     REQUIRED SECTIONS:
@@ -157,7 +157,6 @@ export const generateBlogImage = async (title: string, style: ImageStyle): Promi
   const ai = getGenAI();
   const modelId = "gemini-2.5-flash-image";
 
-  // Construct prompt based on selected style
   let stylePrompt = "";
   switch (style) {
     case ImageStyle.PHOTOREALISTIC:

@@ -61,6 +61,24 @@ export const TistoryIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+export const MediumIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M13.54 12a6.8 6.8 0 0 1-6.77 6.82A6.8 6.8 0 0 1 0 12a6.8 6.8 0 0 1 6.77-6.82A6.8 6.8 0 0 1 13.54 12zM20.96 12c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42M24 12c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75C23.47 6.25 24 8.83 24 12z"/>
+  </svg>
+);
+
+export const WordPressIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12.049 0C5.396 0 .002 5.394.002 12.051c0 5.432 3.601 10.026 8.52 11.53l-2.46-8.591s-.494 1.144-.494 2.87c0 1.25.757 2.766.757 2.766l2.197 7.086A11.96 11.96 0 0 0 12.049 24.1c1.378 0 2.697-.23 3.935-.65l-4.104-12.062 2.662 7.749 2.122-6.388c1.325 3.515 2.502 6.545 2.502 6.545C22.259 17.067 24.1 14.717 24.1 12.051c0-4.908-3.081-7.258-5.706-7.258-3.138 0-4.909 2.228-4.909 4.627 0 1.77.913 2.684.913 2.684.457.228.172.97-.229 1.485-.228.285-.8.343-1.028-.057-.914-1.656-1.37-3.256-1.37-4.912 0-3.884 2.912-6.512 6.339-6.512 3.427 0 5.825 2.399 5.825 5.598 0 4.226-2.284 8.283-5.198 8.283-1.428 0-2.57-1.142-2.227-2.57l1.085-4.455c.343-1.428.171-3.256-1.6-3.256-1.827 0-3.369 2.056-3.369 4.855 0 1.6.457 2.57.457 2.57l-2.798 9.367c-1.2-1.942-1.885-4.227-1.885-6.683 0-6.626 5.398-12.001 12.054-12.001z"/>
+  </svg>
+);
+
+export const SubstackIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M22.539 8.242H1.46V5.406h21.08v2.836zM1.46 10.812V24L12 18.11 22.54 24V10.812H1.46zM22.54 0H1.46v2.836h21.08V0z"/>
+  </svg>
+);
+
 export const TrendIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
