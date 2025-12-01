@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { StepWizard } from './components/StepWizard';
 import { LoadingOverlay } from './components/LoadingOverlay';
@@ -40,6 +41,11 @@ const App: React.FC = () => {
     ];
     keysToRemove.forEach(key => localStorage.removeItem(key));
   }, []);
+
+  // Check API Key Helper
+  const hasApiKey = () => {
+    return !!(sessionStorage.getItem('proinsight_api_key') || localStorage.getItem('proinsight_api_key') || (import.meta as any).env.VITE_API_KEY);
+  };
 
   // Handlers for Sources
   const handleAddUrl = () => {
@@ -90,6 +96,13 @@ const App: React.FC = () => {
 
   // Handlers
   const handleGenerateOutline = useCallback(async () => {
+    // 1. API Key Validation
+    if (!hasApiKey()) {
+        alert("⚠️ API Key가 설정되지 않았습니다.\n설정 창에서 키를 먼저 등록해주세요.");
+        setIsSettingsOpen(true);
+        return;
+    }
+
     if (!topic.trim()) return;
     
     setLoading({ isLoading: true, message: 'Gemini가 자료를 분석하고 개요를 작성하고 있습니다...' });
@@ -98,9 +111,15 @@ const App: React.FC = () => {
       const data = await generateOutline(topic, sourceFiles, sourceUrls, memo);
       setOutline(data);
       setCurrentStep(AppStep.OUTLINE_REVIEW);
-    } catch (error) {
-      alert('개요 생성에 실패했습니다. 다시 시도해주세요.');
+    } catch (error: any) {
       console.error(error);
+      const msg = error?.message || '';
+      if (msg.includes('API Key')) {
+          alert("API Key 오류입니다. 키를 확인해주세요.");
+          setIsSettingsOpen(true);
+      } else {
+          alert(`개요 생성 실패: ${msg}\n다시 시도해주세요.`);
+      }
     } finally {
       setLoading({ isLoading: false, message: '' });
     }
@@ -114,19 +133,24 @@ const App: React.FC = () => {
   };
 
   const handleGenerateFullPost = useCallback(async () => {
+    // 1. API Key Validation
+    if (!hasApiKey()) {
+        alert("⚠️ API Key가 설정되지 않았습니다.\n설정 창에서 키를 먼저 등록해주세요.");
+        setIsSettingsOpen(true);
+        return;
+    }
+
     if (!outline) return;
 
     setLoading({ isLoading: true, message: '블로그 본문과 이미지를 생성 중입니다...' });
     try {
       // 1. Generate Content and Image in parallel
-      // Pass memo to generateBlogPostContent
       const [content, imageUrl] = await Promise.all([
         generateBlogPostContent(outline, selectedTone, sourceFiles, sourceUrls, memo),
         generateBlogImage(outline.title, selectedImageStyle)
       ]);
 
       // 2. Generate Social Posts
-      // Pass selectedImageStyle to generateSocialPosts
       const summary = content.substring(0, 500);
       const socialPosts = await generateSocialPosts(outline.title, summary, selectedImageStyle);
 
@@ -137,9 +161,9 @@ const App: React.FC = () => {
         socialPosts
       });
       setCurrentStep(AppStep.FINAL_RESULT);
-    } catch (error) {
-      alert('글 작성 중 오류가 발생했습니다.');
+    } catch (error: any) {
       console.error(error);
+      alert(`글 작성 중 오류가 발생했습니다: ${error?.message || '알 수 없는 오류'}`);
     } finally {
       setLoading({ isLoading: false, message: '' });
     }
