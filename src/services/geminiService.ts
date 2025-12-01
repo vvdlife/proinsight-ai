@@ -5,7 +5,7 @@ import { BlogTone, OutlineData, SocialPost, ImageStyle, UploadedFile } from "../
 // Constants
 const MODEL_IDS = {
   TEXT: "gemini-2.5-flash",
-  IMAGE: "gemini-2.0-flash-exp", // Switch to Gemini 2.0 Flash Exp for reliable image generation
+  IMAGE: "imagen-3.0-generate-001", // Dedicated Imagen 3 model
 } as const;
 
 // Helper to get client securely
@@ -84,7 +84,7 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
 };
 
 /**
- * Helper to generate text with files
+ * Helper to generate text with files and Search Grounding
  */
 const generateText = async (ai: GoogleGenAI, prompt: string, files: UploadedFile[], systemInstruction: string = "You are a helpful assistant."): Promise<string> => {
   const parts: any[] = [{ text: prompt }];
@@ -104,6 +104,7 @@ const generateText = async (ai: GoogleGenAI, prompt: string, files: UploadedFile
       contents: { role: 'user', parts },
       config: {
         systemInstruction: systemInstruction,
+        tools: [{ googleSearch: {} }], // Enable Google Search Grounding
       },
     });
     return response.text || "";
@@ -134,11 +135,11 @@ export const generateBlogPostContent = async (
     
     **CRITICAL INSTRUCTIONS FOR REVENUE & DATA**:
     1. **Data-Driven**: Prioritize **Facts, Statistics, and Concrete Data**. Avoid vague statements.
-    2. **Inline Linking**: 
-       - You are encouraged to include **relevant external links** to reputable sources (e.g., official docs, news, Wikipedia) if you use data from them.
-       - If 'SOURCE URLs' are provided below, prioritize them, but you are **NOT restricted** to them.
+    2. **Inline Linking (VERIFIED)**: 
+       - **USE GOOGLE SEARCH** to find and verify relevant external links (e.g., official docs, news, Wikipedia).
+       - If 'SOURCE URLs' are provided below, prioritize them, but ALSO search for other high-quality sources.
        - Link format: \`[Keyword](URL)\`.
-       - Ensure links are valid and relevant.
+       - **IMPORTANT**: Ensure every link you include is **VALID** and **WORKING** by verifying it with search.
   `;
   if (memo && memo.trim()) baseContext += `\n[USER MEMO]: "${memo}"`;
   if (urls.length > 0) baseContext += `\nSOURCE URLs (Prioritize these):\n${urls.join('\n')}`;
@@ -175,7 +176,7 @@ export const generateBlogPostContent = async (
         3. **Key Insight**: 1 bold sentence summarizing the takeaway (e.g., **💡 Insight: ...**).
       
       - **Content Quality**: Include specific numbers, stats, or examples if possible.
-      - **Inline Links**: Include relevant external links (e.g., to official sources) if appropriate.
+      - **Inline Links**: **USE SEARCH** to find and link to official sources or high-authority articles.
       - **Length Constraint**: Total under 150 words.
       - **Formatting**:
         - **DO NOT** use subsections (###).
