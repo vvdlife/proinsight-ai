@@ -75,37 +75,11 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
 /**
  * Generates full blog post content.
  */
-export const generateBlogPostContent = async (
-  outline: OutlineData,
-  tone: BlogTone,
-  files: UploadedFile[],
-  urls: string[],
-  memo: string
-): Promise<string> => {
-  const ai = getGenAI();
-
-  let promptText = `
-    Write a high-quality blog post:
-    Title: ${outline.title}
-    Sections: ${outline.sections.join(", ")}
-    Tone: ${tone}
-    Language: Korean
-  `;
-
-  if (memo && memo.trim()) promptText += `\n\n[USER INSTRUCTION]:\n"${memo}"`;
-  if (urls.length > 0) promptText += `\n\nSOURCE URLs:\n${urls.join('\n')}`;
-  if (files.length > 0) promptText += `\n\nSOURCE FILES: Analyze attached documents.`;
-
-  promptText += `
-    INSTRUCTIONS:
-    1. **NO EXCESSIVE BULLETS**: Write in **paragraphs**. Use bullets (-) ONLY for lists.
-    2. **Visuals**: Include at least one **Markdown Table**.
-    3. **Dense & Concise**: No fluff.
-    4. **References**: End with "## 📚 참고 자료" listing provided URLs/files.
-    5. **Summary**: End with "## ⚡ 3줄 요약".
-  `;
-
-  const parts: any[] = [{ text: promptText }];
+/**
+ * Helper to generate text with files
+ */
+const generateText = async (ai: GoogleGenAI, prompt: string, files: UploadedFile[], systemInstruction: string = "You are a helpful assistant."): Promise<string> => {
+  const parts: any[] = [{ text: prompt }];
 
   files.forEach(file => {
     parts.push({
@@ -116,15 +90,106 @@ export const generateBlogPostContent = async (
     });
   });
 
-  const response = await ai.models.generateContent({
-    model: MODEL_IDS.TEXT,
-    contents: { role: 'user', parts },
-    config: {
-      systemInstruction: "You are a senior analyst. Writing is structured, data-driven, and readable.",
-    },
+  try {
+    const response = await ai.models.generateContent({
+      model: MODEL_IDS.TEXT,
+      contents: { role: 'user', parts },
+      config: {
+        systemInstruction: systemInstruction,
+      },
+    });
+    return response.text || "";
+  } catch (error) {
+    console.error("Section generation failed:", error);
+    return "\n(이 섹션을 생성하는 중 오류가 발생했습니다.)\n";
+  }
+};
+
+/**
+ * Generates full blog post content (Section-by-Section).
+ */
+export const generateBlogPostContent = async (
+  outline: OutlineData,
+  tone: BlogTone,
+  files: UploadedFile[],
+  urls: string[],
+  memo: string
+): Promise<string> => {
+  const ai = getGenAI();
+
+  // Common Context
+  let baseContext = `
+    Blog Title: "${outline.title}"
+    Tone: ${tone}
+    Language: Korean
+  `;
+  if (memo && memo.trim()) baseContext += `\n[USER MEMO]: "${memo}"`;
+  if (urls.length > 0) baseContext += `\nSOURCE URLs:\n${urls.join('\n')}`;
+  if (files.length > 0) baseContext += `\n(Refer to attached documents)`;
+
+  // 1. Intro Generation
+  const introPrompt = `
+    ${baseContext}
+    
+    Task: Write an engaging **Introduction** for this blog post.
+    Outline of the whole post: ${outline.sections.join(", ")}
+    
+    Instructions:
+    - Hook the reader immediately.
+    - Briefly mention what will be covered.
+    - Do NOT write any section headers (like ## Introduction). Just the content.
+  `;
+
+  // 2. Section Generation (Parallel)
+  const sectionPromises = outline.sections.map(async (section, idx) => {
+    const sectionPrompt = `
+      ${baseContext}
+      
+      Task: Write the content for the section: "${section}".
+      Context (Full Outline): ${outline.sections.join(", ")}
+      
+      Instructions:
+      - Write detailed, professional content for THIS section only.
+      - Use paragraphs and markdown formatting (bold, list, etc.).
+      - You can use subsections (###) if needed, but do NOT repeat the main section header (## ${section}).
+      - Be comprehensive and data-driven if possible.
+    `;
+    return generateText(ai, sectionPrompt, files, "You are an expert content writer. Write deep and insightful content.");
   });
 
-  return response.text || "Failed to generate content.";
+  // 3. Conclusion Generation
+  const conclusionPrompt = `
+    ${baseContext}
+    
+    Task: Write a **Conclusion** and **3-Line Summary**.
+    Outline of the whole post: ${outline.sections.join(", ")}
+    
+    Instructions:
+    - Summarize the key takeaways.
+    - End with a special section: "## ⚡ 3줄 요약".
+    - Include a "## 📚 참고 자료" section if URLs were provided.
+  `;
+
+  // Execute all requests in parallel
+  const [intro, ...bodyAndConclusion] = await Promise.all([
+    generateText(ai, introPrompt, files, "You are a professional blog writer. Write an engaging intro."),
+    ...sectionPromises,
+    generateText(ai, conclusionPrompt, files, "You are a professional editor. Summarize perfectly.")
+  ]);
+
+  const conclusion = bodyAndConclusion.pop(); // Last one is conclusion
+  const bodySections = bodyAndConclusion; // Remaining are body sections
+
+  // Assemble the full post
+  let fullPost = `# ${outline.title}\n\n${intro}\n\n`;
+
+  outline.sections.forEach((section, idx) => {
+    fullPost += `## ${section}\n\n${bodySections[idx]}\n\n`;
+  });
+
+  fullPost += `${conclusion}`;
+
+  return fullPost;
 };
 
 /**
