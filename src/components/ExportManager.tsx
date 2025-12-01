@@ -1,8 +1,9 @@
-
 import React, { useState } from 'react';
 import { BlogPost } from '../types';
-import { CopyIcon, NaverIcon, TistoryIcon, MediumIcon, WordPressIcon, SubstackIcon, CheckIcon, EyeIcon, XIcon } from './Icons';
+import { CopyIcon, NaverIcon, TistoryIcon, MediumIcon, WordPressIcon, SubstackIcon, CheckIcon, EyeIcon, XIcon, DownloadIcon, FileCodeIcon } from './Icons';
 import { TABLE_STYLES, PLATFORM_STYLES } from './exportStyles';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 interface ExportManagerProps {
   post: BlogPost;
@@ -11,6 +12,7 @@ interface ExportManagerProps {
 export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
   const [copiedType, setCopiedType] = useState<string | null>(null);
   const [previewType, setPreviewType] = useState<'NAVER' | 'TISTORY' | 'MEDIUM' | 'WORDPRESS' | 'SUBSTACK' | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   const generateHtml = (type: 'NAVER' | 'TISTORY' | 'MEDIUM' | 'WORDPRESS' | 'SUBSTACK') => {
     let content = post.content;
@@ -47,10 +49,6 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
       .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, `<a href="$2" target="_blank" style="${s.link}">$1</a>`)
       .replace(/\n/gim, '<br />');
 
-    // Wrap Paragraphs (Simplistic approach)
-    // We treat generic text blocks as paragraphs if possible, but regex replace is limited.
-    // For export simplicity, <br> is often safer for preserving structure unless we use a DOM parser.
-
     const titleHtml = type === 'MEDIUM'
       ? `<h1 style="${s.h1}">${post.title}</h1>`
       : `<h1 style="${s.h1}">${post.title}</h1><hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />`;
@@ -83,6 +81,81 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
     }
   };
 
+  const handlePdfExport = async () => {
+    setIsExporting(true);
+    try {
+      // Create a temporary container for rendering the PDF content
+      const container = document.createElement('div');
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.top = '0';
+      container.style.width = '800px'; // Fixed width for A4 consistency
+      container.style.padding = '40px';
+      container.style.backgroundColor = '#ffffff';
+      container.innerHTML = generateHtml('MEDIUM'); // Use Medium style for clean PDF
+      document.body.appendChild(container);
+
+      const canvas = await html2canvas(container, {
+        scale: 2, // Higher quality
+        useCORS: true,
+        logging: false
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+      }
+
+      pdf.save(`${post.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`);
+      document.body.removeChild(container);
+    } catch (error) {
+      console.error('PDF Export failed:', error);
+      alert('PDF 내보내기에 실패했습니다.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleHtmlExport = () => {
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="ko">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${post.title}</title>
+      </head>
+      <body>
+        ${generateHtml('MEDIUM')}
+      </body>
+      </html>
+    `;
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${post.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const platforms = [
     { id: 'NAVER', name: '네이버 블로그', icon: <NaverIcon className="w-6 h-6" />, color: '#03C75A' },
     { id: 'TISTORY', name: '티스토리', icon: <TistoryIcon className="w-6 h-6" />, color: '#F44F05' },
@@ -98,9 +171,21 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
           <h3 className="font-bold text-slate-800 flex items-center gap-2">
             🚀 플랫폼별 원클릭 내보내기 (Global)
           </h3>
-          <span className="text-xs text-slate-500 font-medium bg-white px-2 py-1 rounded border border-slate-200">
-            서식 자동 최적화
-          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={handlePdfExport}
+              disabled={isExporting}
+              className="text-xs font-medium bg-white px-3 py-1.5 rounded border border-slate-200 hover:border-indigo-500 hover:text-indigo-600 transition-colors flex items-center gap-1"
+            >
+              {isExporting ? '변환 중...' : <><DownloadIcon className="w-3 h-3" /> PDF 저장</>}
+            </button>
+            <button
+              onClick={handleHtmlExport}
+              className="text-xs font-medium bg-white px-3 py-1.5 rounded border border-slate-200 hover:border-indigo-500 hover:text-indigo-600 transition-colors flex items-center gap-1"
+            >
+              <FileCodeIcon className="w-3 h-3" /> HTML 저장
+            </button>
+          </div>
         </div>
 
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

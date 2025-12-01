@@ -140,8 +140,10 @@ export const generateBlogPostContent = async (
     1. **SEO Optimization**: Use natural keywords.
     2. **Reader Analysis**: Write for the specific audience. Use "F-pattern" formatting (bolding, bullets).
     3. **Visuals**: Use emojis and formatting to break up text.
-    4. **Infographics**: **DO NOT use Mermaid or Code Blocks**. Instead, use **Markdown Tables** to visualize data or comparisons.
-    5. **Interactive Elements**: Use **Emoji-based Checklists** (e.g., "- ✅ Item") instead of brackets \`[ ]\`. **NEVER use \`[ ]\` characters**.
+    4. **Infographics**: **USE MERMAID** for complex concepts.
+       - Use \`\`\`mermaid\`\`\` code blocks.
+       - Supported types: \`graph TD\`, \`pie\`, \`sequenceDiagram\`.
+    5. **Interactive Elements**: Use **Emoji-based Checklists** (e.g., "- ✅ Item").
     6. **Data-Driven**: Use facts/stats.
     7. **No External Links**: Do not add inline links.
   `;
@@ -177,8 +179,8 @@ export const generateBlogPostContent = async (
         1. **Core Concept**: Clear explanation.
         2. **Visual/Interactive**:
            - Use **Bullet Points** (with emojis).
-           - OR create a **Markdown Table** if comparing data or showing a process.
-           - OR add a **Checklist** using Emojis (e.g., "- ✅ Check"). **DO NOT use \`[ ]\`**.
+           - OR create a **Mermaid Diagram** (\`\`\`mermaid ... \`\`\`) if comparing data or showing a process.
+           - OR add a **Checklist** using Emojis (e.g., "- ✅ Check").
         3. **Key Insight**: Bold summary.
       
       - **Formatting**: No subsections (###), no repeated headers, no horizontal rules.
