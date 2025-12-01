@@ -24,7 +24,18 @@ const getGenAI = () => {
 export const generateOutline = async (topic: string, files: UploadedFile[], urls: string[], memo: string): Promise<OutlineData> => {
   const ai = getGenAI();
 
-  let promptText = `Write a blog post outline for the topic: "${topic}". The output must be in Korean.`;
+  let promptText = `
+    You are a professional content strategist specializing in high-traffic blogs.
+    Task: Create a blog post outline for the topic: "${topic}".
+    
+    1. **Title**: Create a **Viral, Click-worthy, and SEO-optimized** title.
+       - It must be provocative, benefit-driven, or a listicle (e.g., "Top 5...", "Why you are wrong about...", "The Ultimate Guide to...").
+       - Maximize curiosity and click-through rate (CTR).
+    
+    2. **Sections**: Create 5-7 logical sections.
+    
+    The output must be in Korean.
+  `;
 
   if (memo && memo.trim()) {
     promptText += `\n\n[USER MEMO]:\n"${memo}"\n(Prioritize this instruction.)`;
@@ -73,9 +84,6 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
 };
 
 /**
- * Generates full blog post content.
- */
-/**
  * Helper to generate text with files
  */
 const generateText = async (ai: GoogleGenAI, prompt: string, files: UploadedFile[], systemInstruction: string = "You are a helpful assistant."): Promise<string> => {
@@ -122,10 +130,14 @@ export const generateBlogPostContent = async (
     Blog Title: "${outline.title}"
     Tone: ${tone}
     Language: Korean
-    Style: Use **Standard Unicode Emojis** actively (e.g., 💡, 🚀, ✅, 📌) to make the content visually appealing and friendly.
+    Style: Use **Standard Unicode Emojis** actively (e.g., 💡, 🚀, ✅, 📌).
+    
+    **CRITICAL INSTRUCTIONS FOR REVENUE & DATA**:
+    1. **Data-Driven**: Prioritize **Facts, Statistics, and Concrete Data**. Avoid vague statements.
+    2. **Inline Linking**: If SOURCE URLs are provided below, you **MUST** hyperlink relevant keywords to them using Markdown \`[Keyword](URL)\`. Do NOT just list links at the end. Integrate them naturally.
   `;
   if (memo && memo.trim()) baseContext += `\n[USER MEMO]: "${memo}"`;
-  if (urls.length > 0) baseContext += `\nSOURCE URLs:\n${urls.join('\n')}`;
+  if (urls.length > 0) baseContext += `\nSOURCE URLs (Use these for inline links):\n${urls.join('\n')}`;
   if (files.length > 0) baseContext += `\n(Refer to attached documents)`;
 
   // 1. Intro Generation
@@ -137,7 +149,7 @@ export const generateBlogPostContent = async (
     
     Instructions:
     - Start with an eye-catching emoji.
-    - Hook the reader immediately.
+    - Hook the reader immediately with a **bold statement** or **question**.
     - Briefly mention what will be covered (use a short bullet list of 3 items).
     - **Keep it extremely concise (max 100 words).**
     - Do NOT write any section headers (like ## Introduction). Just the content.
@@ -158,14 +170,15 @@ export const generateBlogPostContent = async (
         2. **Details**: Use **Bullet Points** (with emojis) OR a **Markdown Table** (if comparing). NO long paragraphs.
         3. **Key Insight**: 1 bold sentence summarizing the takeaway (e.g., **💡 Insight: ...**).
       
+      - **Content Quality**: Include specific numbers, stats, or examples if possible.
+      - **Inline Links**: Link to source URLs where appropriate.
       - **Length Constraint**: Total under 150 words.
       - **Formatting**:
         - **DO NOT** use subsections (###).
         - **DO NOT** repeat the main section header (## ${section}).
         - **DO NOT** use horizontal rules (---).
-      - Focus on information density.
     `;
-    return generateText(ai, sectionPrompt, files, "You are an expert content writer. Write structured, concise, and visual content.");
+    return generateText(ai, sectionPrompt, files, "You are an expert content writer. Write structured, data-driven, and concise content.");
   });
 
   // 3. Conclusion Generation
@@ -177,9 +190,9 @@ export const generateBlogPostContent = async (
     
     Instructions:
     - Summarize the key takeaways in **max 3 sentences**.
+    - **Call to Action (CTA)**: End with a strong CTA encouraging the user to share, subscribe, or check the links.
     - End with a special section: "## ⚡ 3줄 요약".
     - Use emojis for the summary points (e.g., ✅, 💡, 🚀).
-    - Include a "## 📚 참고 자료" section if URLs were provided.
     - Do NOT use horizontal rules (---).
   `;
 
