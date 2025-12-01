@@ -140,8 +140,8 @@ export const generateBlogPostContent = async (
     1. **SEO Optimization**: Use natural keywords.
     2. **Reader Analysis**: Write for the specific audience. Use "F-pattern" formatting (bolding, bullets).
     3. **Visuals**: Use emojis and formatting to break up text.
-    4. **Infographics**: If a concept is complex, generate a **Mermaid.js** diagram code block (\`\`\`mermaid ... \`\`\`).
-    5. **Interactive Elements**: Include **Self-Checklists** (\`[ ] Item\`) or **Mini-Quizzes** where appropriate.
+    4. **Infographics**: **DO NOT use Mermaid or Code Blocks**. Instead, use **Markdown Tables** to visualize data or comparisons.
+    5. **Interactive Elements**: Use **Emoji-based Checklists** (e.g., "- ✅ Item") instead of brackets \`[ ]\`. **NEVER use \`[ ]\` characters**.
     6. **Data-Driven**: Use facts/stats.
     7. **No External Links**: Do not add inline links.
   `;
@@ -176,15 +176,15 @@ export const generateBlogPostContent = async (
       - **Structure**:
         1. **Core Concept**: Clear explanation.
         2. **Visual/Interactive**:
-           - Use **Bullet Points** (with emojis) OR a **Markdown Table** (if comparing).
-           - OR create a **Mermaid Diagram** (flowchart/pie chart) if comparing data or showing a process.
-           - OR add a **Checklist** (\`[ ]\`) for actionable steps.
+           - Use **Bullet Points** (with emojis).
+           - OR create a **Markdown Table** if comparing data or showing a process.
+           - OR add a **Checklist** using Emojis (e.g., "- ✅ Check"). **DO NOT use \`[ ]\`**.
         3. **Key Insight**: Bold summary.
       
       - **Formatting**: No subsections (###), no repeated headers, no horizontal rules.
       - **Length**: Under 150 words.
     `;
-    return generateText(ai, sectionPrompt, files, "You are an expert content writer. Use Mermaid diagrams and interactivity.");
+    return generateText(ai, sectionPrompt, files, "You are an expert content writer. Use Tables and Emojis.");
   });
 
   // 3. Conclusion Generation
@@ -329,7 +329,11 @@ export const generateBlogImage = async (title: string, style: ImageStyle, ratio:
   try {
     const response = await ai.models.generateContent({
       model: MODEL_IDS.IMAGE,
-      contents: `Create a high-quality image for: "${title}". ${stylePrompt} Aspect Ratio: ${ratio}. **IMPORTANT: Do NOT include any text, letters, or characters in the image.**`,
+      contents: `Create a high-quality image for: "${title}". ${stylePrompt} Aspect Ratio: ${ratio}. 
+      **CRITICAL INSTRUCTION: NO TEXT.** 
+      - Do NOT include any text, letters, numbers, or characters in the image.
+      - No signboards, no watermarks, no typography.
+      - Pure visual representation only.`,
       config: {
         imageConfig: { aspectRatio: ratio }
       }
