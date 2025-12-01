@@ -56,8 +56,18 @@ export const PublishingManager: React.FC<PublishingManagerProps> = ({ post }) =>
     };
 
     const handleTistoryLogin = () => {
-        // Redirect to backend auth endpoint
-        window.location.href = '/api/tistory/auth';
+        // For testing purposes without a real API Key
+        const isSimulation = confirm("실제 티스토리 App ID가 설정되지 않았습니다.\n테스트를 위해 '가상 로그인'을 진행하시겠습니까?\n(취소 시 실제 연동 시도)");
+
+        if (isSimulation) {
+            const dummyToken = 'TEST_TISTORY_ACCESS_TOKEN';
+            setTistoryToken(dummyToken);
+            localStorage.setItem('proinsight_tistory_token', dummyToken);
+            alert('테스트용 가상 계정이 연동되었습니다.');
+        } else {
+            // Redirect to backend auth endpoint
+            window.location.href = '/api/tistory/auth';
+        }
     };
 
     const handlePublishMedium = async () => {
