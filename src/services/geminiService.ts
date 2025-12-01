@@ -32,7 +32,11 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
        - It must be provocative, benefit-driven, or a listicle (e.g., "Top 5...", "Why you are wrong about...", "The Ultimate Guide to...").
        - Maximize curiosity and click-through rate (CTR).
     
-    2. **Sections**: Create 5-7 logical sections.
+    2. **Target Audience & Keywords**:
+       - Define the **Target Audience Persona** (e.g., Beginners, Experts).
+       - List 3-5 **Primary & LSI Keywords** for SEO.
+    
+    3. **Sections**: Create 5-7 logical sections.
     
     The output must be in Korean.
   `;
@@ -132,9 +136,14 @@ export const generateBlogPostContent = async (
     Language: Korean
     Style: Use **Standard Unicode Emojis** actively (e.g., 💡, 🚀, ✅, 📌).
     
-    **CRITICAL INSTRUCTIONS FOR REVENUE & DATA**:
-    1. **Data-Driven**: Prioritize **Facts, Statistics, and Concrete Data**. Avoid vague statements.
-    2. **NO LINKS**: Do NOT include any inline links. Focus on the content itself.
+    **EDITOR'S GUIDELINES (7 CORE PRINCIPLES)**:
+    1. **SEO Optimization**: Use natural keywords.
+    2. **Reader Analysis**: Write for the specific audience. Use "F-pattern" formatting (bolding, bullets).
+    3. **Visuals**: Use emojis and formatting to break up text.
+    4. **Infographics**: If a concept is complex, generate a **Mermaid.js** diagram code block (\`\`\`mermaid ... \`\`\`).
+    5. **Interactive Elements**: Include **Self-Checklists** (\`[ ] Item\`) or **Mini-Quizzes** where appropriate.
+    6. **Data-Driven**: Use facts/stats.
+    7. **No External Links**: Do not add inline links.
   `;
   if (memo && memo.trim()) baseContext += `\n[USER MEMO]: "${memo}"`;
   if (urls.length > 0) baseContext += `\nSOURCE URLs (For reference only):\n${urls.join('\n')}`;
@@ -148,10 +157,9 @@ export const generateBlogPostContent = async (
     Outline of the whole post: ${outline.sections.join(", ")}
     
     Instructions:
-    - Start with an eye-catching emoji.
-    - Hook the reader immediately with a **bold statement** or **question**.
-    - Briefly mention what will be covered (use a short bullet list of 3 items).
-    - **Keep it extremely concise (max 100 words).**
+    - **Hook**: Start with a strong question or statement to grab attention (Reader Behavior Analysis).
+    - **Value**: Briefly state what the reader will gain.
+    - **Conciseness**: Max 100 words.
     - Do NOT write any section headers (like ## Introduction). Just the content.
     - Do NOT use horizontal rules (---).
   `;
@@ -165,19 +173,18 @@ export const generateBlogPostContent = async (
       Context (Full Outline): ${outline.sections.join(", ")}
       
       Instructions:
-      - **STRICT FORMAT**: Follow this structure exactly:
-        1. **Core Concept**: 1-2 sentences explaining the main idea.
-        2. **Details**: Use **Bullet Points** (with emojis) OR a **Markdown Table** (if comparing). NO long paragraphs.
-        3. **Key Insight**: 1 bold sentence summarizing the takeaway (e.g., **💡 Insight: ...**).
+      - **Structure**:
+        1. **Core Concept**: Clear explanation.
+        2. **Visual/Interactive**:
+           - Use **Bullet Points** (with emojis) OR a **Markdown Table** (if comparing).
+           - OR create a **Mermaid Diagram** (flowchart/pie chart) if comparing data or showing a process.
+           - OR add a **Checklist** (\`[ ]\`) for actionable steps.
+        3. **Key Insight**: Bold summary.
       
-      - **Content Quality**: Include specific numbers, stats, or examples if possible.
-      - **Length Constraint**: Total under 150 words.
-      - **Formatting**:
-        - **DO NOT** use subsections (###).
-        - **DO NOT** repeat the main section header (## ${section}).
-        - **DO NOT** use horizontal rules (---).
+      - **Formatting**: No subsections (###), no repeated headers, no horizontal rules.
+      - **Length**: Under 150 words.
     `;
-    return generateText(ai, sectionPrompt, files, "You are an expert content writer. Write structured, data-driven, and concise content.");
+    return generateText(ai, sectionPrompt, files, "You are an expert content writer. Use Mermaid diagrams and interactivity.");
   });
 
   // 3. Conclusion Generation
@@ -188,10 +195,9 @@ export const generateBlogPostContent = async (
     Outline of the whole post: ${outline.sections.join(", ")}
     
     Instructions:
-    - Summarize the key takeaways in **max 3 sentences**.
-    - **Call to Action (CTA)**: End with a strong CTA encouraging the user to share or subscribe.
-    - End with a special section: "## ⚡ 3줄 요약".
-    - Use emojis for the summary points (e.g., ✅, 💡, 🚀).
+    - Summarize the key takeaways.
+    - **Interactive CTA**: Ask a question to encourage comments.
+    - End with "## ⚡ 3줄 요약".
     - Do NOT use horizontal rules (---).
   `;
 
@@ -318,7 +324,7 @@ export const generateBlogImage = async (title: string, style: ImageStyle, ratio:
 
   let stylePrompt = `STYLE: ${style}`;
   // Map specific styles to better prompts if needed (simplified here for brevity)
-  if (style === ImageStyle.PHOTOREALISTIC) stylePrompt = "STYLE: Photorealistic, DSLR, 4k resolution.";
+  if (style === ImageStyle.PHOTOREALISTIC) stylePrompt = "STYLE: Cinematic, Photorealistic, 4k, Award-winning composition, High detail.";
 
   try {
     const response = await ai.models.generateContent({
