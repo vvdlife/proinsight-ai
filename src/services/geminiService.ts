@@ -5,7 +5,7 @@ import { BlogTone, OutlineData, SocialPost, ImageStyle, UploadedFile } from "../
 // Constants
 const MODEL_IDS = {
   TEXT: "gemini-2.5-flash",
-  IMAGE: "imagen-3.0-generate-001", // Updated to Imagen 3
+  IMAGE: "gemini-2.0-flash-exp", // Switch to Gemini 2.0 Flash Exp for reliable image generation
 } as const;
 
 // Helper to get client securely
@@ -134,14 +134,14 @@ export const generateBlogPostContent = async (
     
     **CRITICAL INSTRUCTIONS FOR REVENUE & DATA**:
     1. **Data-Driven**: Prioritize **Facts, Statistics, and Concrete Data**. Avoid vague statements.
-    2. **Inline Linking (STRICT)**: 
-       - You have a list of 'SOURCE URLs' below.
-       - **ONLY** use these provided URLs. **DO NOT** invent or hallucinate new links.
-       - If a keyword matches a provided URL, hyperlink it: \`[Keyword](URL)\`.
-       - If no relevant URL exists for a keyword, do **NOT** create a link.
+    2. **Inline Linking**: 
+       - You are encouraged to include **relevant external links** to reputable sources (e.g., official docs, news, Wikipedia) if you use data from them.
+       - If 'SOURCE URLs' are provided below, prioritize them, but you are **NOT restricted** to them.
+       - Link format: \`[Keyword](URL)\`.
+       - Ensure links are valid and relevant.
   `;
   if (memo && memo.trim()) baseContext += `\n[USER MEMO]: "${memo}"`;
-  if (urls.length > 0) baseContext += `\nSOURCE URLs (Use ONLY these for inline links):\n${urls.join('\n')}`;
+  if (urls.length > 0) baseContext += `\nSOURCE URLs (Prioritize these):\n${urls.join('\n')}`;
   if (files.length > 0) baseContext += `\n(Refer to attached documents)`;
 
   // 1. Intro Generation
@@ -175,7 +175,7 @@ export const generateBlogPostContent = async (
         3. **Key Insight**: 1 bold sentence summarizing the takeaway (e.g., **💡 Insight: ...**).
       
       - **Content Quality**: Include specific numbers, stats, or examples if possible.
-      - **Inline Links**: Check 'SOURCE URLs'. If a relevant URL exists, link it. If not, don't.
+      - **Inline Links**: Include relevant external links (e.g., to official sources) if appropriate.
       - **Length Constraint**: Total under 150 words.
       - **Formatting**:
         - **DO NOT** use subsections (###).
