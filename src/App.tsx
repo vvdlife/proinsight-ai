@@ -13,6 +13,7 @@ import { AuthGate } from './components/AuthGate';
 const MarkdownRenderer = React.lazy(() => import('./components/MarkdownRenderer').then(module => ({ default: module.MarkdownRenderer })));
 const SocialGenerator = React.lazy(() => import('./components/SocialGenerator').then(module => ({ default: module.SocialGenerator })));
 const ExportManager = React.lazy(() => import('./components/ExportManager').then(module => ({ default: module.ExportManager })));
+const PublishingManager = React.lazy(() => import('./components/PublishingManager').then(module => ({ default: module.PublishingManager })));
 
 const App: React.FC = () => {
   // Authentication State
@@ -582,6 +583,9 @@ const App: React.FC = () => {
 
             {/* Export Manager (Naver/Tistory Copy) */}
             {finalPost && <ExportManager post={finalPost} />}
+
+            {/* Auto Publishing Manager */}
+            {finalPost && <PublishingManager post={finalPost} />}
 
             {/* Social Generator Section */}
             {finalPost?.socialPosts && <SocialGenerator posts={finalPost.socialPosts} />}

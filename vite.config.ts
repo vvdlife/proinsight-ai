@@ -11,5 +11,13 @@ export default defineConfig(({ mode }) => {
       'process.env.API_KEY': JSON.stringify(env.VITE_API_KEY),
       'process.env.ACCESS_CODE': JSON.stringify(env.VITE_ACCESS_CODE)
     },
+    server: {
+      proxy: {
+        '/api': {
+          target: 'http://localhost:3001',
+          changeOrigin: true,
+        }
+      }
+    }
   }
 })
