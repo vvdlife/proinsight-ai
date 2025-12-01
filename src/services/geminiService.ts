@@ -137,6 +137,7 @@ export const generateBlogPostContent = async (
     Instructions:
     - Hook the reader immediately.
     - Briefly mention what will be covered.
+    - **Keep it extremely concise (max 3 sentences).**
     - Do NOT write any section headers (like ## Introduction). Just the content.
   `;
 
@@ -149,12 +150,13 @@ export const generateBlogPostContent = async (
       Context (Full Outline): ${outline.sections.join(", ")}
       
       Instructions:
-      - Write detailed, professional content for THIS section only.
-      - Use paragraphs and markdown formatting (bold, list, etc.).
-      - You can use subsections (###) if needed, but do NOT repeat the main section header (## ${section}).
-      - Be comprehensive and data-driven if possible.
+      - Write **extremely concise** content for THIS section only.
+      - **Limit to 1 paragraph only.** (Max 150 words).
+      - **DO NOT use subsections (###).** Use bold text for emphasis if needed.
+      - Focus on the most critical information. No fluff.
+      - Do NOT repeat the main section header (## ${section}).
     `;
-    return generateText(ai, sectionPrompt, files, "You are an expert content writer. Write deep and insightful content.");
+    return generateText(ai, sectionPrompt, files, "You are an expert content writer. Write concise and impactful content.");
   });
 
   // 3. Conclusion Generation
@@ -165,7 +167,7 @@ export const generateBlogPostContent = async (
     Outline of the whole post: ${outline.sections.join(", ")}
     
     Instructions:
-    - Summarize the key takeaways.
+    - Summarize the key takeaways in **max 3 sentences**.
     - End with a special section: "## ⚡ 3줄 요약".
     - Include a "## 📚 참고 자료" section if URLs were provided.
   `;
@@ -181,7 +183,7 @@ export const generateBlogPostContent = async (
   const bodySections = bodyAndConclusion; // Remaining are body sections
 
   // Assemble the full post
-  let fullPost = `# ${outline.title}\n\n${intro}\n\n`;
+  let fullPost = `${intro}\n\n`;
 
   outline.sections.forEach((section, idx) => {
     fullPost += `## ${section}\n\n${bodySections[idx]}\n\n`;
