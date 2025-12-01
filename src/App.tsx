@@ -13,6 +13,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthGate } from './components/AuthGate';
 
 const App: React.FC = () => {
+  console.log("Deployment Verification: 2025-12-01T16:39:07+09:00");
   // Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
