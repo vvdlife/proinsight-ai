@@ -3,14 +3,16 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { StepWizard } from './components/StepWizard';
 import { LoadingOverlay } from './components/LoadingOverlay';
 import { SparklesIcon, ChevronRightIcon, RefreshIcon, PenIcon, ImageIcon, CopyIcon, TrendIcon, ChartIcon, CodeIcon, LinkIcon, UploadIcon, TrashIcon, FileTextIcon, PlusIcon, MemoIcon } from './components/Icons';
-import { MarkdownRenderer } from './components/MarkdownRenderer';
 import { generateOutline, generateBlogPostContent, generateBlogImage, generateSocialPosts } from './services/geminiService';
 import { AppStep, BlogTone, OutlineData, BlogPost, LoadingState, ImageStyle, UploadedFile, BlogFont } from './types';
 import { SettingsModal } from './components/SettingsModal';
-import { SocialGenerator } from './components/SocialGenerator';
-import { ExportManager } from './components/ExportManager';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthGate } from './components/AuthGate';
+
+// Lazy Load Heavy Components
+const MarkdownRenderer = React.lazy(() => import('./components/MarkdownRenderer').then(module => ({ default: module.MarkdownRenderer })));
+const SocialGenerator = React.lazy(() => import('./components/SocialGenerator').then(module => ({ default: module.SocialGenerator })));
+const ExportManager = React.lazy(() => import('./components/ExportManager').then(module => ({ default: module.ExportManager })));
 
 const App: React.FC = () => {
   // Authentication State
@@ -406,8 +408,8 @@ const App: React.FC = () => {
                             key={tone}
                             onClick={() => setSelectedTone(tone)}
                             className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all ${selectedTone === tone
-                                ? 'bg-indigo-50 border-2 border-indigo-500 text-indigo-700'
-                                : 'bg-slate-50 border border-transparent text-slate-600 hover:bg-slate-100'
+                              ? 'bg-indigo-50 border-2 border-indigo-500 text-indigo-700'
+                              : 'bg-slate-50 border border-transparent text-slate-600 hover:bg-slate-100'
                               }`}
                           >
                             {tone}
@@ -426,8 +428,8 @@ const App: React.FC = () => {
                             key={style}
                             onClick={() => setSelectedImageStyle(style)}
                             className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all ${selectedImageStyle === style
-                                ? 'bg-pink-50 border-2 border-pink-500 text-pink-700'
-                                : 'bg-slate-50 border border-transparent text-slate-600 hover:bg-slate-100'
+                              ? 'bg-pink-50 border-2 border-pink-500 text-pink-700'
+                              : 'bg-slate-50 border border-transparent text-slate-600 hover:bg-slate-100'
                               }`}
                           >
                             {style}
@@ -625,7 +627,9 @@ const App: React.FC = () => {
           <StepWizard currentStep={currentStep} />
 
           {/* Step Views */}
-          {renderStepContent()}
+          <React.Suspense fallback={<div className="flex justify-center py-20"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div></div>}>
+            {renderStepContent()}
+          </React.Suspense>
         </main>
       </div>
     </ErrorBoundary>

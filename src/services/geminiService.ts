@@ -2,10 +2,16 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { BlogTone, OutlineData, SocialPost, ImageStyle, UploadedFile } from "../types";
 
+// Constants
+const MODEL_IDS = {
+  TEXT: "gemini-2.5-flash",
+  IMAGE: "gemini-2.5-flash-image",
+} as const;
+
 // Helper to get client securely
 const getGenAI = () => {
   const key = sessionStorage.getItem('proinsight_api_key') || localStorage.getItem('proinsight_api_key') || (import.meta as any).env.VITE_API_KEY;
-  
+
   if (!key) {
     throw new Error("API Key가 없습니다. 설정에서 키를 등록해주세요.");
   }
@@ -17,35 +23,34 @@ const getGenAI = () => {
  */
 export const generateOutline = async (topic: string, files: UploadedFile[], urls: string[], memo: string): Promise<OutlineData> => {
   const ai = getGenAI();
-  const modelId = "gemini-2.5-flash";
-  
+
   let promptText = `Write a blog post outline for the topic: "${topic}". The output must be in Korean.`;
-  
+
   if (memo && memo.trim()) {
-      promptText += `\n\n[USER MEMO]:\n"${memo}"\n(Prioritize this instruction.)`;
+    promptText += `\n\n[USER MEMO]:\n"${memo}"\n(Prioritize this instruction.)`;
   }
 
   if (urls.length > 0) {
     promptText += `\n\nRefer to these URLs:\n${urls.join('\n')}`;
   }
-  
+
   if (files.length > 0) {
     promptText += `\n\nAnalyze the attached documents as the PRIMARY source.`;
   }
 
   const parts: any[] = [{ text: promptText }];
-  
+
   files.forEach(file => {
-      parts.push({
-          inlineData: {
-              mimeType: file.mimeType,
-              data: file.data
-          }
-      });
+    parts.push({
+      inlineData: {
+        mimeType: file.mimeType,
+        data: file.data
+      }
+    });
   });
 
   const response = await ai.models.generateContent({
-    model: modelId,
+    model: MODEL_IDS.TEXT,
     contents: { role: 'user', parts },
     config: {
       responseMimeType: "application/json",
@@ -78,7 +83,6 @@ export const generateBlogPostContent = async (
   memo: string
 ): Promise<string> => {
   const ai = getGenAI();
-  const modelId = "gemini-2.5-flash"; 
 
   let promptText = `
     Write a high-quality blog post:
@@ -102,18 +106,18 @@ export const generateBlogPostContent = async (
   `;
 
   const parts: any[] = [{ text: promptText }];
-  
+
   files.forEach(file => {
-      parts.push({
-          inlineData: {
-              mimeType: file.mimeType,
-              data: file.data
-          }
-      });
+    parts.push({
+      inlineData: {
+        mimeType: file.mimeType,
+        data: file.data
+      }
+    });
   });
 
   const response = await ai.models.generateContent({
-    model: modelId,
+    model: MODEL_IDS.TEXT,
     contents: { role: 'user', parts },
     config: {
       systemInstruction: "You are a senior analyst. Writing is structured, data-driven, and readable.",
@@ -128,7 +132,6 @@ export const generateBlogPostContent = async (
  */
 export const generateSocialPosts = async (title: string, summary: string, imageStyle: ImageStyle): Promise<SocialPost[]> => {
   const ai = getGenAI();
-  const modelId = "gemini-2.5-flash";
 
   const prompt = `
     Create promotional social media posts for: "${title}".
@@ -144,7 +147,7 @@ export const generateSocialPosts = async (title: string, summary: string, imageS
   `;
 
   const response = await ai.models.generateContent({
-    model: modelId,
+    model: MODEL_IDS.TEXT,
     contents: prompt,
     config: {
       responseMimeType: "application/json",
@@ -165,22 +168,28 @@ export const generateSocialPosts = async (title: string, summary: string, imageS
 
   let text = response.text;
   if (!text) return [];
-  
+
   // Cleanup markdown code blocks if present
   text = text.replace(/```json|```/g, '').trim();
-  
-  let posts = JSON.parse(text) as SocialPost[];
+
+  let posts: SocialPost[] = [];
+  try {
+    posts = JSON.parse(text) as SocialPost[];
+  } catch (e) {
+    console.error("Failed to parse social posts JSON", e);
+    return [];
+  }
 
   // 1. Link Replacement Logic
   try {
     const userUrls = JSON.parse(localStorage.getItem('proinsight_blog_urls') || '{}');
     const targetUrl = userUrls.NAVER || userUrls.TISTORY || userUrls.MEDIUM || userUrls.WORDPRESS || userUrls.SUBSTACK;
-    
+
     if (targetUrl) {
-        posts = posts.map(post => ({
-            ...post,
-            content: post.content.replace(/\[Link\]|\[Blog Link\]|\[블로그 링크\]/gi, targetUrl)
-        }));
+      posts = posts.map(post => ({
+        ...post,
+        content: post.content.replace(/\[Link\]|\[Blog Link\]|\[블로그 링크\]/gi, targetUrl)
+      }));
     }
   } catch (e) {
     console.error("Link replacement error", e);
@@ -189,14 +198,14 @@ export const generateSocialPosts = async (title: string, summary: string, imageS
   // 2. Generate Instagram Image (1:1 Ratio)
   const instaIndex = posts.findIndex(p => p.platform.toLowerCase().includes('instagram'));
   if (instaIndex !== -1) {
-      try {
-          const instaImage = await generateBlogImage(title, imageStyle, "1:1");
-          if (instaImage) {
-              posts[instaIndex].imageUrl = instaImage;
-          }
-      } catch (e) {
-          console.error("Failed to generate Instagram image", e);
+    try {
+      const instaImage = await generateBlogImage(title, imageStyle, "1:1");
+      if (instaImage) {
+        posts[instaIndex].imageUrl = instaImage;
       }
+    } catch (e) {
+      console.error("Failed to generate Instagram image", e);
+    }
   }
 
   return posts;
@@ -207,31 +216,30 @@ export const generateSocialPosts = async (title: string, summary: string, imageS
  */
 export const generateBlogImage = async (title: string, style: ImageStyle, ratio: string = "16:9"): Promise<string | undefined> => {
   const ai = getGenAI();
-  const modelId = "gemini-2.5-flash-image";
 
-  let stylePrompt = `STYLE: ${style}`; 
+  let stylePrompt = `STYLE: ${style}`;
   // Map specific styles to better prompts if needed (simplified here for brevity)
-  if(style === ImageStyle.PHOTOREALISTIC) stylePrompt = "STYLE: Photorealistic, DSLR, 4k resolution.";
+  if (style === ImageStyle.PHOTOREALISTIC) stylePrompt = "STYLE: Photorealistic, DSLR, 4k resolution.";
 
   try {
     const response = await ai.models.generateContent({
-      model: modelId,
+      model: MODEL_IDS.IMAGE,
       contents: `Create a high-quality image for: "${title}". ${stylePrompt} Aspect Ratio: ${ratio}. NO TEXT.`,
       config: {
-          imageConfig: { aspectRatio: ratio }
+        imageConfig: { aspectRatio: ratio }
       }
     });
 
     if (response.candidates && response.candidates[0].content.parts) {
       for (const part of response.candidates[0].content.parts) {
         if (part.inlineData) {
-            return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+          return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
         }
       }
     }
     return undefined;
   } catch (error) {
     console.error("Image generation failed:", error);
-    return undefined; 
+    return undefined;
   }
 };

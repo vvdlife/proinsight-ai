@@ -9,9 +9,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     define: {
       'process.env.API_KEY': JSON.stringify(env.VITE_API_KEY),
-      'process.env.ACCESS_CODE': JSON.stringify(env.VITE_ACCESS_CODE),
-      // Fallback for libraries that might use process.env
-      'process.env': process.env
+      'process.env.ACCESS_CODE': JSON.stringify(env.VITE_ACCESS_CODE)
     },
   }
 })
