@@ -10,13 +10,13 @@ export const AuthGate: React.FC<AuthGateProps> = ({ onAuthenticated }) => {
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState('');
 
-  // Use type assertion to handle ImportMeta typing issue
+  // Correct way to access Vite env vars
   const REQUIRED_ACCESS_CODE = (import.meta as any).env.VITE_ACCESS_CODE;
 
   useEffect(() => {
     // Strict Mode: If no access code is configured in env, block access with error
     if (!REQUIRED_ACCESS_CODE) {
-        setError('시스템 설정 오류: 관리자 액세스 코드가 설정되지 않았습니다.');
+        setError('시스템 설정 오류: 관리자 액세스 코드가 설정되지 않았습니다. (VITE_ACCESS_CODE)');
         return;
     }
 

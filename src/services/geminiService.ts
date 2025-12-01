@@ -2,7 +2,6 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { BlogTone, OutlineData, SocialPost, ImageStyle, UploadedFile } from "../types";
 
 // Initialize Gemini Client
-// The API key must be obtained exclusively from the environment variable process.env.API_KEY.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
@@ -200,12 +199,11 @@ export const generateSocialPosts = async (title: string, summary: string, imageS
   }
 
   // 2. Generate Image for Instagram (1:1 Ratio) using selected style
-  // Use loose matching to find Instagram post
   const instaIndex = posts.findIndex(p => p.platform.toLowerCase().includes('instagram'));
   
   if (instaIndex !== -1) {
       try {
-          // Use the user's selected image style for consistency
+          // Force 1:1 ratio for Instagram
           const instaImage = await generateBlogImage(title, imageStyle, "1:1");
           if (instaImage) {
               posts[instaIndex].imageUrl = instaImage;
@@ -227,28 +225,28 @@ export const generateBlogImage = async (title: string, style: ImageStyle, ratio:
   let stylePrompt = "";
   switch (style) {
     case ImageStyle.PHOTOREALISTIC:
-      stylePrompt = `STYLE: Real life photography, Shot on DSLR, 4k resolution, Cinematic lighting. Aspect Ratio: ${ratio}.`;
+      stylePrompt = `STYLE: Real life photography, Shot on DSLR, 4k resolution, Cinematic lighting.`;
       break;
     case ImageStyle.DIGITAL_ART:
-      stylePrompt = `STYLE: High-end Digital Art, Vibrant colors, Clean composition, Modern Tech aesthetics. Aspect Ratio: ${ratio}.`;
+      stylePrompt = `STYLE: High-end Digital Art, Vibrant colors, Clean composition, Modern Tech aesthetics.`;
       break;
     case ImageStyle.MINIMALIST:
-      stylePrompt = `STYLE: Minimalist flat illustration, Pastel colors, Clean lines, Negative space. Aspect Ratio: ${ratio}.`;
+      stylePrompt = `STYLE: Minimalist flat illustration, Pastel colors, Clean lines, Negative space.`;
       break;
     case ImageStyle.RENDER_3D:
-      stylePrompt = `STYLE: 3D Render, Blender style, Isometric view, Soft lighting, High detail. Aspect Ratio: ${ratio}.`;
+      stylePrompt = `STYLE: 3D Render, Blender style, Isometric view, Soft lighting, High detail.`;
       break;
     case ImageStyle.WATERCOLOR:
-      stylePrompt = `STYLE: Watercolor painting, soft strokes, artistic, dreamy atmosphere. Aspect Ratio: ${ratio}.`;
+      stylePrompt = `STYLE: Watercolor painting, soft strokes, artistic, dreamy atmosphere.`;
       break;
     case ImageStyle.CYBERPUNK:
-      stylePrompt = `STYLE: Cyberpunk aesthetics, neon lights, futuristic city, dark atmosphere with bright accents. Aspect Ratio: ${ratio}.`;
+      stylePrompt = `STYLE: Cyberpunk aesthetics, neon lights, futuristic city, dark atmosphere with bright accents.`;
       break;
     case ImageStyle.ANIME:
-      stylePrompt = `STYLE: Anime style, Makoto Shinkai inspired, vibrant skies, detailed backgrounds. Aspect Ratio: ${ratio}.`;
+      stylePrompt = `STYLE: Anime style, Makoto Shinkai inspired, vibrant skies, detailed backgrounds.`;
       break;
     default:
-      stylePrompt = `STYLE: Photorealistic, 4k resolution. Aspect Ratio: ${ratio}.`;
+      stylePrompt = `STYLE: Photorealistic, 4k resolution.`;
   }
 
   try {
@@ -265,6 +263,11 @@ export const generateBlogImage = async (title: string, style: ImageStyle, ratio:
     const response = await ai.models.generateContent({
       model: modelId,
       contents: prompt,
+      config: {
+          imageConfig: {
+              aspectRatio: ratio // '1:1' or '16:9' etc.
+          }
+      }
     });
 
     if (response.candidates && response.candidates[0].content.parts) {

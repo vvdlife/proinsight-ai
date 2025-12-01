@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { SocialPost } from '../types';
-import { CopyIcon, CheckIcon, HeartIcon, ChatBubbleIcon, RepeatIcon, ShareIcon, ImageIcon, PenIcon, SparklesIcon } from './Icons';
+import { CopyIcon, CheckIcon, HeartIcon, ChatBubbleIcon, RepeatIcon, ShareIcon, ImageIcon, SparklesIcon } from './Icons';
 
 interface SocialGeneratorProps {
   posts: SocialPost[];
@@ -63,7 +62,8 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
             <span className="font-semibold text-xs text-slate-800">proinsight_ai</span>
             <span className="ml-auto text-slate-400">•••</span>
           </div>
-          {/* Insta Image Placeholder or Generated Image */}
+          
+          {/* Insta Image Area */}
           <div className="aspect-square bg-slate-100 flex items-center justify-center text-slate-300 relative group overflow-hidden">
              {post.imageUrl ? (
                  <>
@@ -71,25 +71,32 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
                     <div className="absolute top-2 right-2 bg-black/50 backdrop-blur text-white text-[10px] px-2 py-1 rounded-full flex items-center gap-1 opacity-70">
                         <SparklesIcon className="w-3 h-3 text-yellow-400" /> AI
                     </div>
-                    <a 
-                        href={post.imageUrl} 
-                        download={`instagram-post-${index}.png`}
-                        className="absolute bottom-4 right-4 bg-white/90 hover:bg-white text-slate-800 px-3 py-2 rounded-lg font-bold text-xs shadow-lg flex items-center gap-1 transition-all opacity-0 group-hover:opacity-100"
-                    >
-                        <ImageIcon className="w-3 h-3" /> 다운로드
-                    </a>
+                    {/* Download Button Overlay */}
+                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <a 
+                            href={post.imageUrl} 
+                            download={`instagram-post-${index}.png`}
+                            className="bg-white text-slate-900 px-4 py-2 rounded-full font-bold text-xs shadow-lg flex items-center gap-2 hover:scale-105 transition-transform"
+                        >
+                            <ImageIcon className="w-4 h-4" /> 이미지 다운로드
+                        </a>
+                    </div>
                  </>
              ) : (
-                 <span className="text-xs">이미지 생성 실패</span>
+                 <div className="flex flex-col items-center gap-2">
+                    <ImageIcon className="w-8 h-8 opacity-50" />
+                    <span className="text-xs">이미지 생성 대기 중...</span>
+                 </div>
              )}
           </div>
+          
           {/* Insta Actions */}
           <div className="px-4 py-3 flex gap-4">
             <HeartIcon className="w-6 h-6 text-slate-800" />
             <ChatBubbleIcon className="w-6 h-6 text-slate-800" />
             <ShareIcon className="w-6 h-6 text-slate-800" />
           </div>
-          {/* Insta Content - Editable */}
+          {/* Insta Content */}
           <div className="px-4 pb-4">
             <div className="text-xs font-semibold mb-1">좋아요 1,024개</div>
             <div className="text-xs text-slate-800 whitespace-pre-wrap leading-relaxed">
