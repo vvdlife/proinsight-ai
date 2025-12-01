@@ -150,13 +150,16 @@ export const generateBlogPostContent = async (
       Context (Full Outline): ${outline.sections.join(", ")}
       
       Instructions:
-      - Write **extremely concise** content for THIS section only.
-      - **Limit to 1 paragraph only.** (Max 150 words).
-      - **DO NOT use subsections (###).** Use bold text for emphasis if needed.
-      - Focus on the most critical information. No fluff.
+      - Write **visually engaging** and **concise** content (approx. 200-250 words).
+      - **DO NOT** just write a wall of text. Use **diverse formatting**:
+        1. **Bullet Points** or **Numbered Lists** for key details.
+        2. **Markdown Table**: IF this section involves comparisons, stats, or features, **YOU MUST include a table**.
+        3. **Bold Text**: Highlight key concepts.
+      - **DO NOT** use subsections (###). Use **Bold Headers** if needed.
+      - Focus on information density. Express complex ideas simply.
       - Do NOT repeat the main section header (## ${section}).
     `;
-    return generateText(ai, sectionPrompt, files, "You are an expert content writer. Write concise and impactful content.");
+    return generateText(ai, sectionPrompt, files, "You are an expert content writer. Use tables and lists to make content readable.");
   });
 
   // 3. Conclusion Generation
