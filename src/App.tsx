@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { StepWizard } from './components/StepWizard';
 import { LoadingOverlay } from './components/LoadingOverlay';
@@ -6,7 +5,6 @@ import { SparklesIcon, ChevronRightIcon, RefreshIcon, PenIcon, ImageIcon, CopyIc
 import { MarkdownRenderer } from './components/MarkdownRenderer';
 import { generateOutline, generateBlogPostContent, generateBlogImage, generateSocialPosts } from './services/geminiService';
 import { AppStep, BlogTone, OutlineData, BlogPost, LoadingState, ImageStyle, UploadedFile, BlogFont } from './types';
-import { AuthGate } from './components/AuthGate';
 import { SettingsModal } from './components/SettingsModal';
 import { SocialGenerator } from './components/SocialGenerator';
 import { ExportManager } from './components/ExportManager';
@@ -14,7 +12,6 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 
 const App: React.FC = () => {
   // Authentication State
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // App State
@@ -102,7 +99,7 @@ const App: React.FC = () => {
       setOutline(data);
       setCurrentStep(AppStep.OUTLINE_REVIEW);
     } catch (error) {
-      alert('개요 생성에 실패했습니다. API Key를 확인하거나 다시 시도해주세요.');
+      alert('개요 생성에 실패했습니다. 다시 시도해주세요.');
       console.error(error);
     } finally {
       setLoading({ isLoading: false, message: '' });
@@ -129,8 +126,9 @@ const App: React.FC = () => {
       ]);
 
       // 2. Generate Social Posts
+      // Pass selectedImageStyle to generateSocialPosts
       const summary = content.substring(0, 500);
-      const socialPosts = await generateSocialPosts(outline.title, summary);
+      const socialPosts = await generateSocialPosts(outline.title, summary, selectedImageStyle);
 
       setFinalPost({
         title: outline.title,
@@ -171,11 +169,6 @@ const App: React.FC = () => {
     { icon: <CodeIcon className="w-4 h-4" />, text: "생산성을 높이는 노션 활용법" },
     { icon: <TrendIcon className="w-4 h-4" />, text: "지속 가능한 친환경 에너지 기술" },
   ];
-
-  // If not authenticated, show Auth Gate
-  if (!isAuthenticated) {
-    return <AuthGate onAuthenticated={() => setIsAuthenticated(true)} />;
-  }
 
   // Generate Draft Preview content based on outline
   const getDraftPreview = () => {

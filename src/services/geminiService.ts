@@ -1,25 +1,16 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { BlogTone, OutlineData, SocialPost, ImageStyle, UploadedFile } from "../types";
 
-// Helper to get client securely
-const getGenAI = () => {
-  const key = sessionStorage.getItem('proinsight_api_key') || localStorage.getItem('proinsight_api_key') || (import.meta as any).env.VITE_API_KEY;
-  
-  if (!key) {
-    throw new Error("API Key가 없습니다. 설정에서 키를 등록해주세요.");
-  }
-  return new GoogleGenAI({ apiKey: key });
-};
+// Initialize Gemini Client
+// The API key must be obtained exclusively from the environment variable process.env.API_KEY.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
  * Generates a blog post outline based on a topic and optional source materials.
  */
 export const generateOutline = async (topic: string, files: UploadedFile[], urls: string[], memo: string): Promise<OutlineData> => {
-  const ai = getGenAI();
   const modelId = "gemini-2.5-flash";
   
-  // Construct the prompt with sources
   let promptText = `Write a blog post outline for the topic: "${topic}". The output must be in Korean.`;
   
   if (memo && memo.trim()) {
@@ -36,7 +27,6 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
 
   const parts: any[] = [{ text: promptText }];
   
-  // Attach files as parts
   files.forEach(file => {
       parts.push({
           inlineData: {
@@ -63,7 +53,7 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
         },
         required: ["title", "sections"],
       },
-      systemInstruction: "You are an expert content strategist. Create engaging, well-structured outlines based on the provided source materials (if any).",
+      systemInstruction: "You are an expert content strategist. Create engaging, well-structured outlines.",
     },
   });
 
@@ -85,7 +75,6 @@ export const generateBlogPostContent = async (
   urls: string[],
   memo: string
 ): Promise<string> => {
-  const ai = getGenAI();
   const modelId = "gemini-2.5-flash"; 
 
   let promptText = `
@@ -152,36 +141,21 @@ export const generateBlogPostContent = async (
 };
 
 /**
- * Generates social media promotional posts.
+ * Generates social media promotional posts and an Instagram image.
  */
-export const generateSocialPosts = async (title: string, summary: string): Promise<SocialPost[]> => {
-  const ai = getGenAI();
+export const generateSocialPosts = async (title: string, summary: string, imageStyle: ImageStyle): Promise<SocialPost[]> => {
   const modelId = "gemini-2.5-flash";
 
   const prompt = `
     Create promotional social media posts for a blog article titled: "${title}".
     Summary context: "${summary.substring(0, 300)}..."
     
-    Generate 3 distinct posts optimized for each platform's culture:
-    
-    1. **Instagram**: Create a "Carousel/Card News" plan.
-       - Structure: "Slide 1: [Hook]", "Slide 2: [Point 1]", "Slide 3: [Point 2]", "Slide 4: [Conclusion]".
-       - Tone: Visual, Emoji-rich, Emotional.
-       - Hashtags: 10-15 relevant tags.
-       - Use placeholder [Link] or [Blog Link] for the bio link.
-       
+    Generate 3 distinct posts:
+    1. **Instagram**: Carousel/Card News Plan. Use emojis.
     2. **LinkedIn**: Professional Insight.
-       - Focus: Industry impact, professional growth, business value.
-       - Tone: Professional, Thought leadership.
-       - Hashtags: 3-5 professional tags.
-       - Include placeholder [Link] or [Blog Link] for the article.
-       
-    3. **Twitter (X)**: A Thread (Targeting high engagement).
-       - Structure: "1/5 [Hook]", "2/5 [Point]", ... "5/5 [Link]".
-       - Tone: Punchy, controversial or surprising.
-       - Hashtags: 2-3 trending tags.
-       - Include placeholder [Link] or [Blog Link].
+    3. **Twitter (X)**: Thread Hook.
     
+    IMPORTANT: Use the placeholder [Link] where the blog URL should go.
     Output in JSON format.
   `;
 
@@ -210,7 +184,7 @@ export const generateSocialPosts = async (title: string, summary: string): Promi
   
   let posts = JSON.parse(text) as SocialPost[];
 
-  // 1. Post-processing: Link Replacement
+  // 1. Link Replacement (Smart Priority)
   try {
     const userUrls = JSON.parse(localStorage.getItem('proinsight_blog_urls') || '{}');
     const targetUrl = userUrls.NAVER || userUrls.TISTORY || userUrls.MEDIUM || userUrls.WORDPRESS || userUrls.SUBSTACK;
@@ -222,14 +196,17 @@ export const generateSocialPosts = async (title: string, summary: string): Promi
         }));
     }
   } catch (e) {
-    console.error("Failed to replace links", e);
+    console.error("Link replacement error", e);
   }
 
-  // 2. Generate Image for Instagram (1:1 Ratio)
-  const instaIndex = posts.findIndex(p => p.platform === 'Instagram');
+  // 2. Generate Image for Instagram (1:1 Ratio) using selected style
+  // Use loose matching to find Instagram post
+  const instaIndex = posts.findIndex(p => p.platform.toLowerCase().includes('instagram'));
+  
   if (instaIndex !== -1) {
       try {
-          const instaImage = await generateBlogImage(title, ImageStyle.DIGITAL_ART, "1:1");
+          // Use the user's selected image style for consistency
+          const instaImage = await generateBlogImage(title, imageStyle, "1:1");
           if (instaImage) {
               posts[instaIndex].imageUrl = instaImage;
           }
@@ -242,11 +219,9 @@ export const generateSocialPosts = async (title: string, summary: string): Promi
 };
 
 /**
- * Generates a hero image.
- * Now supports aspect ratio parameter.
+ * Generates a hero image with support for Aspect Ratio.
  */
 export const generateBlogImage = async (title: string, style: ImageStyle, ratio: string = "16:9"): Promise<string | undefined> => {
-  const ai = getGenAI();
   const modelId = "gemini-2.5-flash-image";
 
   let stylePrompt = "";
@@ -279,8 +254,8 @@ export const generateBlogImage = async (title: string, style: ImageStyle, ratio:
   try {
     const prompt = `
       Create a high-quality image representing: "${title}".
-      
       ${stylePrompt}
+      ASPECT RATIO: ${ratio}.
       
       CRITICAL NEGATIVE CONSTRAINTS:
       - NO TEXT, NO LETTERS, NO NUMBERS, NO WATERMARKS inside the image.

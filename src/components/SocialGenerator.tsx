@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { SocialPost } from '../types';
-import { CopyIcon, CheckIcon, HeartIcon, ChatBubbleIcon, RepeatIcon, ShareIcon, ImageIcon, PenIcon } from './Icons';
+import { CopyIcon, CheckIcon, HeartIcon, ChatBubbleIcon, RepeatIcon, ShareIcon, ImageIcon, PenIcon, SparklesIcon } from './Icons';
 
 interface SocialGeneratorProps {
   posts: SocialPost[];
@@ -68,6 +68,9 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
              {post.imageUrl ? (
                  <>
                     <img src={post.imageUrl} alt="Instagram Post" className="w-full h-full object-cover" />
+                    <div className="absolute top-2 right-2 bg-black/50 backdrop-blur text-white text-[10px] px-2 py-1 rounded-full flex items-center gap-1 opacity-70">
+                        <SparklesIcon className="w-3 h-3 text-yellow-400" /> AI
+                    </div>
                     <a 
                         href={post.imageUrl} 
                         download={`instagram-post-${index}.png`}
