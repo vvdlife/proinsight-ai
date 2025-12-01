@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { StepWizard } from './components/StepWizard';
 import { LoadingOverlay } from './components/LoadingOverlay';
 import { SparklesIcon, ChevronRightIcon, RefreshIcon, PenIcon, ImageIcon, CopyIcon, TrendIcon, ChartIcon, CodeIcon, LinkIcon, UploadIcon, TrashIcon, FileTextIcon, PlusIcon, MemoIcon } from './components/Icons';
@@ -10,9 +10,11 @@ import { SettingsModal } from './components/SettingsModal';
 import { SocialGenerator } from './components/SocialGenerator';
 import { ExportManager } from './components/ExportManager';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { AuthGate } from './components/AuthGate';
 
 const App: React.FC = () => {
   // Authentication State
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // App State
@@ -32,7 +34,7 @@ const App: React.FC = () => {
   const [memo, setMemo] = useState('');
 
   // Cleanup old local storage data on mount
-  React.useEffect(() => {
+  useEffect(() => {
     const keysToRemove = [
       'blogflow_autosave_draft', 
       'blogflow_history', 
@@ -204,6 +206,11 @@ const App: React.FC = () => {
     draft += `## ⚡ 3줄 요약\n- 핵심 포인트 1\n- 핵심 포인트 2\n- 핵심 포인트 3\n`;
     return draft;
   };
+
+  // If not authenticated, show Auth Gate
+  if (!isAuthenticated) {
+    return <AuthGate onAuthenticated={() => setIsAuthenticated(true)} />;
+  }
 
   // Render Steps
   const renderStepContent = () => {
