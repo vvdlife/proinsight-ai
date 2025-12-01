@@ -5,7 +5,7 @@ import { BlogTone, OutlineData, SocialPost, ImageStyle, UploadedFile } from "../
 // Constants
 const MODEL_IDS = {
   TEXT: "gemini-2.5-flash",
-  IMAGE: "imagen-3.0-generate-001", // Dedicated Imagen 3 model
+  IMAGE: "gemini-2.5-flash-image", // Reverted to the version user requested
 } as const;
 
 // Helper to get client securely
@@ -84,7 +84,7 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
 };
 
 /**
- * Helper to generate text with files and Search Grounding
+ * Helper to generate text with files
  */
 const generateText = async (ai: GoogleGenAI, prompt: string, files: UploadedFile[], systemInstruction: string = "You are a helpful assistant."): Promise<string> => {
   const parts: any[] = [{ text: prompt }];
@@ -104,7 +104,6 @@ const generateText = async (ai: GoogleGenAI, prompt: string, files: UploadedFile
       contents: { role: 'user', parts },
       config: {
         systemInstruction: systemInstruction,
-        tools: [{ googleSearch: {} }], // Enable Google Search Grounding
       },
     });
     return response.text || "";
@@ -135,14 +134,10 @@ export const generateBlogPostContent = async (
     
     **CRITICAL INSTRUCTIONS FOR REVENUE & DATA**:
     1. **Data-Driven**: Prioritize **Facts, Statistics, and Concrete Data**. Avoid vague statements.
-    2. **Inline Linking (VERIFIED)**: 
-       - **USE GOOGLE SEARCH** to find and verify relevant external links (e.g., official docs, news, Wikipedia).
-       - If 'SOURCE URLs' are provided below, prioritize them, but ALSO search for other high-quality sources.
-       - Link format: \`[Keyword](URL)\`.
-       - **IMPORTANT**: Ensure every link you include is **VALID** and **WORKING** by verifying it with search.
+    2. **NO LINKS**: Do NOT include any inline links. Focus on the content itself.
   `;
   if (memo && memo.trim()) baseContext += `\n[USER MEMO]: "${memo}"`;
-  if (urls.length > 0) baseContext += `\nSOURCE URLs (Prioritize these):\n${urls.join('\n')}`;
+  if (urls.length > 0) baseContext += `\nSOURCE URLs (For reference only):\n${urls.join('\n')}`;
   if (files.length > 0) baseContext += `\n(Refer to attached documents)`;
 
   // 1. Intro Generation
@@ -176,7 +171,6 @@ export const generateBlogPostContent = async (
         3. **Key Insight**: 1 bold sentence summarizing the takeaway (e.g., **💡 Insight: ...**).
       
       - **Content Quality**: Include specific numbers, stats, or examples if possible.
-      - **Inline Links**: **USE SEARCH** to find and link to official sources or high-authority articles.
       - **Length Constraint**: Total under 150 words.
       - **Formatting**:
         - **DO NOT** use subsections (###).
@@ -195,7 +189,7 @@ export const generateBlogPostContent = async (
     
     Instructions:
     - Summarize the key takeaways in **max 3 sentences**.
-    - **Call to Action (CTA)**: End with a strong CTA encouraging the user to share, subscribe, or check the links.
+    - **Call to Action (CTA)**: End with a strong CTA encouraging the user to share or subscribe.
     - End with a special section: "## ⚡ 3줄 요약".
     - Use emojis for the summary points (e.g., ✅, 💡, 🚀).
     - Do NOT use horizontal rules (---).
