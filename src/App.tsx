@@ -340,9 +340,7 @@ const App: React.FC = () => {
                         placeholder="핵심 키워드, 포함할 내용, 혹은 나만의 아이디어를 자유롭게 적어주세요."
                         className="w-full p-3 h-[100px] text-sm border border-slate-200 rounded-lg outline-none focus:border-indigo-500 resize-none bg-slate-50 focus:bg-white transition-colors"
                       />
-                      <div className="absolute top-3 right-3 text-slate-400">
-                        <MemoIcon className="w-4 h-4" />
-                      </div>
+
                     </div>
                   </div>
                 </div>
