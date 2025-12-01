@@ -122,6 +122,7 @@ export const generateBlogPostContent = async (
     Blog Title: "${outline.title}"
     Tone: ${tone}
     Language: Korean
+    Style: Use **Standard Unicode Emojis** actively (e.g., 💡, 🚀, ✅, 📌) to make the content visually appealing and friendly.
   `;
   if (memo && memo.trim()) baseContext += `\n[USER MEMO]: "${memo}"`;
   if (urls.length > 0) baseContext += `\nSOURCE URLs:\n${urls.join('\n')}`;
@@ -135,6 +136,7 @@ export const generateBlogPostContent = async (
     Outline of the whole post: ${outline.sections.join(", ")}
     
     Instructions:
+    - Start with an eye-catching emoji.
     - Hook the reader immediately.
     - Briefly mention what will be covered.
     - **Keep it extremely concise (max 3 sentences).**
@@ -152,14 +154,15 @@ export const generateBlogPostContent = async (
       Instructions:
       - Write **visually engaging** and **concise** content (approx. 200-250 words).
       - **DO NOT** just write a wall of text. Use **diverse formatting**:
-        1. **Bullet Points** or **Numbered Lists** for key details.
+        1. **Bullet Points** or **Numbered Lists** for key details (Use emojis like ✅, 👉).
         2. **Markdown Table**: IF this section involves comparisons, stats, or features, **YOU MUST include a table**.
         3. **Bold Text**: Highlight key concepts.
+      - **Use Emojis**: Add relevant emojis to headers or key sentences.
       - **DO NOT** use subsections (###). Use **Bold Headers** if needed.
       - Focus on information density. Express complex ideas simply.
       - Do NOT repeat the main section header (## ${section}).
     `;
-    return generateText(ai, sectionPrompt, files, "You are an expert content writer. Use tables and lists to make content readable.");
+    return generateText(ai, sectionPrompt, files, "You are an expert content writer. Use tables, lists, and emojis to make content readable.");
   });
 
   // 3. Conclusion Generation
@@ -172,6 +175,7 @@ export const generateBlogPostContent = async (
     Instructions:
     - Summarize the key takeaways in **max 3 sentences**.
     - End with a special section: "## ⚡ 3줄 요약".
+    - Use emojis for the summary points (e.g., ✅, 💡, 🚀).
     - Include a "## 📚 참고 자료" section if URLs were provided.
   `;
 
