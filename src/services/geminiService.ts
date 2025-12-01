@@ -138,9 +138,10 @@ export const generateBlogPostContent = async (
     Instructions:
     - Start with an eye-catching emoji.
     - Hook the reader immediately.
-    - Briefly mention what will be covered.
-    - **Keep it extremely concise (max 3 sentences).**
+    - Briefly mention what will be covered (use a short bullet list of 3 items).
+    - **Keep it extremely concise (max 100 words).**
     - Do NOT write any section headers (like ## Introduction). Just the content.
+    - Do NOT use horizontal rules (---).
   `;
 
   // 2. Section Generation (Parallel)
@@ -152,17 +153,19 @@ export const generateBlogPostContent = async (
       Context (Full Outline): ${outline.sections.join(", ")}
       
       Instructions:
-      - Write **visually engaging** and **concise** content (approx. 200-250 words).
-      - **DO NOT** just write a wall of text. Use **diverse formatting**:
-        1. **Bullet Points** or **Numbered Lists** for key details (Use emojis like ✅, 👉).
-        2. **Markdown Table**: IF this section involves comparisons, stats, or features, **YOU MUST include a table**.
-        3. **Bold Text**: Highlight key concepts.
-      - **Use Emojis**: Add relevant emojis to headers or key sentences.
-      - **DO NOT** use subsections (###). Use **Bold Headers** if needed.
-      - Focus on information density. Express complex ideas simply.
-      - Do NOT repeat the main section header (## ${section}).
+      - **STRICT FORMAT**: Follow this structure exactly:
+        1. **Core Concept**: 1-2 sentences explaining the main idea.
+        2. **Details**: Use **Bullet Points** (with emojis) OR a **Markdown Table** (if comparing). NO long paragraphs.
+        3. **Key Insight**: 1 bold sentence summarizing the takeaway (e.g., **💡 Insight: ...**).
+      
+      - **Length Constraint**: Total under 150 words.
+      - **Formatting**:
+        - **DO NOT** use subsections (###).
+        - **DO NOT** repeat the main section header (## ${section}).
+        - **DO NOT** use horizontal rules (---).
+      - Focus on information density.
     `;
-    return generateText(ai, sectionPrompt, files, "You are an expert content writer. Use tables, lists, and emojis to make content readable.");
+    return generateText(ai, sectionPrompt, files, "You are an expert content writer. Write structured, concise, and visual content.");
   });
 
   // 3. Conclusion Generation
@@ -177,6 +180,7 @@ export const generateBlogPostContent = async (
     - End with a special section: "## ⚡ 3줄 요약".
     - Use emojis for the summary points (e.g., ✅, 💡, 🚀).
     - Include a "## 📚 참고 자료" section if URLs were provided.
+    - Do NOT use horizontal rules (---).
   `;
 
   // Execute all requests in parallel
@@ -190,13 +194,21 @@ export const generateBlogPostContent = async (
   const bodySections = bodyAndConclusion; // Remaining are body sections
 
   // Assemble the full post
-  let fullPost = `${intro}\n\n`;
-
-  outline.sections.forEach((section, idx) => {
-    fullPost += `## ${section}\n\n${bodySections[idx]}\n\n`;
+  // Post-processing: Remove any accidental ## headers or --- from body sections
+  const cleanBodySections = bodySections.map(section => {
+    return section
+      .replace(/^## .+\n/gm, '') // Remove ## Header if AI added it
+      .replace(/---/g, '')       // Remove horizontal rules
+      .trim();
   });
 
-  fullPost += `${conclusion}`;
+  let fullPost = `${intro.replace(/---/g, '').trim()}\n\n`;
+
+  outline.sections.forEach((section, idx) => {
+    fullPost += `## ${section}\n\n${cleanBodySections[idx]}\n\n`;
+  });
+
+  fullPost += `${conclusion.replace(/---/g, '').trim()}`;
 
   return fullPost;
 };
@@ -299,7 +311,7 @@ export const generateBlogImage = async (title: string, style: ImageStyle, ratio:
   try {
     const response = await ai.models.generateContent({
       model: MODEL_IDS.IMAGE,
-      contents: `Create a high-quality image for: "${title}". ${stylePrompt} Aspect Ratio: ${ratio}. NO TEXT.`,
+      contents: `Create a high-quality image for: "${title}". ${stylePrompt} Aspect Ratio: ${ratio}. **IMPORTANT: Do NOT include any text, letters, or characters in the image.**`,
       config: {
         imageConfig: { aspectRatio: ratio }
       }
