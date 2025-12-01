@@ -4,8 +4,8 @@ import { BlogTone, OutlineData, SocialPost, ImageStyle, UploadedFile } from "../
 
 // Constants
 const MODEL_IDS = {
-  TEXT: "gemini-2.5-flash",
-  IMAGE: "gemini-2.5-flash-image",
+  TEXT: "gemini-2.0-flash",
+  IMAGE: "imagen-3.0-generate-001",
 } as const;
 
 // Helper to get client securely
