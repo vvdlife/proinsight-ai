@@ -140,9 +140,12 @@ export const generateBlogPostContent = async (
     1. **SEO Optimization**: Use natural keywords.
     2. **Reader Analysis**: Write for the specific audience. Use "F-pattern" formatting (bolding, bullets).
     3. **Visuals**: Use emojis and formatting to break up text.
-    4. **Infographics**: **USE MERMAID** for complex concepts.
-       - Use \`\`\`mermaid\`\`\` code blocks.
-       - Supported types: \`graph TD\`, \`pie\`, \`sequenceDiagram\`.
+    4. **Visuals & Infographics (CRITICAL)**:
+       - **Markdown Tables**: Use for comparing data, pros/cons, or features.
+       - **Mermaid Diagrams**: Use for processes, hierarchies, or timelines.
+         - Syntax Rule 1: **ALWAYS enclose node labels in quotes** (e.g., id["Label with spaces!"]).
+         - Syntax Rule 2: Do not use special characters like parentheses () inside the ID, only in the label.
+         - Supported types: \`graph TD\`, \`mindmap\`, \`timeline\`, \`pie\`.
     5. **Interactive Elements**: Use **Emoji-based Checklists** (e.g., "- ✅ Item").
     6. **Data-Driven**: Use facts/stats.
     7. **No External Links**: Do not add inline links.
@@ -177,10 +180,11 @@ export const generateBlogPostContent = async (
       Instructions:
       - **Structure**:
         1. **Core Concept**: Clear explanation.
-        2. **Visual/Interactive**:
-           - Use **Bullet Points** (with emojis).
-           - OR create a **Mermaid Diagram** (\`\`\`mermaid ... \`\`\`) if comparing data or showing a process.
-           - OR add a **Checklist** using Emojis (e.g., "- ✅ Check").
+        2. **Visual/Interactive** (Choose one that fits best):
+           - **Comparison Table**: Use a Markdown Table for data/pros-cons.
+           - **Mermaid Diagram**: Use \`\`\`mermaid\`\`\` for flows/structures (Remember quotes for labels!).
+           - **Checklist**: Use Emojis (e.g., "- ✅ Check").
+           - **Bulleted List**: Use emojis for key points.
         3. **Key Insight**: Bold summary.
       
       - **Formatting**: No subsections (###), no repeated headers, no horizontal rules.
