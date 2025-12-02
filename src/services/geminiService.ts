@@ -248,7 +248,7 @@ export const generateSocialPosts = async (title: string, summary: string, imageS
     Summary: "${summary.substring(0, 300)}..."
     
     Generate 3 posts:
-    1. **Instagram**: Card News Plan (Slide 1, 2, 3...). Use emojis.
+    1. **Instagram**: Engaging Caption. Use emojis. Do NOT use "(Slide 1)" markers.
     2. **LinkedIn**: Professional Insight.
     3. **Twitter**: Thread Hook.
     
