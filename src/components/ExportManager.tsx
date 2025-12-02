@@ -4,6 +4,9 @@ import { CopyIcon, NaverIcon, TistoryIcon, MediumIcon, WordPressIcon, SubstackIc
 import { TABLE_STYLES, PLATFORM_STYLES } from './exportStyles';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { createRoot } from 'react-dom/client';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { MarkdownRenderer } from './MarkdownRenderer';
 
 interface ExportManagerProps {
   post: BlogPost;
@@ -89,16 +92,30 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
       container.style.position = 'absolute';
       container.style.left = '-9999px';
       container.style.top = '0';
-      container.style.width = '800px'; // Fixed width for A4 consistency
-      container.style.padding = '40px';
+      container.style.width = '1200px'; // Fixed width for consistent PDF
       container.style.backgroundColor = '#ffffff';
-      container.innerHTML = generateHtml('MEDIUM'); // Use Medium style for clean PDF
       document.body.appendChild(container);
 
+      // Render the content using React to get the exact same look as the preview
+      const root = createRoot(container);
+
+      // Wrap in a Promise to wait for render
+      await new Promise<void>((resolve) => {
+        root.render(
+          <div className="p-[40px] bg-white">
+            <h1 className="text-4xl font-extrabold text-slate-900 mb-8 leading-tight">{post.title}</h1>
+            <MarkdownRenderer content={post.content} />
+          </div>
+        );
+        // Give it a moment to render (including Mermaid diagrams)
+        setTimeout(resolve, 1500);
+      });
+
       const canvas = await html2canvas(container, {
-        scale: 2, // Higher quality
+        scale: 2, // 2 is usually enough for print, 3 can be too heavy
         useCORS: true,
-        logging: false
+        logging: false,
+        windowWidth: 1200
       });
 
       const imgData = canvas.toDataURL('image/png');
@@ -121,7 +138,10 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
         heightLeft -= pdfHeight;
       }
 
-      pdf.save(`${post.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`);
+      pdf.save(`${post.title.replace(/[^a-z0-9가-힣]+/gi, '_').replace(/^_|_$/g, '')}.pdf`);
+
+      // Cleanup
+      root.unmount();
       document.body.removeChild(container);
     } catch (error) {
       console.error('PDF Export failed:', error);
@@ -132,6 +152,14 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
   };
 
   const handleHtmlExport = () => {
+    // Render the content to static HTML using the same renderer as the preview
+    const contentHtml = renderToStaticMarkup(
+      <div className="max-w-3xl mx-auto p-10 bg-white">
+        <h1 className="text-4xl font-extrabold text-slate-900 mb-8 leading-tight">{post.title}</h1>
+        <MarkdownRenderer content={post.content} />
+      </div>
+    );
+
     const htmlContent = `
       <!DOCTYPE html>
       <html lang="ko">
@@ -139,9 +167,25 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>${post.title}</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+          tailwind.config = {
+            theme: {
+              extend: {
+                fontFamily: {
+                  sans: ['Pretendard', 'sans-serif'],
+                },
+              }
+            }
+          }
+        </script>
+        <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
+        <style>
+          body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
+        </style>
       </head>
       <body>
-        ${generateHtml('MEDIUM')}
+        ${contentHtml}
       </body>
       </html>
     `;
@@ -149,7 +193,7 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${post.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.html`;
+    a.download = `${post.title.replace(/[^a-z0-9가-힣]+/gi, '_').replace(/^_|_$/g, '')}.html`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
