@@ -1,6 +1,7 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 import { BlogTone, OutlineData, SocialPost, ImageStyle, UploadedFile } from "../types";
+import { trackApiCall, estimateTokens } from './apiUsageTracker';
 
 // Constants
 const MODEL_IDS = {
@@ -24,21 +25,26 @@ const getGenAI = () => {
 export const generateOutline = async (topic: string, files: UploadedFile[], urls: string[], memo: string): Promise<OutlineData> => {
   const ai = getGenAI();
 
+  // Get current date for context
+  const currentDate = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+
   let promptText = `
+    Current Date: ${currentDate}
+    
     You are a professional content strategist specializing in high-traffic blogs.
-    Task: Create a blog post outline for the topic: "${topic}".
-    
-    1. **Title**: Create a **Viral, Click-worthy, and SEO-optimized** title.
-       - It must be provocative, benefit-driven, or a listicle (e.g., "Top 5...", "Why you are wrong about...", "The Ultimate Guide to...").
-       - Maximize curiosity and click-through rate (CTR).
-    
-    2. **Target Audience & Keywords**:
-       - Define the **Target Audience Persona** (e.g., Beginners, Experts).
-       - List 3-5 **Primary & LSI Keywords** for SEO.
-    
-    3. **Sections**: Create 5-7 logical sections.
-    
-    The output must be in Korean.
+      Task: Create a blog post outline for the topic: "${topic}".
+      
+      1. **Title**: Create a **Viral, Click-worthy, and SEO-optimized** title.
+        - It must be provocative, benefit-driven, or a listicle (e.g., "Top 5...", "Why you are wrong about...", "The Ultimate Guide to...").
+        - Maximize curiosity and click-through rate (CTR).
+      
+      2. **Target Audience & Keywords**:
+        - Define the **Target Audience Persona** (e.g., Beginners, Experts).
+        - List 3-5 **Primary & LSI Keywords** for SEO.
+      
+      3. **Sections**: Create 5-7 logical sections.
+      
+      The output must be in Korean.
   `;
 
   if (memo && memo.trim()) {
@@ -84,6 +90,11 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
   const text = response.text;
   if (!text) throw new Error("No outline generated.");
 
+  // Track API usage with actual token counts from response
+  const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(promptText);
+  const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(text);
+  trackApiCall(MODEL_IDS.TEXT, promptTokens, completionTokens, 'outline');
+
   return JSON.parse(text) as OutlineData;
 };
 
@@ -110,7 +121,15 @@ const generateText = async (ai: GoogleGenAI, prompt: string, files: UploadedFile
         systemInstruction: systemInstruction,
       },
     });
-    return response.text || "";
+
+    const result = response.text || "";
+
+    // Track API usage with actual token counts from response
+    const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
+    const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(result);
+    trackApiCall(MODEL_IDS.TEXT, promptTokens, completionTokens, 'content');
+
+    return result;
   } catch (error) {
     console.error("Section generation failed:", error);
     return "\n(이 섹션을 생성하는 중 오류가 발생했습니다.)\n";
@@ -280,6 +299,11 @@ export const generateSocialPosts = async (title: string, summary: string, imageS
   let text = response.text;
   if (!text) return [];
 
+  // Track API usage with actual token counts from response
+  const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
+  const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(text);
+  trackApiCall(MODEL_IDS.TEXT, promptTokens, completionTokens, 'social');
+
   // Cleanup markdown code blocks if present
   text = text.replace(/```json|```/g, '').trim();
 
@@ -348,6 +372,10 @@ export const generateBlogImage = async (title: string, style: ImageStyle, ratio:
     if (response.candidates && response.candidates[0].content.parts) {
       for (const part of response.candidates[0].content.parts) {
         if (part.inlineData) {
+          // Track API usage for image generation
+          // Image models typically use ~100 tokens for prompt, ~0 for completion
+          trackApiCall(MODEL_IDS.IMAGE, 100, 0, 'image');
+
           return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
         }
       }

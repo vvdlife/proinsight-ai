@@ -39,7 +39,7 @@ export interface SocialPost {
 export interface BlogPost {
   title: string;
   content: string; // Markdown formatted string
-  images: string[]; 
+  images: string[];
   socialPosts?: SocialPost[];
 }
 
@@ -58,4 +58,36 @@ export enum AppStep {
 export interface LoadingState {
   isLoading: boolean;
   message: string;
+}
+
+// v1.1: Model Selection
+export enum ModelType {
+  PRO_1_5 = 'gemini-1.5-pro',
+  FLASH_2_5 = 'gemini-2.5-flash',
+  FLASH_1_5 = 'gemini-1.5-flash',
+}
+
+// v1.1: API Usage Monitoring
+export interface ApiCallRecord {
+  timestamp: number;
+  modelId: string;
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  operation: string; // e.g., 'outline', 'content', 'image', 'social'
+}
+
+export interface ApiUsageStats {
+  totalCalls: number;
+  totalTokens: number;
+  estimatedCost: number; // in USD
+  lastUpdated: number; // timestamp
+  callHistory: ApiCallRecord[]; // last 100 calls
+  monthlyUsage: {
+    [yearMonth: string]: { // format: "2025-12"
+      calls: number;
+      tokens: number;
+      cost: number;
+    };
+  };
 }
