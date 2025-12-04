@@ -85,9 +85,9 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
   const text = response.text;
   if (!text) throw new Error("No outline generated.");
 
-  // Track API usage
-  const promptTokens = estimateTokens(promptText);
-  const completionTokens = estimateTokens(text);
+  // Track API usage with actual token counts from response
+  const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(promptText);
+  const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(text);
   trackApiCall(MODEL_IDS.TEXT, promptTokens, completionTokens, 'outline');
 
   return JSON.parse(text) as OutlineData;
@@ -119,9 +119,9 @@ const generateText = async (ai: GoogleGenAI, prompt: string, files: UploadedFile
 
     const result = response.text || "";
 
-    // Track API usage
-    const promptTokens = estimateTokens(prompt);
-    const completionTokens = estimateTokens(result);
+    // Track API usage with actual token counts from response
+    const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
+    const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(result);
     trackApiCall(MODEL_IDS.TEXT, promptTokens, completionTokens, 'content');
 
     return result;
@@ -294,9 +294,9 @@ export const generateSocialPosts = async (title: string, summary: string, imageS
   let text = response.text;
   if (!text) return [];
 
-  // Track API usage
-  const promptTokens = estimateTokens(prompt);
-  const completionTokens = estimateTokens(text);
+  // Track API usage with actual token counts from response
+  const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
+  const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(text);
   trackApiCall(MODEL_IDS.TEXT, promptTokens, completionTokens, 'social');
 
   // Cleanup markdown code blocks if present
