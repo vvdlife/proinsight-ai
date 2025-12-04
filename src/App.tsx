@@ -264,6 +264,14 @@ const App: React.FC = () => {
               </div>
             </div>
 
+            {/* ModelSelector */}
+            <React.Suspense fallback={<div>Loading...</div>}>
+              <ModelSelector
+                selectedModel={selectedModel}
+                onModelChange={setSelectedModel}
+              />
+            </React.Suspense>
+
             {/* Source Materials Section */}
             <div className="bg-white rounded-xl border border-slate-200 p-6 mb-12 shadow-sm">
               <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
