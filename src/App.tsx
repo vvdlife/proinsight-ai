@@ -4,7 +4,7 @@ import { StepWizard } from './components/StepWizard';
 import { LoadingOverlay } from './components/LoadingOverlay';
 import { SparklesIcon, ChevronRightIcon, RefreshIcon, PenIcon, ImageIcon, CopyIcon, TrendIcon, ChartIcon, CodeIcon, LinkIcon, UploadIcon, TrashIcon, FileTextIcon, PlusIcon, MemoIcon } from './components/Icons';
 import { generateOutline, generateBlogPostContent, generateBlogImage, generateSocialPosts } from './services/geminiService';
-import { AppStep, BlogTone, OutlineData, BlogPost, LoadingState, ImageStyle, UploadedFile, BlogFont } from './types';
+import { AppStep, BlogTone, OutlineData, BlogPost, LoadingState, ImageStyle, UploadedFile, BlogFont, ModelType } from './types';
 import { SettingsModal } from './components/SettingsModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthGate } from './components/AuthGate';
@@ -32,6 +32,7 @@ const App: React.FC = () => {
   const [selectedFont, setSelectedFont] = useState<BlogFont>(BlogFont.PRETENDARD);
   const [finalPost, setFinalPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState<LoadingState>({ isLoading: false, message: '' });
+  const [selectedModel, setSelectedModel] = useState<ModelType>(ModelType.FLASH_2_5);
 
   // Source Material State
   const [sourceUrls, setSourceUrls] = useState<string[]>([]);
