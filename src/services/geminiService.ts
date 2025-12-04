@@ -201,7 +201,17 @@ export const generateBlogPostContent = async (
         1. **Core Concept**: Clear explanation.
         2. **Visual/Interactive** (Choose one that fits best):
            - **Comparison Table**: Use a Markdown Table for data/pros-cons.
-           - **Mermaid Diagram**: Use \`\`\`mermaid\`\`\` for flows/structures (Remember quotes for labels!).
+           - **Mermaid Diagram**: Use \`\`\`mermaid\`\`\` for flows/structures.
+             **CRITICAL MERMAID RULES**:
+             • Quote ALL node labels with double quotes
+             • NEVER use parentheses (), brackets [], or & in labels
+             • Replace () with hyphen or space (e.g., "AI 엔비디아" not "AI (엔비디아)")
+             • Replace & with "and" or comma
+             • Keep labels short and simple
+             • Example: mindmap
+                 root["Main Topic"]
+                   A["Subtopic One"]
+                   B["Subtopic Two"]
            - **Checklist**: Use Emojis (e.g., "- ✅ Check").
            - **Bulleted List**: Use emojis for key points.
         3. **Key Insight**: Bold summary.
