@@ -26,7 +26,27 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart }) => {
                 setSvg(svg);
             } catch (error) {
                 console.error('Mermaid render error:', error);
-                setSvg('<div class="text-red-500 text-sm p-2 border border-red-200 rounded bg-red-50">Diagram rendering failed. Please check the syntax.</div>');
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                setSvg(`
+                    <div class="text-red-600 text-sm p-4 border-2 border-red-300 rounded-lg bg-red-50 max-w-2xl mx-auto">
+                        <div class="font-bold mb-2 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                            Mermaid 다이어그램 렌더링 실패
+                        </div>
+                        <div class="text-xs text-red-700 mt-2">
+                            <strong>오류:</strong> ${errorMessage}
+                        </div>
+                        <div class="text-xs text-gray-600 mt-3 p-2 bg-gray-50 rounded border border-gray-200">
+                            💡 <strong>해결 방법:</strong><br/>
+                            - 새로고침 후 글을 다시 생성해보세요<br/>
+                            - 또는 개발자 도구(F12)의 Console에서 자세한 오류를 확인하세요
+                        </div>
+                    </div>
+                `);
             }
         };
 
