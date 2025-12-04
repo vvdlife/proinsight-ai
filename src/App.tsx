@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { StepWizard } from './components/StepWizard';
 import { LoadingOverlay } from './components/LoadingOverlay';
@@ -16,6 +15,7 @@ const SocialGenerator = React.lazy(() => import('./components/SocialGenerator').
 const ExportManager = React.lazy(() => import('./components/ExportManager').then(module => ({ default: module.ExportManager })));
 const PublishingManager = React.lazy(() => import('./components/PublishingManager').then(module => ({ default: module.PublishingManager })));
 const ApiUsageMonitor = React.lazy(() => import('./components/ApiUsageMonitor').then(module => ({ default: module.ApiUsageMonitor })));
+const ModelSelector = React.lazy(() => import('./components/ModelSelector').then(module => ({ default: module.ModelSelector })));
 
 const App: React.FC = () => {
   // Authentication State
@@ -26,6 +26,7 @@ const App: React.FC = () => {
   // App State
   const [currentStep, setCurrentStep] = useState<AppStep>(AppStep.TOPIC_INPUT);
   const [topic, setTopic] = useState('');
+
   const [outline, setOutline] = useState<OutlineData | null>(null);
   const [selectedTone, setSelectedTone] = useState<BlogTone>(BlogTone.PROFESSIONAL);
   const [selectedImageStyle, setSelectedImageStyle] = useState<ImageStyle>(ImageStyle.PHOTOREALISTIC);
