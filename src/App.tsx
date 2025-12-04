@@ -8,17 +8,20 @@ import { AppStep, BlogTone, OutlineData, BlogPost, LoadingState, ImageStyle, Upl
 import { SettingsModal } from './components/SettingsModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthGate } from './components/AuthGate';
+import { getApiUsageStats } from './services/apiUsageTracker';
 
 // Lazy Load Heavy Components
 const MarkdownRenderer = React.lazy(() => import('./components/MarkdownRenderer').then(module => ({ default: module.MarkdownRenderer })));
 const SocialGenerator = React.lazy(() => import('./components/SocialGenerator').then(module => ({ default: module.SocialGenerator })));
 const ExportManager = React.lazy(() => import('./components/ExportManager').then(module => ({ default: module.ExportManager })));
 const PublishingManager = React.lazy(() => import('./components/PublishingManager').then(module => ({ default: module.PublishingManager })));
+const ApiUsageMonitor = React.lazy(() => import('./components/ApiUsageMonitor').then(module => ({ default: module.ApiUsageMonitor })));
 
 const App: React.FC = () => {
   // Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [showApiMonitor, setShowApiMonitor] = useState(false);
 
   // App State
   const [currentStep, setCurrentStep] = useState<AppStep>(AppStep.TOPIC_INPUT);
@@ -589,6 +592,11 @@ const App: React.FC = () => {
 
             {/* Social Generator Section */}
             {finalPost?.socialPosts && <SocialGenerator posts={finalPost.socialPosts} />}
+
+            {/* API Usage Monitor */}
+            <React.Suspense fallback={<div>Loading...</div>}>
+              <ApiUsageMonitor usage={getApiUsageStats()} />
+            </React.Suspense>
           </div>
         );
       default:

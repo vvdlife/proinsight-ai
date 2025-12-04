@@ -1,6 +1,7 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 import { BlogTone, OutlineData, SocialPost, ImageStyle, UploadedFile } from "../types";
+import { trackApiCall, estimateTokens } from './apiUsageTracker';
 
 // Constants
 const MODEL_IDS = {
@@ -84,6 +85,11 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
   const text = response.text;
   if (!text) throw new Error("No outline generated.");
 
+  // Track API usage
+  const promptTokens = estimateTokens(promptText);
+  const completionTokens = estimateTokens(text);
+  trackApiCall(MODEL_IDS.TEXT, promptTokens, completionTokens, 'outline');
+
   return JSON.parse(text) as OutlineData;
 };
 
@@ -110,7 +116,15 @@ const generateText = async (ai: GoogleGenAI, prompt: string, files: UploadedFile
         systemInstruction: systemInstruction,
       },
     });
-    return response.text || "";
+
+    const result = response.text || "";
+
+    // Track API usage
+    const promptTokens = estimateTokens(prompt);
+    const completionTokens = estimateTokens(result);
+    trackApiCall(MODEL_IDS.TEXT, promptTokens, completionTokens, 'content');
+
+    return result;
   } catch (error) {
     console.error("Section generation failed:", error);
     return "\n(이 섹션을 생성하는 중 오류가 발생했습니다.)\n";
@@ -280,6 +294,11 @@ export const generateSocialPosts = async (title: string, summary: string, imageS
   let text = response.text;
   if (!text) return [];
 
+  // Track API usage
+  const promptTokens = estimateTokens(prompt);
+  const completionTokens = estimateTokens(text);
+  trackApiCall(MODEL_IDS.TEXT, promptTokens, completionTokens, 'social');
+
   // Cleanup markdown code blocks if present
   text = text.replace(/```json|```/g, '').trim();
 
@@ -348,6 +367,10 @@ export const generateBlogImage = async (title: string, style: ImageStyle, ratio:
     if (response.candidates && response.candidates[0].content.parts) {
       for (const part of response.candidates[0].content.parts) {
         if (part.inlineData) {
+          // Track API usage for image generation
+          // Image models typically use ~100 tokens for prompt, ~0 for completion
+          trackApiCall(MODEL_IDS.IMAGE, 100, 0, 'image');
+
           return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
         }
       }
