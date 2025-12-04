@@ -25,21 +25,26 @@ const getGenAI = () => {
 export const generateOutline = async (topic: string, files: UploadedFile[], urls: string[], memo: string): Promise<OutlineData> => {
   const ai = getGenAI();
 
+  // Get current date for context
+  const currentDate = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+
   let promptText = `
+    Current Date: ${currentDate}
+    
     You are a professional content strategist specializing in high-traffic blogs.
-    Task: Create a blog post outline for the topic: "${topic}".
-    
-    1. **Title**: Create a **Viral, Click-worthy, and SEO-optimized** title.
-       - It must be provocative, benefit-driven, or a listicle (e.g., "Top 5...", "Why you are wrong about...", "The Ultimate Guide to...").
-       - Maximize curiosity and click-through rate (CTR).
-    
-    2. **Target Audience & Keywords**:
-       - Define the **Target Audience Persona** (e.g., Beginners, Experts).
-       - List 3-5 **Primary & LSI Keywords** for SEO.
-    
-    3. **Sections**: Create 5-7 logical sections.
-    
-    The output must be in Korean.
+      Task: Create a blog post outline for the topic: "${topic}".
+      
+      1. **Title**: Create a **Viral, Click-worthy, and SEO-optimized** title.
+        - It must be provocative, benefit-driven, or a listicle (e.g., "Top 5...", "Why you are wrong about...", "The Ultimate Guide to...").
+        - Maximize curiosity and click-through rate (CTR).
+      
+      2. **Target Audience & Keywords**:
+        - Define the **Target Audience Persona** (e.g., Beginners, Experts).
+        - List 3-5 **Primary & LSI Keywords** for SEO.
+      
+      3. **Sections**: Create 5-7 logical sections.
+      
+      The output must be in Korean.
   `;
 
   if (memo && memo.trim()) {
