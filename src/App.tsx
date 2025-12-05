@@ -32,7 +32,7 @@ const App: React.FC = () => {
   const [selectedImageStyle, setSelectedImageStyle] = useState<ImageStyle>(ImageStyle.PHOTOREALISTIC);
   const [selectedFont, setSelectedFont] = useState<BlogFont>(BlogFont.PRETENDARD);
   const [finalPost, setFinalPost] = useState<BlogPost | null>(null);
-  const [loading, setLoading] = useState<LoadingState>({ isLoading: false, message: '' });
+  const [loading, setLoading] = useState<LoadingState>({ isLoading: false, message: '', progress: 0 });
   const [selectedModel, setSelectedModel] = useState<ModelType>(ModelType.FLASH_2_5);
 
   // Source Material State
@@ -115,7 +115,7 @@ const App: React.FC = () => {
 
     if (!topic.trim()) return;
 
-    setLoading({ isLoading: true, message: 'Gemini가 자료를 분석하고 개요를 작성하고 있습니다...' });
+    setLoading({ isLoading: true, message: 'Gemini가 자료를 분석하고 개요를 작성하고 있습니다...', progress: 50 });
     try {
       // Pass memo to generateOutline
       const data = await generateOutline(topic, sourceFiles, sourceUrls, memo);
@@ -131,7 +131,7 @@ const App: React.FC = () => {
         alert(`개요 생성 실패: ${msg}\n다시 시도해주세요.`);
       }
     } finally {
-      setLoading({ isLoading: false, message: '' });
+      setLoading({ isLoading: false, message: '', progress: 0 });
     }
   }, [topic, sourceFiles, sourceUrls, memo]);
 
@@ -152,15 +152,20 @@ const App: React.FC = () => {
 
     if (!outline) return;
 
-    setLoading({ isLoading: true, message: '블로그 본문과 이미지를 생성 중입니다...' });
+    setLoading({ isLoading: true, message: '블로그 본문을 작성하고 있습니다...', progress: 10 });
     try {
       // 1. Generate Content and Image in parallel
+      setLoading({ isLoading: true, message: '블로그 본문을 작성하고 있습니다...', progress: 30 });
       const [content, imageUrl] = await Promise.all([
         generateBlogPostContent(outline, selectedTone, sourceFiles, sourceUrls, memo),
-        generateBlogImage(outline.title, selectedImageStyle)
+        (async () => {
+          setLoading({ isLoading: true, message: '썸네일 이미지를 생성하고 있습니다...', progress: 60 });
+          return await generateBlogImage(outline.title, selectedImageStyle);
+        })()
       ]);
 
       // 2. Generate Social Posts
+      setLoading({ isLoading: true, message: '소셜 미디어 포스트를 생성하고 있습니다...', progress: 85 });
       const summary = content.substring(0, 500);
       const socialPosts = await generateSocialPosts(outline.title, summary, selectedImageStyle);
 
@@ -175,7 +180,7 @@ const App: React.FC = () => {
       console.error(error);
       alert(`글 작성 중 오류가 발생했습니다: ${error?.message || '알 수 없는 오류'}`);
     } finally {
-      setLoading({ isLoading: false, message: '' });
+      setLoading({ isLoading: false, message: '', progress: 0 });
     }
   }, [outline, selectedTone, selectedImageStyle, sourceFiles, sourceUrls, memo]);
 
@@ -617,7 +622,7 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-[#F8FAFC]">
-        <LoadingOverlay isLoading={loading.isLoading} message={loading.message} />
+        <LoadingOverlay isLoading={loading.isLoading} message={loading.message} progress={loading.progress} />
         <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
         {/* Header */}

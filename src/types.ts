@@ -58,6 +58,7 @@ export enum AppStep {
 export interface LoadingState {
   isLoading: boolean;
   message: string;
+  progress?: number; // 0-100, optional progress percentage
 }
 
 // v1.1: Model Selection
