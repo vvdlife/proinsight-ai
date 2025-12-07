@@ -92,3 +92,14 @@ export interface ApiUsageStats {
     };
   };
 }
+
+// v1.2: Trending Topics
+export interface TrendingTopic {
+  icon: string; // Icon name (e.g., "TrendIcon", "ChartIcon")
+  text: string; // Topic text
+}
+
+export interface TrendingCache {
+  topics: TrendingTopic[];
+  timestamp: number;
+}

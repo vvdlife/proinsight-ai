@@ -3,11 +3,12 @@ import { StepWizard } from './components/StepWizard';
 import { LoadingOverlay } from './components/LoadingOverlay';
 import { SparklesIcon, ChevronRightIcon, RefreshIcon, PenIcon, ImageIcon, CopyIcon, TrendIcon, ChartIcon, CodeIcon, LinkIcon, UploadIcon, TrashIcon, FileTextIcon, PlusIcon, MemoIcon } from './components/Icons';
 import { generateOutline, generateBlogPostContent, generateBlogImage, generateSocialPosts } from './services/geminiService';
-import { AppStep, BlogTone, OutlineData, BlogPost, LoadingState, ImageStyle, UploadedFile, BlogFont, ModelType } from './types';
+import { AppStep, BlogTone, OutlineData, BlogPost, LoadingState, ImageStyle, UploadedFile, BlogFont, ModelType, TrendingTopic } from './types';
 import { SettingsModal } from './components/SettingsModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthGate } from './components/AuthGate';
 import { getApiUsageStats } from './services/apiUsageTracker';
+import { getTrendingTopics } from './services/trendingService';
 
 // Lazy Load Heavy Components
 const MarkdownRenderer = React.lazy(() => import('./components/MarkdownRenderer').then(module => ({ default: module.MarkdownRenderer })));
@@ -41,6 +42,10 @@ const App: React.FC = () => {
   const [sourceFiles, setSourceFiles] = useState<UploadedFile[]>([]);
   const [memo, setMemo] = useState('');
 
+  // Trending Topics State
+  const [suggestions, setSuggestions] = useState<TrendingTopic[]>([]);
+  const [loadingTrends, setLoadingTrends] = useState(false);
+
   // Cleanup old local storage data on mount
   useEffect(() => {
     const keysToRemove = [
@@ -50,6 +55,23 @@ const App: React.FC = () => {
       'proinsight_history'
     ];
     keysToRemove.forEach(key => localStorage.removeItem(key));
+  }, []);
+
+  // Load trending topics on mount
+  useEffect(() => {
+    const loadTrends = async () => {
+      setLoadingTrends(true);
+      try {
+        const topics = await getTrendingTopics();
+        setSuggestions(topics);
+      } catch (error) {
+        console.error('Failed to load trending topics:', error);
+        // Fallback topics are already handled in the service
+      } finally {
+        setLoadingTrends(false);
+      }
+    };
+    loadTrends();
   }, []);
 
   // Check API Key Helper
@@ -201,13 +223,17 @@ const App: React.FC = () => {
     alert("클립보드에 복사되었습니다!");
   };
 
-  // Quick suggestions
-  const suggestions = [
-    { icon: <TrendIcon className="w-4 h-4" />, text: "2025년 AI 기술 트렌드 분석" },
-    { icon: <ChartIcon className="w-4 h-4" />, text: "미국 연준 금리 인하와 증시 전망" },
-    { icon: <CodeIcon className="w-4 h-4" />, text: "생산성을 높이는 노션 활용법" },
-    { icon: <TrendIcon className="w-4 h-4" />, text: "지속 가능한 친환경 에너지 기술" },
-  ];
+  // Icon mapping helper
+  const getIconComponent = (iconName: string) => {
+    const iconProps = { className: "w-4 h-4" };
+    switch (iconName) {
+      case 'TrendIcon': return <TrendIcon {...iconProps} />;
+      case 'ChartIcon': return <ChartIcon {...iconProps} />;
+      case 'CodeIcon': return <CodeIcon {...iconProps} />;
+      case 'SparklesIcon': return <SparklesIcon {...iconProps} />;
+      default: return <TrendIcon {...iconProps} />;
+    }
+  };
 
   // Generate Draft Preview content based on outline
   const getDraftPreview = () => {
@@ -371,18 +397,29 @@ const App: React.FC = () => {
               <p className="text-center text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
                 🔥 지금 뜨는 주제 추천
               </p>
-              <div className="flex flex-wrap justify-center gap-3">
-                {suggestions.map((item, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setTopic(item.text)}
-                    className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-full text-slate-600 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition-all text-sm font-medium shadow-sm"
-                  >
-                    {item.icon}
-                    {item.text}
-                  </button>
-                ))}
-              </div>
+              {loadingTrends ? (
+                <div className="flex flex-wrap justify-center gap-3">
+                  {[...Array(4)].map((_, idx) => (
+                    <div
+                      key={idx}
+                      className="h-10 w-48 bg-slate-100 rounded-full animate-pulse"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-wrap justify-center gap-3">
+                  {suggestions.map((item, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setTopic(item.text)}
+                      className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-full text-slate-600 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition-all text-sm font-medium shadow-sm"
+                    >
+                      {getIconComponent(item.icon)}
+                      {item.text}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Features Info */}
