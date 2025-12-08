@@ -7,9 +7,117 @@ interface MermaidDiagramProps {
 
 mermaid.initialize({
     startOnLoad: false,
-    theme: 'default',
+    theme: 'base',
     securityLevel: 'loose',
-    fontFamily: 'Pretendard, sans-serif',
+    fontFamily: 'Pretendard, -apple-system, BlinkMacSystemFont, sans-serif',
+    themeVariables: {
+        // Modern color palette with gradients
+        primaryColor: '#EEF2FF',
+        primaryTextColor: '#1E293B',
+        primaryBorderColor: '#818CF8',
+        lineColor: '#94A3B8',
+        secondaryColor: '#FEF3C7',
+        tertiaryColor: '#ECFDF5',
+
+        // Node styling
+        mainBkg: '#FFFFFF',
+        nodeBorder: '#E2E8F0',
+        clusterBkg: '#F8FAFC',
+        clusterBorder: '#CBD5E1',
+
+        // Text
+        nodeTextColor: '#0F172A',
+        fontSize: '16px',
+        fontWeight: '600',
+    },
+    themeCSS: `
+        /* Modern node styling with gradients and shadows */
+        .node rect,
+        .node circle,
+        .node polygon {
+            fill: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            stroke: #6366F1 !important;
+            stroke-width: 0px !important;
+            rx: 12px !important;
+            ry: 12px !important;
+            filter: drop-shadow(0 4px 6px rgba(99, 102, 241, 0.15)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08)) !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        /* Different gradient for each level */
+        .section-0 rect, .section-0 circle {
+            fill: #6366F1 !important;
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%) !important;
+        }
+        
+        .section-1 rect, .section-1 circle {
+            fill: #8B5CF6 !important;
+            background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%) !important;
+        }
+        
+        .section-2 rect, .section-2 circle {
+            fill: #EC4899 !important;
+            background: linear-gradient(135deg, #EC4899 0%, #F59E0B 100%) !important;
+        }
+        
+        .section-3 rect, .section-3 circle {
+            fill: #10B981 !important;
+            background: linear-gradient(135deg, #10B981 0%, #06B6D4 100%) !important;
+        }
+        
+        /* Root/center node - special styling */
+        .node:first-child rect,
+        .mindmap-node-0 rect {
+            fill: #4F46E5 !important;
+            stroke: #4338CA !important;
+            stroke-width: 3px !important;
+            rx: 16px !important;
+            filter: drop-shadow(0 10px 15px rgba(79, 70, 229, 0.25)) drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1)) !important;
+        }
+        
+        /* Text styling */
+        .nodeLabel,
+        .node text,
+        text.nodeLabel {
+            color: #FFFFFF !important;
+            fill: #FFFFFF !important;
+            font-size: 15px !important;
+            font-weight: 600 !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+            font-family: 'Pretendard', -apple-system, sans-serif !important;
+        }
+        
+        /* Connection lines - modern style */
+        .edgePath path,
+        .flowchart-link {
+            stroke: #94A3B8 !important;
+            stroke-width: 2.5px !important;
+            stroke-linecap: round !important;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.05)) !important;
+        }
+        
+        /* Hover effects */
+        .node:hover rect,
+        .node:hover circle {
+            filter: drop-shadow(0 8px 12px rgba(99, 102, 241, 0.25)) drop-shadow(0 4px 6px rgba(0, 0, 0, 0.12)) !important;
+            transform: translateY(-2px) !important;
+        }
+        
+        /* Cluster/group styling */
+        .cluster rect {
+            fill: #F8FAFC !important;
+            stroke: #CBD5E1 !important;
+            stroke-width: 2px !important;
+            rx: 16px !important;
+            stroke-dasharray: 5,5 !important;
+            opacity: 0.6 !important;
+        }
+        
+        /* Clean background */
+        .mermaid {
+            background: transparent !important;
+        }
+    `
 });
 
 export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart }) => {
