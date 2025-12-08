@@ -8,7 +8,7 @@ import { SettingsModal } from './components/SettingsModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthGate } from './components/AuthGate';
 import { getApiUsageStats } from './services/apiUsageTracker';
-import { getTrendingTopics } from './services/trendingService';
+import { getTrendingTopics, clearTrendingCache } from './services/trendingService';
 
 // Lazy Load Heavy Components
 const MarkdownRenderer = React.lazy(() => import('./components/MarkdownRenderer').then(module => ({ default: module.MarkdownRenderer })));
@@ -59,20 +59,28 @@ const App: React.FC = () => {
 
   // Load trending topics on mount
   useEffect(() => {
-    const loadTrends = async () => {
-      setLoadingTrends(true);
-      try {
-        const topics = await getTrendingTopics();
-        setSuggestions(topics);
-      } catch (error) {
-        console.error('Failed to load trending topics:', error);
-        // Fallback topics are already handled in the service
-      } finally {
-        setLoadingTrends(false);
-      }
-    };
-    loadTrends();
+    loadTrendingTopics();
   }, []);
+
+  // Load trending topics function (can be called manually)
+  const loadTrendingTopics = async () => {
+    setLoadingTrends(true);
+    try {
+      const topics = await getTrendingTopics();
+      setSuggestions(topics);
+    } catch (error) {
+      console.error('Failed to load trending topics:', error);
+      // Fallback topics are already handled in the service
+    } finally {
+      setLoadingTrends(false);
+    }
+  };
+
+  // Manually refresh trending topics (ignores cache)
+  const handleRefreshTrends = async () => {
+    clearTrendingCache();
+    await loadTrendingTopics();
+  };
 
   // Check API Key Helper
   const hasApiKey = () => {
@@ -394,9 +402,19 @@ const App: React.FC = () => {
 
             {/* Suggestions Chips */}
             <div className="mb-12">
-              <p className="text-center text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
-                🔥 지금 뜨는 주제 추천
-              </p>
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <p className="text-center text-xs font-bold text-slate-400 uppercase tracking-widest">
+                  🔥 지금 뜨는 주제 추천
+                </p>
+                <button
+                  onClick={handleRefreshTrends}
+                  disabled={loadingTrends}
+                  className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+                  title="새로운 주제 추천받기"
+                >
+                  <RefreshIcon className={`w-4 h-4 ${loadingTrends ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+                </button>
+              </div>
               {loadingTrends ? (
                 <div className="flex flex-wrap justify-center gap-3">
                   {[...Array(4)].map((_, idx) => (
