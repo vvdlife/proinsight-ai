@@ -429,7 +429,11 @@ const App: React.FC = () => {
                   {suggestions.map((item, idx) => (
                     <button
                       key={idx}
-                      onClick={() => setTopic(item.text)}
+                      onClick={() => {
+                        setTopic(item.text);
+                        // Auto-start outline generation after state update
+                        setTimeout(() => handleGenerateOutline(), 100);
+                      }}
                       className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-full text-slate-600 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition-all text-sm font-medium shadow-sm"
                     >
                       {getIconComponent(item.icon)}

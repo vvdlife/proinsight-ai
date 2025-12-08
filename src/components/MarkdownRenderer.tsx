@@ -60,12 +60,12 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = React.memo(({ c
           const bodyRows = tableRows.slice(2).map(row => row.split('|').filter(c => c.trim() !== '').map(c => c.trim()));
 
           elements.push(
-            <div key={`table-${i}`} className={`my-10 overflow-hidden rounded-xl border border-slate-200 shadow-sm ${fontClass}`}>
-              <table className="w-full text-left border-collapse bg-white">
+            <div key={`table-${i}`} className={`my-10 overflow-x-auto rounded-xl border border-slate-200 shadow-sm ${fontClass}`}>
+              <table className="w-full min-w-[600px] text-left border-collapse bg-white">
                 <thead>
                   <tr className="bg-slate-100/80 border-b border-slate-200">
                     {headerRow.map((cell, idx) => (
-                      <th key={idx} className="px-6 py-4 font-bold text-slate-700 text-xs uppercase tracking-wider whitespace-nowrap">{parseInline(cell)}</th>
+                      <th key={idx} className="px-6 py-4 font-bold text-slate-700 text-xs uppercase tracking-wider">{parseInline(cell)}</th>
                     ))}
                   </tr>
                 </thead>
@@ -73,7 +73,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = React.memo(({ c
                   {bodyRows.map((row, rIdx) => (
                     <tr key={rIdx} className="even:bg-slate-50 hover:bg-indigo-50/40 transition-colors duration-150 ease-in-out">
                       {row.map((cell, cIdx) => (
-                        <td key={cIdx} className="px-6 py-4 text-slate-600 text-[15px] leading-relaxed border-r border-slate-50 last:border-r-0">{parseInline(cell)}</td>
+                        <td key={cIdx} className="px-6 py-4 text-slate-600 text-[15px] leading-relaxed border-r border-slate-50 last:border-r-0 min-w-[150px] break-words">{parseInline(cell)}</td>
                       ))}
                     </tr>
                   ))}
