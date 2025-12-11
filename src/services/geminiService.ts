@@ -168,8 +168,9 @@ export const generateBlogPostContent = async (
   urls: string[],
   memo: string,
   language: string = 'Korean'
-): Promise<string> => {
+): Promise<{ content: string; title: string }> => {
   const ai = getGenAI();
+  const isEnglish = language === 'English';
 
   // Common Context
   let baseContext = `
@@ -179,7 +180,7 @@ export const generateBlogPostContent = async (
   Style: Use ** Standard Unicode Emojis ** actively(e.g., 💡, 🚀, ✅, 📌).
 
   **CRITICAL LANGUAGE INSTRUCTION**:
-  ${language === 'English' ? '- **MUST WRITE IN ENGLISH**. Even if the outline or context is in Korean, you MUST translate and write the output in English.' : '- Write in natural, native Korean.'}
+  ${isEnglish ? '- **MUST WRITE IN ENGLISH**. Even if the outline or context is in Korean, you MUST translate and write the output in English.' : '- Write in natural, native Korean.'}
     
     ** EDITOR'S GUIDELINES (7 CORE PRINCIPLES)**:
   1. ** SEO Optimization **: Use natural keywords.
@@ -205,7 +206,7 @@ export const generateBlogPostContent = async (
   if (urls.length > 0) baseContext += `\nSOURCE URLs (For reference only):\n${urls.join('\n')}`;
   if (files.length > 0) baseContext += `\n(Refer to attached documents)`;
 
-  // 1. Intro Generation
+  // 1. Intro Generation (Ask for translated title if English)
   const introPrompt = `
     ${baseContext}
     
@@ -213,10 +214,11 @@ export const generateBlogPostContent = async (
     Outline of the whole post: ${outline.sections.join(", ")}
     
     Instructions:
+    ${isEnglish ? '- **TRANSLATION TASK**: Start your response with the English translation of the Blog Title on the first line, prefixed with "TITLE: ". Remove any labels like "(Preview)" or "(미리보기)".' : ''}
     - **Hook**: Start with a strong question or statement to grab attention (Reader Behavior Analysis).
     - **Value**: Briefly state what the reader will gain.
     - **Conciseness**: Max 100 words.
-    - Do NOT write any section headers (like ## Introduction). Just the content.
+    - Do NOT write any section headers (like ## Introduction).
     - Do NOT use horizontal rules (---).
   `;
 
@@ -229,6 +231,7 @@ export const generateBlogPostContent = async (
       Context (Full Outline): ${outline.sections.join(", ")}
       
       Instructions:
+      ${isEnglish ? `- **HEADER TRANSLATION**: Start your response with the English translation of the section title "${section}" as a Level 2 Markdown Header (e.g. ## English Title).` : ''}
       - **Structure**:
         1. **Core Concept**: Clear explanation.
         2. **Visual/Interactive** (Choose one that fits best):
@@ -236,18 +239,18 @@ export const generateBlogPostContent = async (
            - **Mermaid Diagram**: Use \`\`\`mermaid\`\`\` for flows/structures.
              **CRITICAL MERMAID RULES**:
              • USE ONLY \`graph TD\` (Top-Down Flowchart). Do NOT use mindmap or timeline.
-             • Format: \`NodeID["Label"] --> NodeID2["Label"]\`
+             • Format: \`NodeID["Label"]\` (Labels must be in English if language is English).
              • KEEP IT SIMPLE: Max 5-7 nodes.
              • AVOID special characters in specific Node IDs (use A, B, C...).
              • Example:
                graph TD
                  A["AI Market"] --> B["Growth"]
                  A --> C["Decline"]
-           - **Checklist**: Use Emojis (e.g., "- ✅ Check").
+           - **Checklist**: Use Emojis (e.g., "- ✅ Item").
            - **Bulleted List**: Use emojis for key points.
         3. **Key Insight**: Bold summary.
       
-      - **Formatting**: No subsections (###), no repeated headers, no horizontal rules.
+      - **Formatting**: ${isEnglish ? 'Use the translated header provided above.' : 'No subsections (###), no repeated headers, no horizontal rules.'}
       - **Length**: Under 150 words.
     `;
     return generateText(ai, sectionPrompt, files, "You are an expert content writer. Use Tables and Emojis.");
@@ -263,38 +266,60 @@ export const generateBlogPostContent = async (
     Instructions:
     - Summarize the key takeaways.
     - **Interactive CTA**: Ask a question to encourage comments.
-    - End with "## ⚡ 3줄 요약".
+    - End with "## ⚡ 3줄 요약" (Or English equivalent "## ⚡ 3-Line Summary").
     - Do NOT use horizontal rules (---).
   `;
 
   // Execute all requests in parallel
-  const [intro, ...bodyAndConclusion] = await Promise.all([
+  const [introRaw, ...bodyAndConclusion] = await Promise.all([
     generateText(ai, introPrompt, files, "You are a professional blog writer. Write an engaging intro."),
     ...sectionPromises,
     generateText(ai, conclusionPrompt, files, "You are a professional editor. Summarize perfectly.")
   ]);
 
-  const conclusion = bodyAndConclusion.pop(); // Last one is conclusion
+  const conclusion = bodyAndConclusion.pop() || ""; // Last one is conclusion
   const bodySections = bodyAndConclusion; // Remaining are body sections
 
-  // Assemble the full post
-  // Post-processing: Remove any accidental ## headers or --- from body sections
+  // Parse Title and Intro
+  let finalTitle = outline.title; // Default to original
+  let introContent = introRaw;
+
+  if (isEnglish) {
+    // Extract TITLE: ...
+    const titleMatch = introRaw.match(/^TITLE:\s*(.+)$/m);
+    if (titleMatch) {
+      finalTitle = titleMatch[1].trim();
+      // Remove the TITLE line from intro
+      introContent = introRaw.replace(/^TITLE:\s*.+$/m, '').trim();
+    }
+  }
+
+  // Assemble
   const cleanBodySections = bodySections.map(section => {
-    return section
-      .replace(/^## .+\n/gm, '') // Remove ## Header if AI added it
-      .replace(/---/g, '')       // Remove horizontal rules
-      .trim();
+    let content = section.replace(/---/g, '').trim();
+    if (!isEnglish) {
+      // Korean mode: remove AI generated headers if any, we use loop headers
+      content = content.replace(/^## .+\n/gm, '').trim();
+    }
+    return content;
   });
 
-  let fullPost = `${intro.replace(/---/g, '').trim()}\n\n`;
+  let fullPost = `${introContent.replace(/---/g, '').trim()}\n\n`;
 
   outline.sections.forEach((section, idx) => {
-    fullPost += `## ${section}\n\n${cleanBodySections[idx]}\n\n`;
+    if (isEnglish) {
+      // English: The header is inside the content (as requested via prompt)
+      // Just append the content. We trust the AI added "## English Title"
+      fullPost += `${cleanBodySections[idx]}\n\n`;
+    } else {
+      // Korean: Use the outline section as header
+      fullPost += `## ${section}\n\n${cleanBodySections[idx]}\n\n`;
+    }
   });
 
   fullPost += `${conclusion.replace(/---/g, '').trim()}`;
 
-  return fullPost;
+  return { content: fullPost, title: finalTitle };
 };
 
 /**
