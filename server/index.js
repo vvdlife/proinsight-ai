@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import mediumRoutes from './routes/medium.js';
 import tistoryRoutes from './routes/tistory.js';
 import wordpressRoutes from './routes/wordpress.js';
+import naverRoutes from './routes/naver.js';
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/medium', mediumRoutes);
 app.use('/api/tistory', tistoryRoutes);
 app.use('/api/wordpress', wordpressRoutes);
+app.use('/api/naver', naverRoutes);
 
 // Start Server
 app.listen(PORT, () => {
