@@ -215,15 +215,14 @@ export const generateBlogPostContent = async (
            - **Comparison Table**: Use a Markdown Table for data/pros-cons.
            - **Mermaid Diagram**: Use \`\`\`mermaid\`\`\` for flows/structures.
              **CRITICAL MERMAID RULES**:
-             • Quote ALL node labels with double quotes
-             • NEVER use parentheses (), brackets [], or & in labels
-             • Replace () with hyphen or space (e.g., "AI 엔비디아" not "AI (엔비디아)")
-             • Replace & with "and" or comma
-             • Keep labels short and simple
-             • Example: mindmap
-                 root["Main Topic"]
-                   A["Subtopic One"]
-                   B["Subtopic Two"]
+             • USE ONLY \`graph TD\` (Top-Down Flowchart). Do NOT use mindmap or timeline.
+             • Format: \`NodeID["Label"] --> NodeID2["Label"]\`
+             • KEEP IT SIMPLE: Max 5-7 nodes.
+             • AVOID special characters in specific Node IDs (use A, B, C...).
+             • Example:
+               graph TD
+                 A["AI Market"] --> B["Growth"]
+                 A --> C["Decline"]
            - **Checklist**: Use Emojis (e.g., "- ✅ Check").
            - **Bulleted List**: Use emojis for key points.
         3. **Key Insight**: Bold summary.
