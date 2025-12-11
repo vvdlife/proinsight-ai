@@ -238,7 +238,7 @@ const App: React.FC = () => {
     } finally {
       setLoading({ isLoading: false, message: '', progress: 0 });
     }
-  }, [outline, selectedTone, selectedImageStyle, sourceFiles, sourceUrls, memo]);
+  }, [outline, selectedTone, selectedImageStyle, sourceFiles, sourceUrls, memo, isDualMode]);
 
   const handleReset = () => {
     setCurrentStep(AppStep.TOPIC_INPUT);
@@ -668,8 +668,8 @@ const App: React.FC = () => {
                   <button
                     onClick={() => setActiveLang('ko')}
                     className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeLang === 'ko'
-                        ? 'bg-indigo-600 text-white shadow-md'
-                        : 'text-slate-500 hover:bg-slate-50'
+                      ? 'bg-indigo-600 text-white shadow-md'
+                      : 'text-slate-500 hover:bg-slate-50'
                       }`}
                   >
                     🇰🇷 한국어 (Korean)
@@ -677,8 +677,8 @@ const App: React.FC = () => {
                   <button
                     onClick={() => setActiveLang('en')}
                     className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeLang === 'en'
-                        ? 'bg-indigo-600 text-white shadow-md'
-                        : 'text-slate-500 hover:bg-slate-50'
+                      ? 'bg-indigo-600 text-white shadow-md'
+                      : 'text-slate-500 hover:bg-slate-50'
                       }`}
                   >
                     🇺🇸 English (Global)
