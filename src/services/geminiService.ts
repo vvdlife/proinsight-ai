@@ -45,6 +45,10 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
       
       3. **Sections**: Create 5-7 logical sections.
       
+      **CRITICAL INSTRUCTION FOR SPECIFICITY**:
+      - If the topic refers to a specific industry or group (e.g., "Big Tech", "K-Pop", "EV Market"), you MUST identify 3-5 SPECIFIC real-world entities (companies, people, products) to focus on.
+      - Create sections that specifically analyze these entities. Do not just use generic headers like "Market Trends". Use headers like "Microsoft: Copilot's Expansion" or "Tesla: New Model Launch".
+      
       The output must be in Korean.
       
       **CRITICAL OUTPUT FORMAT**:
@@ -170,7 +174,11 @@ export const generateBlogPostContent = async (
          - Syntax Rule 2: Do not use special characters like parentheses() inside the ID, only in the label.
          - Supported types: \`graph TD\`, \`mindmap\`, \`timeline\`, \`pie\`.
     5. **Interactive Elements**: Use **Emoji-based Checklists** (e.g., "- ✅ Item").
-    6. **Data-Driven**: Use facts/stats.
+    6. **Data-Driven & Specific**:
+           - **CRITICAL**: Use the \`googleSearch\` tool to find SPECIFIC data points (numbers, dates, quotes).
+           - Do not say "Many companies". Say "Apple and Nvidia".
+           - Do not say "Revenue increased". Say "Revenue increased by 20% to $XX billion".
+           - Cite real recent events.
     7. **No External Links**: Do not add inline links.
   `;
   if (memo && memo.trim()) baseContext += `\n[USER MEMO]: "${memo}"`;
