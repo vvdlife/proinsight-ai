@@ -34,35 +34,32 @@ mermaid.initialize({
         /* Modern node styling with gradients and shadows */
         .node rect,
         .node circle,
-        .node polygon {
-            fill: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-            stroke: #6366F1 !important;
+        .node polygon,
+        .node path {
+            fill: #6366F1 !important;
+            stroke: #4338CA !important;
             stroke-width: 0px !important;
-            rx: 12px !important;
-            ry: 12px !important;
-            filter: drop-shadow(0 4px 6px rgba(99, 102, 241, 0.15)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08)) !important;
+            rx: 8px !important;
+            ry: 8px !important;
+            filter: drop-shadow(0 4px 6px rgba(99, 102, 241, 0.25)) !important;
             transition: all 0.3s ease !important;
         }
         
-        /* Different gradient for each level */
+        /* Different solid colors for each level */
         .section-0 rect, .section-0 circle {
-            fill: #6366F1 !important;
-            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%) !important;
+            fill: #7C3AED !important; /* Violet 600 */
         }
         
         .section-1 rect, .section-1 circle {
-            fill: #8B5CF6 !important;
-            background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%) !important;
+            fill: #DB2777 !important; /* Pink 600 */
         }
         
         .section-2 rect, .section-2 circle {
-            fill: #EC4899 !important;
-            background: linear-gradient(135deg, #EC4899 0%, #F59E0B 100%) !important;
+            fill: #EA580C !important; /* Orange 600 */
         }
         
         .section-3 rect, .section-3 circle {
-            fill: #10B981 !important;
-            background: linear-gradient(135deg, #10B981 0%, #06B6D4 100%) !important;
+            fill: #059669 !important; /* Emerald 600 */
         }
         
         /* Root/center node - special styling */

@@ -123,7 +123,10 @@ const generateText = async (ai: GoogleGenAI, prompt: string, files: UploadedFile
       },
     });
 
-    const result = response.text || "";
+    let result = response.text || "";
+
+    // Cleanup Google Search grounding artifacts (citations) like (cite: 1, 2)
+    result = result.replace(/\s*\(cite:[\s\d,]+\)/gi, "");
 
     // Track API usage with actual token counts from response
     const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
