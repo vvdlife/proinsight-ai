@@ -179,6 +179,7 @@ export const generateBlogPostContent = async (
            - Do not say "Many companies". Say "Apple and Nvidia".
            - Do not say "Revenue increased". Say "Revenue increased by 20% to $XX billion".
            - Cite real recent events.
+           - **FUTURE CHECK**: If predicting the future (e.g., 2026), do NOT cite old models as "new" (e.g., do not say Galaxy S24 is new in 2026). Search for upcoming models (e.g., Galaxy S25/S26, iPhone 17).
     7. **No External Links**: Do not add inline links.
   `;
   if (memo && memo.trim()) baseContext += `\n[USER MEMO]: "${memo}"`;

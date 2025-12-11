@@ -145,13 +145,28 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = React.memo(({ c
   );
 });
 
-// Inline Parser for Bold, Links, etc.
+// Inline Parser for Bold, Links, and Line Breaks
 const parseInline = (text: string): React.ReactNode[] => {
   // Regex for:
-  // 1. Links: [text](url)
-  // 2. Bold: **text**
+  // 1. Line Breaks: <br>, <br/>, <br />
+  // 2. Links: [text](url)
+  const brRegex = /<br\s*\/?>/gi;
+  const parts: React.ReactNode[] = [];
 
-  // We split by links first, then bold within chunks
+  // Split by <br> first
+  const sections = text.split(brRegex);
+
+  sections.forEach((section, idx) => {
+    if (idx > 0) parts.push(<br key={`br-${idx}`} />);
+    if (section) {
+      parts.push(...parseLinks(section));
+    }
+  });
+
+  return parts;
+};
+
+const parseLinks = (text: string): React.ReactNode[] => {
   const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
