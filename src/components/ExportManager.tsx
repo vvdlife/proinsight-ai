@@ -122,7 +122,7 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
           htmlBlock = `
                   <div style="margin: 30px 0; text-align: center;">
                      <div style="font-weight: bold; color: #475569; margin-bottom: 8px;">📊 다이어그램 (자동 생성됨)</div>
-                     <img src="${pngBase64}" alt="Mermaid Diagram" style="max-width: 100%; height: auto; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);" />
+                     <img src="${pngBase64}" alt="Mermaid Diagram" style="max-width: 500px; max-height: 500px; width: 100%; height: auto; margin: 0 auto; display: block; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);" />
                      <details style="margin-top: 10px;">
                         <summary style="cursor: pointer; font-size: 12px; color: #94a3b8;">원본 코드 보기</summary>
                         <pre style="background: #f1f5f9; padding: 12px; border-radius: 6px; text-align: left; font-size: 11px; color: #64748b; overflow-x: auto; font-family: monospace; line-height: 1.5;">${code.trim()}</pre>
