@@ -166,7 +166,8 @@ export const generateBlogPostContent = async (
   tone: BlogTone,
   files: UploadedFile[],
   urls: string[],
-  memo: string
+  memo: string,
+  language: string = 'Korean'
 ): Promise<string> => {
   const ai = getGenAI();
 
@@ -174,8 +175,11 @@ export const generateBlogPostContent = async (
   let baseContext = `
     Blog Title: "${outline.title}"
   Tone: ${tone}
-  Language: Korean
+  Language: ${language}
   Style: Use ** Standard Unicode Emojis ** actively(e.g., 💡, 🚀, ✅, 📌).
+
+  **CRITICAL LANGUAGE INSTRUCTION**:
+  ${language === 'English' ? '- **MUST WRITE IN ENGLISH**. Even if the outline or context is in Korean, you MUST translate and write the output in English.' : '- Write in natural, native Korean.'}
     
     ** EDITOR'S GUIDELINES (7 CORE PRINCIPLES)**:
   1. ** SEO Optimization **: Use natural keywords.

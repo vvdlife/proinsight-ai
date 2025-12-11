@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BlogPost } from '../types';
 import { CopyIcon, NaverIcon, TistoryIcon, MediumIcon, WordPressIcon, SubstackIcon, CheckIcon, EyeIcon, XIcon, DownloadIcon, FileCodeIcon } from './Icons';
 import { TABLE_STYLES, PLATFORM_STYLES } from './exportStyles';
@@ -51,8 +51,8 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
         htmlBlock = `
           <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 20px; margin: 24px 0; text-align: center;">
              <div style="font-weight: bold; color: #475569; margin-bottom: 8px;">📊 다이어그램 (Mermaid)</div>
-             <div style="font-size: 13px; color: #94a3b8; margin-bottom: 12px;">(이 플랫폼 에디터에서는 다이어그램 자동 렌더링이 지원되지 않을 수 있습니다. <b>이미지 다운로드</b> 후 첨부해주세요.)</div>
-             <pre style="background: #f1f5f9; padding: 12px; border-radius: 6px; text-align: left; font-size: 11px; color: #64748b; overflow-x: auto; font-family: monospace;">${code.trim()}</pre>
+             <div style="font-size: 14px; color: #64748b; margin-bottom: 12px; line-height: 1.5;">(이 플랫폼 에디터에서는 다이어그램 자동 렌더링이 지원되지 않을 수 있습니다.<br>아래 코드를 복사하거나 <b>이미지를 다운로드</b>하여 첨부하세요.)</div>
+             <pre style="background: #e2e8f0; padding: 16px; border-radius: 6px; text-align: left; font-size: 13px; color: #334155; overflow-x: auto; font-family: monospace; line-height: 1.5; font-weight: 500;">${code.trim()}</pre>
           </div>
         `;
       } else {
@@ -289,35 +289,60 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
 
       {/* Preview Modal */}
       {previewType && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-4xl h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-              <span className="font-bold text-slate-800 flex items-center gap-2">
-                <EyeIcon className="w-5 h-5 text-indigo-500" /> {previewType} 스타일 미리보기
-              </span>
-              <button onClick={() => setPreviewType(null)} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
-                <XIcon className="w-6 h-6 text-slate-500" />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-8 bg-slate-100">
-              <div className="mx-auto bg-white p-12 shadow-lg min-h-full max-w-3xl rounded-xl border border-slate-200/60">
-                <div
-                  className="prose max-w-none"
-                  dangerouslySetInnerHTML={{ __html: generateHtml(previewType) }}
-                />
-              </div>
-            </div>
-            <div className="p-4 border-t border-slate-200 bg-white flex justify-end">
-              <button
-                onClick={() => copyToHtmlClipboard(previewType)}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-md"
-              >
-                <CopyIcon className="w-4 h-4" /> 전체 복사하기
-              </button>
-            </div>
-          </div>
-        </div>
+        <PreviewModal
+          type={previewType}
+          post={post}
+          onClose={() => setPreviewType(null)}
+          onCopy={() => copyToHtmlClipboard(previewType)}
+          generateHtml={generateHtml}
+        />
       )}
     </>
+  );
+};
+
+// Sub-component for Async Preview Content
+const PreviewModal: React.FC<{
+  type: 'NAVER' | 'TISTORY' | 'MEDIUM' | 'WORDPRESS' | 'SUBSTACK';
+  post: BlogPost;
+  onClose: () => void;
+  onCopy: () => void;
+  generateHtml: (type: any) => Promise<string>;
+}> = ({ type, onClose, onCopy, generateHtml }) => {
+  const [html, setHtml] = useState<string>('<div class="p-10 text-center text-slate-500">불러오는 중...</div>');
+
+  useEffect(() => {
+    generateHtml(type).then(setHtml);
+  }, [type]);
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white w-full max-w-4xl h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+          <span className="font-bold text-slate-800 flex items-center gap-2">
+            <EyeIcon className="w-5 h-5 text-indigo-500" /> {type} 스타일 미리보기
+          </span>
+          <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
+            <XIcon className="w-6 h-6 text-slate-500" />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-8 bg-slate-100">
+          <div className="mx-auto bg-white p-12 shadow-lg min-h-full max-w-3xl rounded-xl border border-slate-200/60">
+            <div
+              className="prose max-w-none"
+              dangerouslySetInnerHTML={{ __html: html }}
+            />
+          </div>
+        </div>
+        <div className="p-4 border-t border-slate-200 bg-white flex justify-end">
+          <button
+            onClick={onCopy}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-md"
+          >
+            <CopyIcon className="w-4 h-4" /> 전체 복사하기
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
