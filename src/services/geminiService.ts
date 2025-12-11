@@ -48,6 +48,7 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
       **CRITICAL INSTRUCTION FOR SPECIFICITY**:
       - If the topic refers to a specific industry or group (e.g., "Big Tech", "K-Pop", "EV Market"), you MUST identify 3-5 SPECIFIC real-world entities (companies, people, products) to focus on.
       - Create sections that specifically analyze these entities. Do not just use generic headers like "Market Trends". Use headers like "Microsoft: Copilot's Expansion" or "Tesla: New Model Launch".
+      - **CRITICAL**: The \`sections\` array must contain ONLY STRINGS. Do NOT return objects (e.g., no { "title": ... }). Just simple strings.
       
       The output must be in Korean.
       
@@ -99,7 +100,20 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
   const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(text);
   trackApiCall(MODEL_IDS.TEXT, promptTokens, completionTokens, 'outline');
 
-  return safeJsonParse<OutlineData>(text);
+  const outline = safeJsonParse<OutlineData>(text);
+
+  // Safety check: Ensure sections are strings, not objects (fixes [object Object] bug)
+  if (outline.sections && Array.isArray(outline.sections)) {
+    outline.sections = outline.sections.map((sec: any) => {
+      if (typeof sec === 'object' && sec !== null) {
+        // Try to find a meaningful string property
+        return sec.title || sec.heading || sec.name || sec.section || JSON.stringify(sec);
+      }
+      return String(sec);
+    });
+  }
+
+  return outline;
 };
 
 /**
