@@ -17,10 +17,41 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
   const [previewType, setPreviewType] = useState<'NAVER' | 'TISTORY' | 'MEDIUM' | 'WORDPRESS' | 'SUBSTACK' | null>(null);
   const [isExporting, setIsExporting] = useState(false);
 
-  const generateHtml = (type: 'NAVER' | 'TISTORY' | 'MEDIUM' | 'WORDPRESS' | 'SUBSTACK') => {
+  // Helper: Convert SVG string to Base64 Image
+  const svgToBase64Image = (svg: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width * 2;
+        canvas.height = img.height * 2;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.scale(2, 2);
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL('image/png'));
+        } else {
+          resolve('');
+        }
+        URL.revokeObjectURL(url);
+      };
+
+      img.onerror = () => {
+        resolve('');
+        URL.revokeObjectURL(url);
+      }
+
+      img.src = url;
+    });
+  };
+
+  const generateHtml = async (type: 'NAVER' | 'TISTORY' | 'MEDIUM' | 'WORDPRESS' | 'SUBSTACK') => {
     let content = post.content;
 
-    // 0. Table Conversion (Markdown Table -> HTML Table with Inline Styles)
+    // 0. Table Conversion
     content = content.replace(/\|(.+)\|\n\|([-:| ]+)\|\n((?:\|.*\|\n?)+)/g, (match, header, separator, body) => {
       const headers = header.split('|').filter((h: string) => h.trim()).map((h: string) => h.trim());
       const rows = body.trim().split('\n').map((row: string) => row.split('|').filter((c: string) => c.trim()).map((c: string) => c.trim()));
@@ -39,32 +70,61 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
       return tableHtml;
     });
 
-    // 1. Code Block Extraction (to prevent <br/> and style mess)
+    // 1. Mermaid Rendering & Code Block Extraction
+    const mermaidReplacements: { placeholder: string, html: string }[] = [];
     const codeBlocks: string[] = [];
+
+    // Extract code blocks first
+    let blockIndex = 0;
+    const mermaidMatches: { code: string, isMermaid: boolean, placeholder: string }[] = [];
+
     content = content.replace(/```(mermaid)?\n?([\s\S]*?)```/g, (match, lang, code) => {
       const isMermaid = lang === 'mermaid' || lang === ' mermaid';
-      const placeholder = `__CODE_BLOCK_${codeBlocks.length}__`;
-
-      let htmlBlock = '';
-      if (isMermaid) {
-        // Styled box for Mermaid (since we can't render it in simple HTML export)
-        htmlBlock = `
-          <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 20px; margin: 24px 0; text-align: center;">
-             <div style="font-weight: bold; color: #475569; margin-bottom: 8px;">📊 다이어그램 (Mermaid)</div>
-             <div style="font-size: 14px; color: #64748b; margin-bottom: 12px; line-height: 1.5;">(이 플랫폼 에디터에서는 다이어그램 자동 렌더링이 지원되지 않을 수 있습니다.<br>아래 코드를 복사하거나 <b>이미지를 다운로드</b>하여 첨부하세요.)</div>
-             <pre style="background: #e2e8f0; padding: 16px; border-radius: 6px; text-align: left; font-size: 13px; color: #334155; overflow-x: auto; font-family: monospace; line-height: 1.5; font-weight: 500;">${code.trim()}</pre>
-          </div>
-        `;
-      } else {
-        // Standard Code Block
-        htmlBlock = `<pre style="background: #f1f5f9; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: monospace; margin: 20px 0;"><code>${code.trim()}</code></pre>`;
-      }
-
-      codeBlocks.push(htmlBlock);
+      const placeholder = `__CODE_BLOCK_${blockIndex++}__`;
+      mermaidMatches.push({ code, isMermaid, placeholder });
       return placeholder;
     });
 
-    // 2. Markdown to HTML Conversion (Regular Text)
+    // Process blocks
+    for (const { code, isMermaid, placeholder } of mermaidMatches) {
+      let htmlBlock = '';
+
+      if (isMermaid) {
+        try {
+          // Dynamic import to avoid SSR issues if any
+          const mermaid = (await import('mermaid')).default;
+          // Initialize if needed (idempotent usually)
+          mermaid.initialize({ startOnLoad: false, theme: 'default' });
+
+          const id = `mermaid-export-${Math.random().toString(36).substr(2, 9)}`;
+          const { svg } = await mermaid.render(id, code);
+          const pngBase64 = await svgToBase64Image(svg);
+
+          htmlBlock = `
+                  <div style="margin: 30px 0; text-align: center;">
+                     <div style="font-weight: bold; color: #475569; margin-bottom: 8px;">📊 다이어그램 (자동 생성됨)</div>
+                     <img src="${pngBase64}" alt="Mermaid Diagram" style="max-width: 100%; height: auto; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);" />
+                     <details style="margin-top: 10px;">
+                        <summary style="cursor: pointer; font-size: 12px; color: #94a3b8;">원본 코드 보기</summary>
+                        <pre style="background: #f1f5f9; padding: 12px; border-radius: 6px; text-align: left; font-size: 11px; color: #64748b; overflow-x: auto; font-family: monospace; line-height: 1.5;">${code.trim()}</pre>
+                     </details>
+                  </div>`;
+        } catch (e) {
+          console.error("Mermaid Render Error", e);
+          htmlBlock = `
+                  <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 20px; margin: 24px 0; text-align: center;">
+                     <div style="font-weight: bold; color: #475569; margin-bottom: 8px;">📊 다이어그램 (Mermaid)</div>
+                     <div style="font-size: 14px; color: #64748b; margin-bottom: 12px; line-height: 1.5;">(이미지 생성 실패 - 아래 코드를 확인하세요)</div>
+                     <pre style="background: #e2e8f0; padding: 16px; border-radius: 6px; text-align: left; font-size: 13px; color: #334155; overflow-x: auto; font-family: monospace; line-height: 1.5; font-weight: 500;">${code.trim()}</pre>
+                  </div>`;
+        }
+      } else {
+        htmlBlock = `<pre style="background: #f1f5f9; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: monospace; margin: 20px 0;"><code>${code.trim()}</code></pre>`;
+      }
+      mermaidReplacements.push({ placeholder, html: htmlBlock });
+    }
+
+    // 2. Markdown to HTML Conversion
     const s = PLATFORM_STYLES[type];
     let html = content
       .replace(/^### (.*$)/gim, `<h3 style="${s.h3}">$1</h3>`)
@@ -77,8 +137,8 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
       .replace(/\n/gim, '<br />');
 
     // 3. Restore Code Blocks
-    codeBlocks.forEach((block, idx) => {
-      html = html.replace(`__CODE_BLOCK_${idx}__`, block);
+    mermaidReplacements.forEach(({ placeholder, html: blockHtml }) => {
+      html = html.replace(placeholder, blockHtml);
     });
 
     const titleHtml = type === 'MEDIUM'
@@ -90,7 +150,7 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
 
   const copyToHtmlClipboard = async (platform: 'NAVER' | 'TISTORY' | 'MEDIUM' | 'WORDPRESS' | 'SUBSTACK') => {
     try {
-      const finalHtml = generateHtml(platform);
+      const finalHtml = await generateHtml(platform);
 
       const blob = new Blob([finalHtml], { type: 'text/html' });
       const textBlob = new Blob([post.content], { type: 'text/plain' });
