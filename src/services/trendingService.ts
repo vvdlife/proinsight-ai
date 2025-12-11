@@ -1,6 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { TrendingTopic, TrendingCache } from "../types";
 import { trackApiCall, estimateTokens } from './apiUsageTracker';
+import { safeJsonParse } from './utils';
 
 const CACHE_KEY = 'proinsight_trending_cache';
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
@@ -73,7 +74,7 @@ const generateTrendingTopics = async (): Promise<TrendingTopic[]> => {
             },
         });
 
-        const text = response.text?.replace(/```json|```/g, '').trim();
+        const text = response.text || "";
         if (!text) {
             console.warn("No trending topics generated, using fallback");
             return FALLBACK_TOPICS;
@@ -84,7 +85,7 @@ const generateTrendingTopics = async (): Promise<TrendingTopic[]> => {
         const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(text);
         trackApiCall(MODEL_ID, promptTokens, completionTokens, 'trending');
 
-        const topics = JSON.parse(text) as TrendingTopic[];
+        const topics = safeJsonParse<TrendingTopic[]>(text);
 
         // Validate we got 4 topics
         if (!Array.isArray(topics) || topics.length !== 4) {

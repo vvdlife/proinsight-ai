@@ -2,6 +2,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { BlogTone, OutlineData, SocialPost, ImageStyle, UploadedFile } from "../types";
 import { trackApiCall, estimateTokens } from './apiUsageTracker';
+import { safeJsonParse } from './utils';
 
 // Constants
 const MODEL_IDS = {
@@ -86,7 +87,7 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
     },
   });
 
-  const text = response.text?.replace(/```json | ```/g, '').trim();
+  const text = response.text || "";
   if (!text) throw new Error("No outline generated.");
 
   // Track API usage with actual token counts from response
@@ -94,7 +95,7 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
   const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(text);
   trackApiCall(MODEL_IDS.TEXT, promptTokens, completionTokens, 'outline');
 
-  return JSON.parse(text) as OutlineData;
+  return safeJsonParse<OutlineData>(text);
 };
 
 /**
@@ -310,16 +311,14 @@ export const generateSocialPosts = async (title: string, summary: string, imageS
   if (!text) return [];
 
   // Track API usage with actual token counts from response
+  // Track API usage with actual token counts from response
   const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
   const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(text);
   trackApiCall(MODEL_IDS.TEXT, promptTokens, completionTokens, 'social');
 
-  // Cleanup markdown code blocks if present
-  text = text.replace(/```json|```/g, '').trim();
-
   let posts: SocialPost[] = [];
   try {
-    posts = JSON.parse(text) as SocialPost[];
+    posts = safeJsonParse<SocialPost[]>(text);
   } catch (e) {
     console.error("Failed to parse social posts JSON", e);
     return [];
