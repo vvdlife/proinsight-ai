@@ -33,6 +33,9 @@ const App: React.FC = () => {
   const [selectedImageStyle, setSelectedImageStyle] = useState<ImageStyle>(ImageStyle.PHOTOREALISTIC);
   const [selectedFont, setSelectedFont] = useState<BlogFont>(BlogFont.PRETENDARD);
   const [finalPost, setFinalPost] = useState<BlogPost | null>(null);
+  const [finalPostEn, setFinalPostEn] = useState<BlogPost | null>(null); // English Version
+  const [activeLang, setActiveLang] = useState<'ko' | 'en'>('ko'); // Tab
+  const [isDualMode, setIsDualMode] = useState(false); // Checkbox
   const [loading, setLoading] = useState<LoadingState>({ isLoading: false, message: '', progress: 0 });
   const [selectedModel, setSelectedModel] = useState<ModelType>(ModelType.FLASH_2_5);
 
@@ -186,15 +189,26 @@ const App: React.FC = () => {
     try {
       // 1. Generate Content and Image in parallel
       setLoading({ isLoading: true, message: '블로그 본문을 작성하고 있습니다...', progress: 30 });
-      const [content, imageUrl] = await Promise.all([
-        generateBlogPostContent(outline, selectedTone, sourceFiles, sourceUrls, memo),
-        (async () => {
-          setLoading({ isLoading: true, message: '썸네일 이미지를 생성하고 있습니다...', progress: 60 });
-          return await generateBlogImage(outline.title, selectedImageStyle);
-        })()
+
+      const contentPromise = generateBlogPostContent(outline, selectedTone, sourceFiles, sourceUrls, memo, 'Korean');
+      const imagePromise = (async () => {
+        setLoading({ isLoading: true, message: '썸네일 이미지를 생성하고 있습니다...', progress: 60 });
+        return await generateBlogImage(outline.title, selectedImageStyle);
+      })();
+
+      // Dual Mode: Generate English content if enabled
+      let contentEnPromise = Promise.resolve('');
+      if (isDualMode) {
+        contentEnPromise = generateBlogPostContent(outline, selectedTone, sourceFiles, sourceUrls, memo, 'English');
+      }
+
+      const [content, imageUrl, contentEn] = await Promise.all([
+        contentPromise,
+        imagePromise,
+        contentEnPromise
       ]);
 
-      // 2. Generate Social Posts
+      // 2. Generate Social Posts (Based on Korean content)
       setLoading({ isLoading: true, message: '소셜 미디어 포스트를 생성하고 있습니다...', progress: 85 });
       const summary = content.substring(0, 500);
       const socialPosts = await generateSocialPosts(outline.title, summary, selectedImageStyle);
@@ -205,6 +219,18 @@ const App: React.FC = () => {
         images: imageUrl ? [imageUrl] : [],
         socialPosts
       });
+
+      if (isDualMode && contentEn) {
+        setFinalPostEn({
+          title: outline.title + " (EN)",
+          content: contentEn,
+          images: imageUrl ? [imageUrl] : [], // Share same image
+          socialPosts: [] // Optional: could generate EN social posts too, but skip for now
+        });
+      } else {
+        setFinalPostEn(null);
+      }
+      setActiveLang('ko');
       setCurrentStep(AppStep.FINAL_RESULT);
     } catch (error: any) {
       console.error(error);
@@ -556,6 +582,20 @@ const App: React.FC = () => {
                   </div>
 
                   <div className="p-6 bg-slate-50 border-t border-slate-200 text-right">
+                    <div className="flex items-center gap-2 mb-4 justify-end">
+                      <input
+                        type="checkbox"
+                        id="dualMode"
+                        checked={isDualMode}
+                        onChange={(e) => setIsDualMode(e.target.checked)}
+                        className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
+                      />
+                      <label htmlFor="dualMode" className="text-sm font-medium text-slate-700 cursor-pointer select-none flex items-center gap-1">
+                        <span className="bg-indigo-100 text-indigo-700 text-xs px-1.5 py-0.5 rounded font-bold">New</span>
+                        영문 버전 동시 생성 (Dual Mode)
+                      </label>
+                    </div>
+
                     <button
                       onClick={handleGenerateFullPost}
                       className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold text-lg shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all flex items-center gap-3 ml-auto w-full justify-center"
@@ -621,6 +661,32 @@ const App: React.FC = () => {
               </button>
             </div>
 
+            {/* Tabs for Dual Mode */}
+            {finalPostEn && (
+              <div className="flex justify-center mb-8">
+                <div className="bg-white p-1 rounded-xl border border-slate-200 shadow-sm inline-flex">
+                  <button
+                    onClick={() => setActiveLang('ko')}
+                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeLang === 'ko'
+                        ? 'bg-indigo-600 text-white shadow-md'
+                        : 'text-slate-500 hover:bg-slate-50'
+                      }`}
+                  >
+                    🇰🇷 한국어 (Korean)
+                  </button>
+                  <button
+                    onClick={() => setActiveLang('en')}
+                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeLang === 'en'
+                        ? 'bg-indigo-600 text-white shadow-md'
+                        : 'text-slate-500 hover:bg-slate-50'
+                      }`}
+                  >
+                    🇺🇸 English (Global)
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
               {/* Image Section */}
               {finalPost?.images && finalPost.images.length > 0 ? (
@@ -651,21 +717,29 @@ const App: React.FC = () => {
 
               <div className="p-10 md:p-14">
                 <h1 className={`text-4xl font-extrabold text-slate-900 mb-8 leading-tight`}>
-                  {finalPost?.title}
+                  {activeLang === 'ko' ? finalPost?.title : finalPostEn?.title}
                 </h1>
 
-                {finalPost?.content && <MarkdownRenderer content={finalPost.content} font={selectedFont} />}
+                {/* Conditional Rendering based on Active Tab */}
+                <MarkdownRenderer
+                  content={activeLang === 'ko' ? (finalPost?.content || '') : (finalPostEn?.content || '')}
+                  font={selectedFont}
+                />
               </div>
             </div>
 
             {/* Export Manager (Naver/Tistory Copy) */}
-            {finalPost && <ExportManager post={finalPost} />}
+            {(activeLang === 'ko' ? finalPost : finalPostEn) && (
+              <ExportManager post={activeLang === 'ko' ? finalPost! : finalPostEn!} />
+            )}
 
             {/* Auto Publishing Manager */}
-            {finalPost && <PublishingManager post={finalPost} />}
+            {(activeLang === 'ko' ? finalPost : finalPostEn) && (
+              <PublishingManager post={activeLang === 'ko' ? finalPost! : finalPostEn!} />
+            )}
 
-            {/* Social Generator Section */}
-            {finalPost?.socialPosts && <SocialGenerator posts={finalPost.socialPosts} />}
+            {/* Social Generator Section (Only show for KO currently as we didn't gen EN social) */}
+            {activeLang === 'ko' && finalPost?.socialPosts && <SocialGenerator posts={finalPost.socialPosts} />}
 
             {/* API Usage Monitor */}
             <React.Suspense fallback={<div>Loading...</div>}>

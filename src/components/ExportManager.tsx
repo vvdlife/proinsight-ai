@@ -39,9 +39,33 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
       return tableHtml;
     });
 
-    const s = PLATFORM_STYLES[type];
+    // 1. Code Block Extraction (to prevent <br/> and style mess)
+    const codeBlocks: string[] = [];
+    content = content.replace(/```(mermaid)?\n?([\s\S]*?)```/g, (match, lang, code) => {
+      const isMermaid = lang === 'mermaid' || lang === ' mermaid';
+      const placeholder = `__CODE_BLOCK_${codeBlocks.length}__`;
 
-    // 1. Markdown to HTML Conversion
+      let htmlBlock = '';
+      if (isMermaid) {
+        // Styled box for Mermaid (since we can't render it in simple HTML export)
+        htmlBlock = `
+          <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 20px; margin: 24px 0; text-align: center;">
+             <div style="font-weight: bold; color: #475569; margin-bottom: 8px;">📊 다이어그램 (Mermaid)</div>
+             <div style="font-size: 13px; color: #94a3b8; margin-bottom: 12px;">(이 플랫폼 에디터에서는 다이어그램 자동 렌더링이 지원되지 않을 수 있습니다. <b>이미지 다운로드</b> 후 첨부해주세요.)</div>
+             <pre style="background: #f1f5f9; padding: 12px; border-radius: 6px; text-align: left; font-size: 11px; color: #64748b; overflow-x: auto; font-family: monospace;">${code.trim()}</pre>
+          </div>
+        `;
+      } else {
+        // Standard Code Block
+        htmlBlock = `<pre style="background: #f1f5f9; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: monospace; margin: 20px 0;"><code>${code.trim()}</code></pre>`;
+      }
+
+      codeBlocks.push(htmlBlock);
+      return placeholder;
+    });
+
+    // 2. Markdown to HTML Conversion (Regular Text)
+    const s = PLATFORM_STYLES[type];
     let html = content
       .replace(/^### (.*$)/gim, `<h3 style="${s.h3}">$1</h3>`)
       .replace(/^## (.*$)/gim, `<h2 style="${s.h2}">$1</h2>`)
@@ -51,6 +75,11 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
       .replace(/^- (.*$)/gim, '<li>$1</li>')
       .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, `<a href="$2" target="_blank" style="${s.link}">$1</a>`)
       .replace(/\n/gim, '<br />');
+
+    // 3. Restore Code Blocks
+    codeBlocks.forEach((block, idx) => {
+      html = html.replace(`__CODE_BLOCK_${idx}__`, block);
+    });
 
     const titleHtml = type === 'MEDIUM'
       ? `<h1 style="${s.h1}">${post.title}</h1>`

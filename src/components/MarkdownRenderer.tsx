@@ -31,7 +31,8 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = React.memo(({ c
       const line = lines[i];
 
       // 0. Mermaid Diagram Handling
-      if (line.trim().startsWith('```mermaid')) {
+      const trimmedLine = line.trim();
+      if (trimmedLine.startsWith('```mermaid') || trimmedLine.startsWith('``` mermaid')) {
         const mermaidLines: string[] = [];
         i++; // Skip opening fence
         while (i < lines.length && !lines[i].trim().startsWith('```')) {
