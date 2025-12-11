@@ -21,29 +21,48 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
   const svgToBase64Image = (svg: string): Promise<string> => {
     return new Promise((resolve) => {
       const img = new Image();
+      // Use standard btoa for SVGs to avoid encoding issues with unicode
+      const svgBase64 = btoa(unescape(encodeURIComponent(svg)));
+      const svgDataUri = `data:image/svg+xml;base64,${svgBase64}`;
+
       const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
       const url = URL.createObjectURL(svgBlob);
 
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width * 2;
-        canvas.height = img.height * 2;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.scale(2, 2);
-          ctx.drawImage(img, 0, 0);
-          resolve(canvas.toDataURL('image/png'));
-        } else {
-          resolve('');
+        try {
+          const canvas = document.createElement('canvas');
+          // Double resolution for retina/high quality
+          canvas.width = img.width * 2;
+          canvas.height = img.height * 2;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.scale(2, 2);
+            ctx.drawImage(img, 0, 0);
+            try {
+              resolve(canvas.toDataURL('image/png'));
+            } catch (e) {
+              console.warn('Canvas export tainted, falling back to SVG', e);
+              resolve(svgDataUri);
+            }
+          } else {
+            resolve(svgDataUri);
+          }
+        } catch (e) {
+          console.warn('Canvas operations failed, falling back to SVG', e);
+          resolve(svgDataUri);
+        } finally {
+          URL.revokeObjectURL(url);
         }
-        URL.revokeObjectURL(url);
       };
 
       img.onerror = () => {
-        resolve('');
+        console.error('Image load failed for SVG conversion');
+        resolve(svgDataUri);
         URL.revokeObjectURL(url);
       }
 
+      // Setting crossOrigin might help in some environments
+      img.crossOrigin = 'Anonymous';
       img.src = url;
     });
   };
