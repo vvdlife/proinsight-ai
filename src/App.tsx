@@ -197,12 +197,12 @@ const App: React.FC = () => {
       })();
 
       // Dual Mode: Generate English content if enabled
-      let contentEnPromise = Promise.resolve('');
+      let contentEnPromise: Promise<{ content: string; title: string }> = Promise.resolve({ content: '', title: '' });
       if (isDualMode) {
         contentEnPromise = generateBlogPostContent(outline, selectedTone, sourceFiles, sourceUrls, memo, 'English');
       }
 
-      const [content, imageUrl, contentEn] = await Promise.all([
+      const [postData, imageUrl, postDataEn] = await Promise.all([
         contentPromise,
         imagePromise,
         contentEnPromise
@@ -210,22 +210,22 @@ const App: React.FC = () => {
 
       // 2. Generate Social Posts (Based on Korean content)
       setLoading({ isLoading: true, message: '소셜 미디어 포스트를 생성하고 있습니다...', progress: 85 });
-      const summary = content.substring(0, 500);
+      const summary = postData.content.substring(0, 500);
       const socialPosts = await generateSocialPosts(outline.title, summary, selectedImageStyle);
 
       setFinalPost({
-        title: outline.title,
-        content,
+        title: postData.title,
+        content: postData.content,
         images: imageUrl ? [imageUrl] : [],
         socialPosts
       });
 
-      if (isDualMode && contentEn) {
+      if (isDualMode && postDataEn.content) {
         setFinalPostEn({
-          title: outline.title + " (EN)",
-          content: contentEn,
+          title: postDataEn.title, // Use the translated title from AI
+          content: postDataEn.content,
           images: imageUrl ? [imageUrl] : [], // Share same image
-          socialPosts: [] // Optional: could generate EN social posts too, but skip for now
+          socialPosts: []
         });
       } else {
         setFinalPostEn(null);
