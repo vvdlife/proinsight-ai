@@ -68,6 +68,7 @@ const generateTrendingTopics = async (): Promise<TrendingTopic[]> => {
             model: MODEL_ID,
             contents: prompt,
             config: {
+                tools: [{ googleSearch: {} }],
                 responseMimeType: "application/json",
                 responseSchema: {
                     type: Type.ARRAY,

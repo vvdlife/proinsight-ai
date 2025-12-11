@@ -74,6 +74,7 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
     model: MODEL_IDS.TEXT,
     contents: { role: 'user', parts },
     config: {
+      tools: [{ googleSearch: {} }],
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
@@ -118,6 +119,7 @@ const generateText = async (ai: GoogleGenAI, prompt: string, files: UploadedFile
       model: MODEL_IDS.TEXT,
       contents: { role: 'user', parts },
       config: {
+        tools: [{ googleSearch: {} }],
         systemInstruction: systemInstruction,
       },
     });
