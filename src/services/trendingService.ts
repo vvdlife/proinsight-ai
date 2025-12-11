@@ -69,23 +69,11 @@ const generateTrendingTopics = async (): Promise<TrendingTopic[]> => {
             contents: prompt,
             config: {
                 tools: [{ googleSearch: {} }],
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.ARRAY,
-                    items: {
-                        type: Type.OBJECT,
-                        properties: {
-                            icon: { type: Type.STRING },
-                            text: { type: Type.STRING }
-                        },
-                        required: ["icon", "text"]
-                    }
-                },
-                systemInstruction: "You are a trend analyst. Generate timely, relevant topics in Korean.",
+                systemInstruction: "You are a trend analyst. Generate timely, relevant topics in Korean. Output JSON only.",
             },
         });
 
-        const text = response.text;
+        const text = response.text?.replace(/```json|```/g, '').trim();
         if (!text) {
             console.warn("No trending topics generated, using fallback");
             return FALLBACK_TOPICS;

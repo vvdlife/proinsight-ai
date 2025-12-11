@@ -45,14 +45,21 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
       3. **Sections**: Create 5-7 logical sections.
       
       The output must be in Korean.
+      
+      **CRITICAL OUTPUT FORMAT**:
+      Return strictly a JSON object. Do not include markdown formatting.
+    {
+      "title": "String",
+      "sections": ["String", "String", ...]
+    }
   `;
 
   if (memo && memo.trim()) {
-    promptText += `\n\n[USER MEMO]:\n"${memo}"\n(Prioritize this instruction.)`;
+    promptText += `\n\n[USER MEMO]: \n"${memo}"\n(Prioritize this instruction.)`;
   }
 
   if (urls.length > 0) {
-    promptText += `\n\nRefer to these URLs:\n${urls.join('\n')}`;
+    promptText += `\n\nRefer to these URLs: \n${urls.join('\n')} `;
   }
 
   if (files.length > 0) {
@@ -75,20 +82,11 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
     contents: { role: 'user', parts },
     config: {
       tools: [{ googleSearch: {} }],
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          title: { type: Type.STRING },
-          sections: { type: Type.ARRAY, items: { type: Type.STRING } },
-        },
-        required: ["title", "sections"],
-      },
-      systemInstruction: "You are an expert content strategist.",
+      systemInstruction: "You are an expert content strategist. Output valid JSON only.",
     },
   });
 
-  const text = response.text;
+  const text = response.text?.replace(/```json | ```/g, '').trim();
   if (!text) throw new Error("No outline generated.");
 
   // Track API usage with actual token counts from response
@@ -153,19 +151,19 @@ export const generateBlogPostContent = async (
   // Common Context
   let baseContext = `
     Blog Title: "${outline.title}"
-    Tone: ${tone}
-    Language: Korean
-    Style: Use **Standard Unicode Emojis** actively (e.g., 💡, 🚀, ✅, 📌).
+  Tone: ${tone}
+  Language: Korean
+  Style: Use ** Standard Unicode Emojis ** actively(e.g., 💡, 🚀, ✅, 📌).
     
-    **EDITOR'S GUIDELINES (7 CORE PRINCIPLES)**:
-    1. **SEO Optimization**: Use natural keywords.
-    2. **Reader Analysis**: Write for the specific audience. Use "F-pattern" formatting (bolding, bullets).
-    3. **Visuals**: Use emojis and formatting to break up text.
-    4. **Visuals & Infographics (CRITICAL)**:
-       - **Markdown Tables**: Use for comparing data, pros/cons, or features.
-       - **Mermaid Diagrams**: Use for processes, hierarchies, or timelines.
-         - Syntax Rule 1: **ALWAYS enclose node labels in quotes** (e.g., id["Label with spaces!"]).
-         - Syntax Rule 2: Do not use special characters like parentheses () inside the ID, only in the label.
+    ** EDITOR'S GUIDELINES (7 CORE PRINCIPLES)**:
+  1. ** SEO Optimization **: Use natural keywords.
+    2. ** Reader Analysis **: Write for the specific audience.Use "F-pattern" formatting(bolding, bullets).
+    3. ** Visuals **: Use emojis and formatting to break up text.
+    4. ** Visuals & Infographics(CRITICAL) **:
+       - ** Markdown Tables **: Use for comparing data, pros / cons, or features.
+       - ** Mermaid Diagrams **: Use for processes, hierarchies, or timelines.
+         - Syntax Rule 1: ** ALWAYS enclose node labels in quotes ** (e.g., id["Label with spaces!"]).
+         - Syntax Rule 2: Do not use special characters like parentheses() inside the ID, only in the label.
          - Supported types: \`graph TD\`, \`mindmap\`, \`timeline\`, \`pie\`.
     5. **Interactive Elements**: Use **Emoji-based Checklists** (e.g., "- ✅ Item").
     6. **Data-Driven**: Use facts/stats.
