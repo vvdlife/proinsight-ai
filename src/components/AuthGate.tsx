@@ -14,6 +14,11 @@ export const AuthGate: React.FC<AuthGateProps> = ({ onAuthenticated }) => {
   // Use import.meta.env for Vite environment variables
   const REQUIRED_ACCESS_CODE = (import.meta as any).env.VITE_ACCESS_CODE;
 
+  // Fix scroll position on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     if (!REQUIRED_ACCESS_CODE) {
       setError('系统 설정 오류: 관리자 액세스 코드가 설정되지 않았습니다.');
@@ -61,9 +66,7 @@ export const AuthGate: React.FC<AuthGateProps> = ({ onAuthenticated }) => {
       <nav className="w-full bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
-              <SparklesIcon className="w-5 h-5" />
-            </div>
+            <img src="/icon-192.png" alt="ProInsight AI Logo" className="w-8 h-8 rounded-lg shadow-sm object-cover" />
             <span className="font-bold text-xl text-slate-900 tracking-tight">ProInsight AI</span>
           </div>
           <div className="text-sm font-medium text-slate-500">
@@ -180,7 +183,7 @@ export const AuthGate: React.FC<AuthGateProps> = ({ onAuthenticated }) => {
         </div>
 
         <footer className="mt-20 text-center text-slate-400 text-sm py-8">
-          © 2024 ProInsight AI. All rights reserved.
+          © 2025 ProInsight AI. All rights reserved.
         </footer>
       </main>
     </div>
