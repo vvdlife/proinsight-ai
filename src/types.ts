@@ -111,20 +111,3 @@ export interface TrendAnalysis {
   prediction: string;
 }
 
-// v1.3: Daily Tech Briefing
-export interface TechNewsItem {
-  company: string;
-  title: string;
-  summary: string;
-  source: string;
-  sourceIndex?: number; // Index in the grounding metadata chunks
-  url: string; // Link to the original article
-  impactLevel: 'High' | 'Medium' | 'Low';
-}
-
-export interface DailyBriefing {
-  date: string;
-  items: TechNewsItem[];
-  marketSummary: string;
-  timestamp?: number; // Added for verifying freshness
-}

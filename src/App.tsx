@@ -18,7 +18,7 @@ const PublishingManager = React.lazy(() => import('./components/PublishingManage
 const ApiUsageMonitor = React.lazy(() => import('./components/ApiUsageMonitor').then(module => ({ default: module.ApiUsageMonitor })));
 const ModelSelector = React.lazy(() => import('./components/ModelSelector').then(module => ({ default: module.ModelSelector })));
 const TrendAnalysisWidget = React.lazy(() => import('./components/TrendAnalysisWidget').then(module => ({ default: module.TrendAnalysisWidget })));
-const DailyBriefingWidget = React.lazy(() => import('./components/DailyBriefingWidget').then(module => ({ default: module.DailyBriefingWidget })));
+
 
 const App: React.FC = () => {
   // Authentication State
@@ -382,11 +382,6 @@ const App: React.FC = () => {
             {/* Smart Trend Analysis Widget */}
             <React.Suspense fallback={null}>
               <TrendAnalysisWidget topic={topic} />
-            </React.Suspense>
-
-            {/* Daily Briefing Widget */}
-            <React.Suspense fallback={null}>
-              <DailyBriefingWidget />
             </React.Suspense>
 
             {/* ModelSelector */}
