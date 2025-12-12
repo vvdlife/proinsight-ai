@@ -579,7 +579,7 @@ const App: React.FC = () => {
                             key={tone}
                             onClick={() => setSelectedTone(tone)}
                             className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all ${selectedTone === tone
-                              ? 'bg-primary-50 border-2 border-primary-500 text-primary-700'
+                              ? 'bg-indigo-50 border-2 border-indigo-500 text-indigo-700'
                               : 'bg-slate-50 border border-transparent text-slate-600 hover:bg-slate-100'
                               }`}
                           >
