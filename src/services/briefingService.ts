@@ -35,7 +35,7 @@ export const generateDailyBriefing = async (): Promise<DailyBriefing> => {
     
     **CRITICAL Validations**:
     1. **CHECK DATES**: verifying the article date is within the last 7 days. **Prioritize the most recent news (today/yesterday)** but include important events from the week if today is quiet.
-    2. **REAL LINKS**: You MUST provide the direct URL to the source article.
+    2. **REAL LINKS ONLY**: You **MUST** use the exact URL returned by the Google Search tool. **DO NOT** construct, guess, or predict URLs. If you are not 100% sure the URL is valid and from the search result, leave the "url" field as an empty string "".
     3. **NO HALLUCINATIONS**: Only report real, verifiable news.
     
     Constraint 1: Use ONLY reliable US sources: ${sources.join(", ")}.
