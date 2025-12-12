@@ -1,0 +1,22 @@
+
+import { GoogleGenAI } from "@google/genai";
+import dotenv from 'dotenv';
+dotenv.config();
+
+// Standard Gemini setup
+const apiKey = process.env.VITE_API_KEY || "YOUR_KEY_HERE"; 
+// Note: In this environment I might need to rely on the key being present or mockup. 
+// Since I can't easily get the key from browser storage in a node script, 
+// I will ask the model to just modify the service to LOG the output first?
+// No, I can run a script if I have the key. 
+// I will assume I can't run this script easily without the key being in env.
+// I will instead MODIFY the existing service to LOG the full response object to the console,
+// and then ask the user to generate a briefing, and I will read the logs?
+// No, I can't see the user's console.
+
+// Better approach: I will create a test script that uses the existing 'getGenAI' logic if possible, 
+// but I am CLI. 
+
+// Let's TRY to find the key in the codebase or environment.
+// checking package.json... it has "vite".
+// checking .env...

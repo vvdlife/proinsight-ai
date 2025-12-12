@@ -37,7 +37,7 @@ export const generateDailyBriefing = async (
     
     **CRITICAL Validations**:
     1. **CHECK DATES**: verifying the article date is within the last 7 days. **Prioritize the most recent news (today/yesterday)** but include important events from the week if today is quiet.
-    2. **REAL LINKS ONLY**: You **MUST** use the exact URL returned by the Google Search tool. **DO NOT** construct, guess, or predict URLs. If you are not 100% sure the URL is valid and from the search result, leave the "url" field as an empty string "".
+    2. **SOURCE INDEXING**: Do NOT write the URL text yourself. Instead, identify which search result you used (e.g., the 1st result is index 0) and put that integer in \`sourceIndex\`. Leave \`url\` empty.
     3. **NO HALLUCINATIONS**: Only report real, verifiable news.
     
     Constraint 1: Use ONLY reliable US sources: ${sources.join(", ")}.
@@ -59,7 +59,8 @@ export const generateDailyBriefing = async (
                 "title": "Korean Title",
                 "summary": "Korean Summary",
                 "source": "Source Name",
-                "url": "https://...",
+                "sourceIndex": 0,
+                "url": "",
                 "impactLevel": "High" | "Medium" | "Low"
             }
         ]
@@ -91,7 +92,29 @@ export const generateDailyBriefing = async (
             throw new Error("Invalid format returned");
         }
 
-        return { ...data, timestamp: Date.now() };
+        // ---------------------------------------------------------
+        // URL INJECTION LOGIC (Grounding Metadata)
+        // ---------------------------------------------------------
+        const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+
+        console.log("Grounding Chunks:", JSON.stringify(chunks, null, 2)); // Debug log
+
+        const itemsWithRealUrls = data.items.map(item => {
+            // If model provided an index, use it to get the REAL url
+            if (typeof item.sourceIndex === 'number' && chunks[item.sourceIndex]?.web?.uri) {
+                return { ...item, url: chunks[item.sourceIndex].web.uri };
+            }
+
+            // Fallback: If no index, try to find a chunk that matches the title text? (Fuzzy)
+            // For now, if no index, we leave it empty to avoid 404s.
+            if (!item.url || item.url === "https://...") {
+                return { ...item, url: "" };
+            }
+
+            return item;
+        });
+
+        return { ...data, items: itemsWithRealUrls, timestamp: Date.now() };
 
     } catch (error) {
         console.error("Failed to generate daily briefing:", error);
