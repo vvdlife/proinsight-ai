@@ -17,8 +17,8 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({ isLoading, messa
         {/* Animated Icon */}
         <div className="relative mb-6">
           <div className="absolute inset-0 bg-indigo-500 blur-xl opacity-20 animate-pulse rounded-full"></div>
-          <div className="relative p-4 bg-gradient-to-br from-indigo-500 to-violet-500 rounded-full shadow-lg shadow-indigo-200 animate-bounce-slight">
-            <SparklesIcon className="w-8 h-8 text-white" />
+          <div className="relative p-3 bg-white rounded-2xl shadow-lg shadow-indigo-100 animate-bounce-slight border border-indigo-50">
+            <img src="/icon-192.png" alt="ProInsight Logo" className="w-10 h-10 object-contain" />
           </div>
         </div>
 
