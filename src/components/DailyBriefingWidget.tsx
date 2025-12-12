@@ -130,8 +130,8 @@ ${i + 1}. [${item.company}] ${item.title}
                                         key={company}
                                         onClick={() => toggleCompany(company)}
                                         className={`px-3 py-1.5 rounded-full text-sm font-bold transition-all border ${selectedCompanies.includes(company)
-                                                ? 'bg-indigo-500 border-indigo-500 text-white shadow-lg shadow-indigo-500/30'
-                                                : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700'
+                                            ? 'bg-indigo-500 border-indigo-500 text-white shadow-lg shadow-indigo-500/30'
+                                            : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700'
                                             }`}
                                     >
                                         {company}
@@ -168,7 +168,7 @@ ${i + 1}. [${item.company}] ${item.title}
                     </div>
                     <div className="text-center space-y-1">
                         <div className="text-slate-800 font-bold text-lg animate-fade-in">{loadingText}</div>
-                        <div className="text-sm text-slate-400">Gemini 2.0 Flash가 실시간으로 분석 중입니다</div>
+                        <div className="text-sm text-slate-400">Gemini 2.5 Flash가 실시간으로 분석 중입니다</div>
                     </div>
                 </div>
             )}
