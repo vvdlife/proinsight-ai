@@ -10,15 +10,52 @@ export const DailyBriefingWidget: React.FC = () => {
     const [error, setError] = useState(false);
     const [copied, setCopied] = useState(false);
 
+    // Progress State
+    const [progress, setProgress] = useState(0);
+    const [loadingText, setLoadingText] = useState('미국 주요 언론사(Reuters, Bloomberg) 접속 중...');
+
+    const simulateProgress = () => {
+        setProgress(0);
+        const steps = [
+            { pct: 10, text: '미국 주요 언론사(Reuters, Bloomberg) 접속 중...' },
+            { pct: 30, text: '최근 7일간의 빅테크 뉴스 수집 중...' },
+            { pct: 50, text: '중요도 기반 상위 5개 뉴스 선별 중...' },
+            { pct: 70, text: '핵심 내용 한국어 요약 및 번역 중...' },
+            { pct: 90, text: '브리핑 리포트 생성 마무리 중...' }
+        ];
+
+        let currentStep = 0;
+        return setInterval(() => {
+            if (currentStep < steps.length) {
+                setProgress(steps[currentStep].pct);
+                setLoadingText(steps[currentStep].text);
+                currentStep++;
+            }
+        }, 800); // Update every 800ms
+    };
+
     const handleGenerate = async () => {
         setLoading(true);
         setError(false);
+        const intervalId = simulateProgress();
+
         try {
             const result = await generateDailyBriefing();
-            setBriefing(result);
+
+            // Complete progress
+            clearInterval(intervalId);
+            setProgress(100);
+            setLoadingText('생성 완료!');
+
+            // Small delay to show 100%
+            setTimeout(() => {
+                setBriefing(result);
+                setLoading(false);
+            }, 500);
+
         } catch (e) {
+            clearInterval(intervalId);
             setError(true);
-        } finally {
             setLoading(false);
         }
     };
@@ -72,11 +109,22 @@ ${i + 1}. [${item.company}] ${item.title}
             )}
 
             {loading && (
-                <div className="w-full py-12 bg-white border border-slate-100 rounded-xl flex flex-col items-center justify-center gap-4 animate-pulse shadow-sm">
-                    <div className="w-10 h-10 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-                    <div className="text-center">
-                        <div className="text-slate-800 font-bold mb-1">미국 현지 뉴스 분석 중...</div>
-                        <div className="text-sm text-slate-500">Reuters, Bloomberg, WSJ 등 주요 언론사를 스캔하고 있습니다.</div>
+                <div className="w-full py-12 bg-white border border-slate-100 rounded-xl flex flex-col items-center justify-center gap-6 animate-pulse shadow-sm px-8">
+                    <div className="w-full max-w-md space-y-2">
+                        <div className="flex justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+                            <span>Processing</span>
+                            <span>{progress}%</span>
+                        </div>
+                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                                className="h-full bg-indigo-600 rounded-full transition-all duration-300 ease-out"
+                                style={{ width: `${progress}%` }}
+                            ></div>
+                        </div>
+                    </div>
+                    <div className="text-center space-y-1">
+                        <div className="text-slate-800 font-bold text-lg animate-fade-in">{loadingText}</div>
+                        <div className="text-sm text-slate-400">Gemini 2.0 Flash가 실시간으로 분석 중입니다</div>
                     </div>
                 </div>
             )}
