@@ -110,3 +110,19 @@ export interface TrendAnalysis {
   relatedKeywords: string[];
   prediction: string;
 }
+
+// v1.3: Daily Tech Briefing
+export interface TechNewsItem {
+  company: string;
+  title: string;
+  summary: string;
+  source: string;
+  impactLevel: 'High' | 'Medium' | 'Low';
+}
+
+export interface DailyBriefing {
+  date: string;
+  items: TechNewsItem[];
+  marketSummary: string;
+  timestamp?: number; // Added for verifying freshness
+}
