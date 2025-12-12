@@ -38,20 +38,20 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({ isLoading, messa
           <p className="text-slate-500 text-sm">{message}</p>
         </div>
 
-        {/* Vertical Steps */}
-        <div className="relative space-y-6 pl-2">
-          {/* Connecting Line */}
-          <div className="absolute left-[27px] top-4 bottom-4 w-0.5 bg-slate-100 -z-10"></div>
+        {/* Vertical Steps - Fixed Alignment */}
+        <div className="relative space-y-8 pl-6 my-8">
+          {/* Connecting Line - Aligned to center of 40px circle (20px) + pl-6 (24px) = 44px center. Left: 43px */}
+          <div className="absolute left-[43px] top-4 bottom-4 w-0.5 bg-slate-100 -z-10"></div>
 
           {steps.map((step, idx) => {
             const isCompleted = currentStep > idx;
             const isCurrent = currentStep === idx;
 
             return (
-              <div key={idx} className={`flex items-start gap-4 transition-all duration-500 ${isCurrent ? 'opacity-100 scale-100' : isCompleted ? 'opacity-50' : 'opacity-30'}`}>
+              <div key={idx} className={`flex items-center gap-5 transition-all duration-500 ${isCurrent ? 'opacity-100 translate-x-0' : isCompleted ? 'opacity-60' : 'opacity-40 translate-x-1'}`}>
                 {/* Status Indicator */}
-                <div className={`relative flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors duration-300 bg-surface z-10
-                  ${isCompleted ? 'border-primary-600 bg-primary-600' : isCurrent ? 'border-primary-600 animate-bounce-slight' : 'border-slate-200'}
+                <div className={`relative flex items-center justify-center w-10 h-10 rounded-full border-[2.5px] transition-colors duration-300 bg-surface z-10 box-border
+                  ${isCompleted ? 'border-primary-600 bg-primary-600' : isCurrent ? 'border-primary-600 ring-4 ring-primary-50' : 'border-slate-200'}
                 `}>
                   {isCompleted ? (
                     <CheckIcon className="w-5 h-5 text-white" />
@@ -63,11 +63,11 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({ isLoading, messa
                 </div>
 
                 {/* Text Content */}
-                <div className="pt-1">
-                  <h4 className={`font-bold text-base mb-0.5 ${isCurrent ? 'text-primary-700' : 'text-slate-700'}`}>
+                <div className="flex-1 pt-0.5">
+                  <h4 className={`text-base font-bold leading-none mb-1.5 ${isCurrent ? 'text-primary-700' : 'text-slate-700'}`}>
                     {step.label}
                   </h4>
-                  <p className="text-xs text-slate-500 font-medium">{step.desc}</p>
+                  <p className="text-sm text-slate-500 font-medium leading-tight">{step.desc}</p>
                 </div>
               </div>
             );
