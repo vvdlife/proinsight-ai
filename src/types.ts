@@ -117,6 +117,7 @@ export interface TechNewsItem {
   title: string;
   summary: string;
   source: string;
+  url: string; // Link to the original article
   impactLevel: 'High' | 'Medium' | 'Low';
 }
 

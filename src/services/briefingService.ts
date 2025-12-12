@@ -27,16 +27,20 @@ export const generateDailyBriefing = async (): Promise<DailyBriefing> => {
     const sources = ["Reuters", "Bloomberg", "Wall Street Journal", "TechCrunch", "CNBC", "The Verge"];
 
     const prompt = `
-    Current Time (KST): ${kstDate}
-    Current Time (US EST): ${usDate}
+    Current System Time (KST): ${kstDate}
+    Current System Time (US EST): ${usDate}
     
     You are a professional tech news analyst.
-    Task: Search for the most important news from the "Last 24 Hours" for these specific companies: ${companies.join(", ")}.
+    Task: Search for the most important news **published exactly within the last 24 hours** (${usDate}) for these specific companies: ${companies.join(", ")}.
+    
+    **CRITICAL Validations**:
+    1. **CHECK DATES**: verifying the article date is strictly today or yesterday. Do NOT include news older than 24 hours.
+    2. **REAL LINKS**: You MUST provide the direct URL to the source article.
+    3. **NO HALLUCINATIONS**: If "iPhone 17" was released months ago, do NOT treat it as breaking news. Only report significant *new* events (stock changes, new regulations, earnings, unexpected announcements).
     
     Constraint 1: Use ONLY reliable US sources: ${sources.join(", ")}.
-    Constraint 2: Select only the top 5 most impactful stories total (not per company).
+    Constraint 2: Select only the top 5 most impactful stories total.
     Constraint 3: The output must be a valid JSON object.
-    Constraint 4: Remove any citation markers (e.g., [1], [Source]) from the text.
     
     **Translation Requirement**:
     Even though the sources are English, **summarize the content in Korean**.
@@ -46,13 +50,14 @@ export const generateDailyBriefing = async (): Promise<DailyBriefing> => {
     Output JSON format:
     {
         "date": "${kstDate}",
-        "marketSummary": "A brief overview of the tech market today in Korean (e.g. 'Today, AI stocks are rallying due to...')",
+        "marketSummary": "A brief overview of the tech market today in Korean",
         "items": [
             {
                 "company": "Company Name",
                 "title": "Korean Title",
                 "summary": "Korean Summary",
                 "source": "Source Name",
+                "url": "https://...",
                 "impactLevel": "High" | "Medium" | "Low"
             }
         ]

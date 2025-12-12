@@ -143,7 +143,9 @@ ${i + 1}. [${item.company}] ${item.title}
                                     </span>
                                 </div>
                                 <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">
-                                    {item.title}
+                                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="hover:underline decoration-indigo-300 decoration-2 underline-offset-2">
+                                        {item.title}
+                                    </a>
                                 </h3>
                                 <p className="text-slate-600 text-sm leading-relaxed mb-3">
                                     {item.summary}
