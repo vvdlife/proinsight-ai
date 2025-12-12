@@ -26,7 +26,20 @@ export const generateDailyBriefing = async (
     const usDate = now.toLocaleDateString('en-US', { timeZone: 'America/New_York', year: 'numeric', month: 'long', day: 'numeric' });
 
     const companies = targetCompanies;
-    const sources = ["Reuters", "Bloomberg", "Wall Street Journal", "TechCrunch", "CNBC", "The Verge"];
+
+    // Official Newsroom/Blog Mapping
+    const officialSources = [
+        "apple.com/newsroom",
+        "news.microsoft.com",
+        "blogs.microsoft.com",
+        "blog.google",
+        "aboutamazon.com/news",
+        "about.fb.com/news",
+        "nvidianews.nvidia.com",
+        "blogs.nvidia.com",
+        "tesla.com/blog",
+        "ir.tesla.com"
+    ];
 
     const prompt = `
     Current System Time (KST): ${kstDate}
@@ -36,21 +49,23 @@ export const generateDailyBriefing = async (
     Task: Search for the most important news from the **last 7 days** for these specific companies: ${companies.join(", ")}.
     
     **CRITICAL INSTRUCTIONS**:
-    1. **Search**: Use the Google Search tool to find real articles.
+    1. **Search**: Use the Google Search tool. **YOU MUST SEARCH ONLY OFFICIAL SOURCES**.
+       - Search Query Example: "Apple AI news site:apple.com/newsroom", "Google Gemini update site:blog.google"
     2. **Filter**: select top 5 most impactful news.
     3. **Output Format**: Do NOT output JSON. Output a structured text block for each news item exactly like this:
     
     [[ITEM]]
     COMPANY: <Company Name>
-    SOURCE: <Source Name>
-    URL: <Exact Source URL>
+    SOURCE: <Official Blog/Newsroom Name>
+    URL: <Exact Source URL from the official domain>
     TITLE: <Translated Korean Title>
     SUMMARY: <Translated Korean Summary (1-2 sentences)>
     IMPACT: <High/Medium/Low>
     [[ENDITEM]]
     
     **RULES**:
-    - **URL**: You MUST copy the 'link' or 'uri' from the search result EXACTLY. Do not strip parameters. Do not hallucinate. If you click it, it must open.
+    - **SOURCE TRUTH**: IGNORE 3rd party media (Reuters, Bloomberg, etc.). **ONLY** report news found on the companies' **Official Blogs, Newsrooms, or IR pages**.
+    - **URL**: Copy the 'link' from the official domain EXACTLY.
     - **Freshness**: Only include news from the last 7 days.
     - **Market Summary**: At the very end, add a section called "[[MARKET_SUMMARY]]" followed by a brief 2-3 sentence Korean summary of the overall tech market.
     `;
