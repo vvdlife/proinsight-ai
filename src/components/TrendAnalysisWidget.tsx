@@ -33,16 +33,16 @@ export const TrendAnalysisWidget: React.FC<TrendAnalysisWidgetProps> = ({ topic 
             {!analysis && !loading && (
                 <button
                     onClick={handleAnalyze}
-                    className="w-full py-3.5 bg-surface border-2 border-primary-100 rounded-xl text-primary-600 font-bold text-sm flex items-center justify-center gap-2 hover:bg-primary-50 hover:border-primary-200 transition-all group"
+                    className="w-full py-3.5 bg-white border-2 border-indigo-100 rounded-xl text-indigo-600 font-bold text-sm flex items-center justify-center gap-2 hover:bg-indigo-50 hover:border-indigo-200 transition-all group shadow-sm"
                 >
-                    <SparklesIcon className="w-4 h-4 text-primary-500 group-hover:scale-110 transition-transform" />
+                    <SparklesIcon className="w-4 h-4 text-indigo-500 group-hover:scale-110 transition-transform" />
                     "{topic}" 스마트 트렌드 분석하기 (Beta)
                 </button>
             )}
 
             {loading && (
-                <div className="w-full py-6 bg-surface border border-slate-200 rounded-xl flex flex-col items-center justify-center gap-3">
-                    <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-full py-6 bg-white border border-slate-200 rounded-xl flex flex-col items-center justify-center gap-3">
+                    <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
                     <div className="text-xs text-slate-500 font-medium">실시간 검색 트렌드 분석 중...</div>
                 </div>
             )}
@@ -50,8 +50,8 @@ export const TrendAnalysisWidget: React.FC<TrendAnalysisWidgetProps> = ({ topic 
             {analysis && !loading && (
                 <div className="bg-surface rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-top-2 duration-500">
                     <div className="bg-slate-50 px-6 py-4 flex justify-between items-center border-b border-slate-100">
-                        <h3 className="font-bold text-trust-dark flex items-center gap-2 text-sm uppercase tracking-wide">
-                            <TrendIcon className="w-4 h-4 text-primary-600" />
+                        <h3 className="font-bold text-slate-800 flex items-center gap-2 text-sm uppercase tracking-wide">
+                            <TrendIcon className="w-4 h-4 text-indigo-600" />
                             Trend Insight
                         </h3>
                         <div className="flex items-center gap-3">
@@ -60,7 +60,7 @@ export const TrendAnalysisWidget: React.FC<TrendAnalysisWidgetProps> = ({ topic 
                                 }`}>
                                 관심도 {analysis.interestScore}
                             </span>
-                            <span className="text-xs font-bold text-primary-600">{analysis.prediction}</span>
+                            <span className="text-xs font-bold text-indigo-600">{analysis.prediction}</span>
                         </div>
                     </div>
 
@@ -76,7 +76,7 @@ export const TrendAnalysisWidget: React.FC<TrendAnalysisWidgetProps> = ({ topic 
                                 <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">연관 키워드</div>
                                 <div className="flex flex-wrap gap-2">
                                     {analysis.relatedKeywords.map((k, i) => (
-                                        <span key={i} className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs text-slate-600 hover:border-primary-200 hover:text-primary-600 transition-colors cursor-default">
+                                        <span key={i} className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs text-slate-600 hover:border-indigo-200 hover:text-indigo-600 transition-colors cursor-default">
                                             #{k}
                                         </span>
                                     ))}
@@ -91,7 +91,7 @@ export const TrendAnalysisWidget: React.FC<TrendAnalysisWidgetProps> = ({ topic 
                                     href={`https://trends.google.com/trends/explore?q=${encodeURIComponent(topic)}`}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="inline-flex items-center gap-2 text-primary-600 font-bold text-sm hover:underline"
+                                    className="inline-flex items-center gap-2 text-indigo-600 font-bold text-sm hover:underline"
                                 >
                                     <ChartIcon className="w-4 h-4" /> 구글 트렌드
                                 </a>

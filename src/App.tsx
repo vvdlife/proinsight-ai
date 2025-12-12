@@ -357,11 +357,11 @@ const App: React.FC = () => {
           <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
             <div className="text-center mb-10">
               <h1 className="text-5xl font-extrabold text-slate-900 mb-6 tracking-tight leading-tight">
-                <span className="text-trust-dark">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600">
                   ProInsight AI
                 </span>
                 <br />
-                <span className="text-4xl text-slate-700">어떤 글을 쓰시겠습니까?</span>
+                어떤 글을 쓰시겠습니까?
               </h1>
               <p className="text-slate-500 text-lg max-w-lg mx-auto leading-relaxed">
                 키워드만 던져주세요. 또는 PDF, 이미지, URL을 제공하면 AI가 정밀 분석하여 전문적인 글을 완성해 드립니다.
@@ -370,8 +370,8 @@ const App: React.FC = () => {
 
             {/* Input Section */}
             <div className="relative group mb-8">
-              {/* Removed Blur Effect for Clarity */}
-              <div className="relative bg-white rounded-xl shadow-sm border-2 border-slate-300 focus-within:border-primary-500 focus-within:ring-4 focus-within:ring-primary-100 transition-all p-2 flex items-center">
+              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+              <div className="relative bg-white rounded-xl shadow-xl p-2 flex items-center">
                 <div className="pl-4 text-slate-400">
                   <PenIcon className="w-6 h-6" />
                 </div>
@@ -386,7 +386,7 @@ const App: React.FC = () => {
                 <button
                   onClick={handleGenerateOutline}
                   disabled={!topic.trim()}
-                  className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-lg font-bold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md shadow-primary-200"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-lg font-bold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-indigo-200"
                 >
                   시작하기
                   <SparklesIcon className="w-5 h-5" />
@@ -667,7 +667,7 @@ const App: React.FC = () => {
 
                     <button
                       onClick={handleGenerateFullPost}
-                      className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-xl font-bold text-lg shadow-lg shadow-primary-200 hover:shadow-primary-300 transition-all flex items-center gap-3 ml-auto w-full justify-center"
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold text-lg shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all flex items-center gap-3 ml-auto w-full justify-center"
                     >
                       글 생성하기 <ChevronRightIcon className="w-5 h-5" />
                     </button>
