@@ -49,16 +49,63 @@ const App: React.FC = () => {
   const [suggestions, setSuggestions] = useState<TrendingTopic[]>([]);
   const [loadingTrends, setLoadingTrends] = useState(false);
 
-  // Cleanup old local storage data on mount
+  // Cleanup old local storage data on mount - REMOVED to persist history
+  // useEffect(() => {
+  //   const keysToRemove = [
+  //     'blogflow_autosave_draft',
+  //     'blogflow_history',
+  //     'proinsight_autosave_draft',
+  //     'proinsight_history'
+  //   ];
+  //   keysToRemove.forEach(key => localStorage.removeItem(key));
+  // }, []);
+
+  // History State
+  const [history, setHistory] = useState<{ id: string, date: string, topic: string, finalPost: BlogPost, outline: OutlineData }[]>([]);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
+  // Load History on Mount
   useEffect(() => {
-    const keysToRemove = [
-      'blogflow_autosave_draft',
-      'blogflow_history',
-      'proinsight_autosave_draft',
-      'proinsight_history'
-    ];
-    keysToRemove.forEach(key => localStorage.removeItem(key));
+    const saved = localStorage.getItem('proinsight_history');
+    if (saved) {
+      try {
+        setHistory(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to parse history', e);
+      }
+    }
   }, []);
+
+  // Save to History when finalPost changes
+  useEffect(() => {
+    if (finalPost && outline) {
+      const newItem = {
+        id: Date.now().toString(),
+        date: new Date().toLocaleDateString(),
+        topic: outline.title,
+        finalPost,
+        outline
+      };
+
+      setHistory(prev => {
+        // Avoid duplicates (simple check by topic + content length)
+        const exists = prev.find(p => p.topic === newItem.topic && p.finalPost.content.length === newItem.finalPost.content.length);
+        if (exists) return prev;
+
+        const updated = [newItem, ...prev].slice(0, 10); // Keep last 10
+        localStorage.setItem('proinsight_history', JSON.stringify(updated));
+        return updated;
+      });
+    }
+  }, [finalPost, outline]);
+
+  const loadFromHistory = (item: any) => {
+    setOutline(item.outline);
+    setFinalPost(item.finalPost);
+    setCurrentStep(AppStep.FINAL_RESULT);
+    setIsHistoryOpen(false);
+  };
+
 
   // Load trending topics on mount
   useEffect(() => {
@@ -769,6 +816,14 @@ const App: React.FC = () => {
             </button>
             <div className="flex items-center gap-4">
               <button
+                onClick={() => setIsHistoryOpen(true)}
+                className="p-2 text-slate-400 hover:text-indigo-600 rounded-full hover:bg-slate-100 transition-colors flex items-center gap-1"
+                title="히스토리"
+              >
+                <RefreshIcon className="w-5 h-5" />
+                <span className="text-xs font-bold hidden md:inline">History</span>
+              </button>
+              <button
                 onClick={() => setIsSettingsOpen(true)}
                 className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
                 title="설정"
@@ -778,6 +833,37 @@ const App: React.FC = () => {
             </div>
           </div>
         </header>
+
+        {/* History Drawer */}
+        {isHistoryOpen && (
+          <div className="fixed inset-0 z-50 flex justify-end">
+            <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setIsHistoryOpen(false)}></div>
+            <div className="relative w-80 bg-white shadow-2xl h-full p-6 overflow-y-auto animate-in slide-in-from-right duration-300">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="font-bold text-lg text-slate-800">🕒 작업 히스토리</h2>
+                <button onClick={() => setIsHistoryOpen(false)} className="text-slate-400 hover:text-slate-600">
+                  <TrashIcon className="w-5 h-5 rotate-45" /> {/* Use X icon if available or rotate trash/plus */}
+                </button>
+              </div>
+              <div className="space-y-4">
+                {history.length === 0 ? (
+                  <div className="text-center text-slate-400 text-sm py-10">
+                    저장된 작업이 없습니다.
+                  </div>
+                ) : (
+                  history.map((item) => (
+                    <div key={item.id} onClick={() => loadFromHistory(item)} className="p-4 bg-slate-50 rounded-xl border border-slate-200 hover:border-indigo-500 cursor-pointer transition-all group">
+                      <div className="text-xs text-indigo-600 font-bold mb-1">{item.date}</div>
+                      <div className="font-bold text-slate-800 text-sm line-clamp-2 mb-2">{item.topic}</div>
+                      <div className="text-xs text-slate-400 group-hover:text-indigo-500">클릭하여 불러오기 →</div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
 
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 py-12">
@@ -789,8 +875,8 @@ const App: React.FC = () => {
             {renderStepContent()}
           </React.Suspense>
         </main>
-      </div>
-    </ErrorBoundary>
+      </div >
+    </ErrorBoundary >
   );
 };
 
