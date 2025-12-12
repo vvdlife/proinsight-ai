@@ -94,8 +94,23 @@ const App: React.FC = () => {
         const exists = prev.find(p => p.topic === newItem.topic && p.finalPost.content.length === newItem.finalPost.content.length);
         if (exists) return prev;
 
-        const updated = [newItem, ...prev].slice(0, 10); // Keep last 10
-        localStorage.setItem('proinsight_history', JSON.stringify(updated));
+        const updated = [newItem, ...prev].slice(0, 5); // Reduce to 5 items to save space
+
+        try {
+          localStorage.setItem('proinsight_history', JSON.stringify(updated));
+        } catch (e) {
+          console.warn("LocalStorage Quota Exceeded. Attempting to save without heavy images...");
+          // Fallback: Remove images from all items to recover space
+          const safeHistory = updated.map(item => ({
+            ...item,
+            finalPost: { ...item.finalPost, images: [] }
+          }));
+          try {
+            localStorage.setItem('proinsight_history', JSON.stringify(safeHistory));
+          } catch (retryError) {
+            console.error("Failed to save history even after compression", retryError);
+          }
+        }
         return updated;
       });
     }
