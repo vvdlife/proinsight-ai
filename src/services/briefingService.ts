@@ -35,36 +35,24 @@ export const generateDailyBriefing = async (
     You are a professional tech news analyst.
     Task: Search for the most important news from the **last 7 days** for these specific companies: ${companies.join(", ")}.
     
-    **CRITICAL Validations**:
-    1. **CHECK DATES**: verifying the article date is within the last 7 days. **Prioritize the most recent news (today/yesterday)** but include important events from the week if today is quiet.
-    2. **SOURCE INDEXING**: Do NOT write the URL text yourself. Instead, identify which search result you used (e.g., the 1st result is index 0) and put that integer in \`sourceIndex\`. Leave \`url\` empty.
-    3. **NO HALLUCINATIONS**: Only report real, verifiable news.
+    **CRITICAL INSTRUCTIONS**:
+    1. **Search**: Use the Google Search tool to find real articles.
+    2. **Filter**: select top 5 most impactful news.
+    3. **Output Format**: Do NOT output JSON. Output a structured text block for each news item exactly like this:
     
-    Constraint 1: Use ONLY reliable US sources: ${sources.join(", ")}.
-    Constraint 2: Select only the top 5 most impactful stories total.
-    Constraint 4: The output must be a valid JSON object.
+    [[ITEM]]
+    COMPANY: <Company Name>
+    SOURCE: <Source Name>
+    URL: <Exact Source URL>
+    TITLE: <Translated Korean Title>
+    SUMMARY: <Translated Korean Summary (1-2 sentences)>
+    IMPACT: <High/Medium/Low>
+    [[ENDITEM]]
     
-    **Translation Requirement**:
-    Even though the sources are English, **summarize the content in Korean**.
-    The "title" should be a translated Korean title.
-    The "summary" should be a concise Korean summary (1-2 sentences).
-    
-    Output JSON format:
-    {
-        "date": "${kstDate}",
-        "marketSummary": "A brief overview of the tech market today in Korean",
-        "items": [
-            {
-                "company": "Company Name",
-                "title": "Korean Title",
-                "summary": "Korean Summary",
-                "source": "Source Name",
-                "sourceIndex": 0,
-                "url": "",
-                "impactLevel": "High" | "Medium" | "Low"
-            }
-        ]
-    }
+    **RULES**:
+    - **URL**: You MUST copy the 'link' or 'uri' from the search result EXACTLY. Do not strip parameters. Do not hallucinate. If you click it, it must open.
+    - **Freshness**: Only include news from the last 7 days.
+    - **Market Summary**: At the very end, add a section called "[[MARKET_SUMMARY]]" followed by a brief 2-3 sentence Korean summary of the overall tech market.
     `;
 
     try {
@@ -73,7 +61,8 @@ export const generateDailyBriefing = async (
             contents: prompt,
             config: {
                 tools: [{ googleSearch: {} }],
-                systemInstruction: "You are a professional tech news analyst. Output valid JSON in Korean. No markdown.",
+                // We ask for text now, not JSON
+                systemInstruction: "You are a tech reporter. Be precise with URLs.",
             },
         });
 
@@ -85,36 +74,55 @@ export const generateDailyBriefing = async (
         const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(text);
         trackApiCall(MODEL_ID, promptTokens, completionTokens, 'briefing');
 
-        const data = safeJsonParse<DailyBriefing>(text);
+        // Parse the Text Output
+        const items: TechNewsItem[] = [];
+        const itemBlocks = text.split('[[ITEM]]').slice(1); // Skip first empty split
 
-        // Basic validation
-        if (!data || !Array.isArray(data.items)) {
-            throw new Error("Invalid format returned");
+        for (const block of itemBlocks) {
+            const companyMatch = block.match(/COMPANY:\s*(.+)/);
+            const sourceMatch = block.match(/SOURCE:\s*(.+)/);
+            const urlMatch = block.match(/URL:\s*(.+)/);
+            const titleMatch = block.match(/TITLE:\s*(.+)/);
+            const summaryMatch = block.match(/SUMMARY:\s*(.+)/);
+            const impactMatch = block.match(/IMPACT:\s*(.+)/);
+
+            if (titleMatch && summaryMatch) {
+                // Clean up URL: remove markdown formatting if any (e.g. [Link](...))
+                let rawUrl = urlMatch ? urlMatch[1].trim() : "";
+                // Remove trailing specific characters if model added them
+                rawUrl = rawUrl.replace(/\]$/, '').replace(/\)$/, '');
+
+                items.push({
+                    company: companyMatch ? companyMatch[1].trim() : "Tech",
+                    source: sourceMatch ? sourceMatch[1].trim() : "News",
+                    url: rawUrl,
+                    title: titleMatch ? titleMatch[1].trim() : "뉴스",
+                    summary: summaryMatch ? summaryMatch[1].trim() : "요약 없음",
+                    impactLevel: (impactMatch && ["High", "Medium", "Low"].includes(impactMatch[1].trim()))
+                        ? impactMatch[1].trim() as any
+                        : "Medium"
+                });
+            }
         }
 
-        // ---------------------------------------------------------
-        // URL INJECTION LOGIC (Grounding Metadata)
-        // ---------------------------------------------------------
-        const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+        // Parse Market Summary
+        let marketSummary = "오늘의 시장 요약을 불러오지 못했습니다.";
+        const summarySplit = text.split('[[MARKET_SUMMARY]]');
+        if (summarySplit.length > 1) {
+            marketSummary = summarySplit[1].trim();
+        }
 
-        console.log("Grounding Chunks:", JSON.stringify(chunks, null, 2)); // Debug log
+        if (items.length === 0) {
+            console.error("Parsed text failed:", text);
+            throw new Error("Failed to parse any news items from response.");
+        }
 
-        const itemsWithRealUrls = data.items.map(item => {
-            // If model provided an index, use it to get the REAL url
-            if (typeof item.sourceIndex === 'number' && chunks[item.sourceIndex]?.web?.uri) {
-                return { ...item, url: chunks[item.sourceIndex].web.uri };
-            }
-
-            // Fallback: If no index, try to find a chunk that matches the title text? (Fuzzy)
-            // For now, if no index, we leave it empty to avoid 404s.
-            if (!item.url || item.url === "https://...") {
-                return { ...item, url: "" };
-            }
-
-            return item;
-        });
-
-        return { ...data, items: itemsWithRealUrls, timestamp: Date.now() };
+        return {
+            date: kstDate,
+            items: items,
+            marketSummary: marketSummary,
+            timestamp: Date.now()
+        };
 
     } catch (error) {
         console.error("Failed to generate daily briefing:", error);
