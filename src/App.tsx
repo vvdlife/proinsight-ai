@@ -17,6 +17,7 @@ const ExportManager = React.lazy(() => import('./components/ExportManager').then
 const PublishingManager = React.lazy(() => import('./components/PublishingManager').then(module => ({ default: module.PublishingManager })));
 const ApiUsageMonitor = React.lazy(() => import('./components/ApiUsageMonitor').then(module => ({ default: module.ApiUsageMonitor })));
 const ModelSelector = React.lazy(() => import('./components/ModelSelector').then(module => ({ default: module.ModelSelector })));
+const TrendAnalysisWidget = React.lazy(() => import('./components/TrendAnalysisWidget').then(module => ({ default: module.TrendAnalysisWidget })));
 
 const App: React.FC = () => {
   // Authentication State
@@ -377,6 +378,11 @@ const App: React.FC = () => {
               </div>
             </div>
 
+            {/* Smart Trend Analysis Widget */}
+            <React.Suspense fallback={null}>
+              <TrendAnalysisWidget topic={topic} />
+            </React.Suspense>
+
             {/* ModelSelector */}
             <React.Suspense fallback={<div>Loading...</div>}>
               <ModelSelector
@@ -532,7 +538,7 @@ const App: React.FC = () => {
                 <div className="text-xs text-slate-400">PDF/URL/메모 통합 분석</div>
               </div>
             </div>
-          </div>
+          </div >
         );
 
       case AppStep.OUTLINE_REVIEW:

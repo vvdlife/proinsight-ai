@@ -103,3 +103,10 @@ export interface TrendingCache {
   topics: TrendingTopic[];
   timestamp: number;
 }
+
+export interface TrendAnalysis {
+  interestScore: number;
+  reason: string;
+  relatedKeywords: string[];
+  prediction: string;
+}

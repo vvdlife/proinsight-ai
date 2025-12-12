@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { TrendingTopic, TrendingCache } from "../types";
+import { TrendingTopic, TrendingCache, TrendAnalysis } from "../types";
 import { trackApiCall, estimateTokens } from './apiUsageTracker';
 import { safeJsonParse } from './utils';
 
@@ -94,9 +94,62 @@ const generateTrendingTopics = async (): Promise<TrendingTopic[]> => {
         }
 
         return topics;
+        return topics;
     } catch (error) {
         console.error("Failed to generate trending topics:", error);
         return FALLBACK_TOPICS;
+    }
+};
+
+/**
+ * Analyzes a specific topic for trend insights
+ */
+export const analyzeTrend = async (topic: string): Promise<TrendAnalysis> => {
+    const ai = getGenAI();
+
+    // Default fallback
+    const fallback: TrendAnalysis = {
+        interestScore: 50,
+        reason: "데이터 분석 중...",
+        relatedKeywords: ["분석 실패"],
+        prediction: "정보를 불러올 수 없습니다."
+    };
+
+    try {
+        const prompt = `
+        Analyze the current search trend and popularity for the keyword: "${topic}" in South Korea.
+        
+        Provide the following details in JSON format:
+        1. "interestScore": A number between 0-100 indicating current popularity/buzz.
+        2. "reason": A brief 1-sentence explanation of WHY it is trending now (e.g., specific news, events, seasonality).
+        3. "relatedKeywords": Array of 3 related search terms.
+        4. "prediction": Short prediction (e.g., "Rising", "Peaked", "Steady").
+
+        Input: ${topic}
+        Output JSON:
+        `;
+
+        const response = await ai.models.generateContent({
+            model: MODEL_ID,
+            contents: prompt,
+            config: {
+                tools: [{ googleSearch: {} }],
+                responseMimeType: "application/json",
+            },
+        });
+
+        const text = response.text || "";
+        const data = safeJsonParse<TrendAnalysis>(text);
+
+        if (!data || typeof data.interestScore !== 'number') {
+            return fallback;
+        }
+
+        return data;
+
+    } catch (error) {
+        console.error("Trend Analysis Failed:", error);
+        return fallback;
     }
 };
 
