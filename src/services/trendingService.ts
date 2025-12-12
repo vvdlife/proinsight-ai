@@ -119,14 +119,16 @@ export const analyzeTrend = async (topic: string): Promise<TrendAnalysis> => {
         const prompt = `
         Analyze the current search trend and popularity for the keyword: "${topic}" in South Korea.
         
-        Provide the following details in JSON format:
-        1. "interestScore": A number between 0-100 indicating current popularity/buzz.
-        2. "reason": A brief 1-sentence explanation of WHY it is trending now (e.g., specific news, events, seasonality).
-        3. "relatedKeywords": Array of 3 related search terms.
-        4. "prediction": Short prediction (e.g., "Rising", "Peaked", "Steady").
-
-        Input: ${topic}
-        Output JSON:
+        Using Google Search results, find out why this topic is trending.
+        Then, output ONLY a JSON object with this exact schema:
+        {
+            "interestScore": number (0-100),
+            "reason": "string (1 sentence summary of why it's trending)",
+            "relatedKeywords": ["string", "string", "string"],
+            "prediction": "string (e.g. Rising, Peaked)"
+        }
+        
+        Do not add any markdown formatting or explanations outside the JSON.
         `;
 
         const response = await ai.models.generateContent({
@@ -134,7 +136,6 @@ export const analyzeTrend = async (topic: string): Promise<TrendAnalysis> => {
             contents: prompt,
             config: {
                 tools: [{ googleSearch: {} }],
-                responseMimeType: "application/json",
             },
         });
 
@@ -142,6 +143,7 @@ export const analyzeTrend = async (topic: string): Promise<TrendAnalysis> => {
         const data = safeJsonParse<TrendAnalysis>(text);
 
         if (!data || typeof data.interestScore !== 'number') {
+            console.warn("Invalid data structure:", data);
             return fallback;
         }
 
@@ -149,7 +151,7 @@ export const analyzeTrend = async (topic: string): Promise<TrendAnalysis> => {
 
     } catch (error) {
         console.error("Trend Analysis Failed:", error);
-        return fallback;
+        return { ...fallback, reason: "일시적인 분석 오류입니다. 잠시 후 다시 시도해주세요." };
     }
 };
 
