@@ -31,16 +31,16 @@ export const generateDailyBriefing = async (): Promise<DailyBriefing> => {
     Current System Time (US EST): ${usDate}
     
     You are a professional tech news analyst.
-    Task: Search for the most important news **published exactly within the last 24 hours** (${usDate}) for these specific companies: ${companies.join(", ")}.
+    Task: Search for the most important news from the **last 7 days** for these specific companies: ${companies.join(", ")}.
     
     **CRITICAL Validations**:
-    1. **CHECK DATES**: verifying the article date is strictly today or yesterday. Do NOT include news older than 24 hours.
+    1. **CHECK DATES**: verifying the article date is within the last 7 days. **Prioritize the most recent news (today/yesterday)** but include important events from the week if today is quiet.
     2. **REAL LINKS**: You MUST provide the direct URL to the source article.
-    3. **NO HALLUCINATIONS**: If "iPhone 17" was released months ago, do NOT treat it as breaking news. Only report significant *new* events (stock changes, new regulations, earnings, unexpected announcements).
+    3. **NO HALLUCINATIONS**: Only report real, verifiable news.
     
     Constraint 1: Use ONLY reliable US sources: ${sources.join(", ")}.
     Constraint 2: Select only the top 5 most impactful stories total.
-    Constraint 3: The output must be a valid JSON object.
+    Constraint 4: The output must be a valid JSON object.
     
     **Translation Requirement**:
     Even though the sources are English, **summarize the content in Korean**.
