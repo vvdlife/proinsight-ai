@@ -16,14 +16,16 @@ const getGenAI = () => {
     return new GoogleGenAI({ apiKey: key });
 };
 
-export const generateDailyBriefing = async (): Promise<DailyBriefing> => {
+export const generateDailyBriefing = async (
+    targetCompanies: string[] = ["Apple", "Microsoft", "Google (Alphabet)", "Amazon", "Meta", "NVIDIA", "Tesla"]
+): Promise<DailyBriefing> => {
     const ai = getGenAI();
     const now = new Date();
     // Context awareness for better search results
     const kstDate = now.toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: 'long', day: 'numeric' });
     const usDate = now.toLocaleDateString('en-US', { timeZone: 'America/New_York', year: 'numeric', month: 'long', day: 'numeric' });
 
-    const companies = ["Apple", "Microsoft", "Google (Alphabet)", "Amazon", "Meta", "NVIDIA", "Tesla"];
+    const companies = targetCompanies;
     const sources = ["Reuters", "Bloomberg", "Wall Street Journal", "TechCrunch", "CNBC", "The Verge"];
 
     const prompt = `

@@ -10,6 +10,22 @@ export const DailyBriefingWidget: React.FC = () => {
     const [error, setError] = useState(false);
     const [copied, setCopied] = useState(false);
 
+    // Company Selection State
+    const allCompanies = ["Apple", "Microsoft", "Google", "Amazon", "Meta", "NVIDIA", "Tesla"];
+    const [selectedCompanies, setSelectedCompanies] = useState<string[]>(() => {
+        const saved = localStorage.getItem('proinsight_briefing_companies');
+        return saved ? JSON.parse(saved) : allCompanies;
+    });
+
+    const toggleCompany = (company: string) => {
+        const newSelection = selectedCompanies.includes(company)
+            ? selectedCompanies.filter(c => c !== company)
+            : [...selectedCompanies, company];
+
+        setSelectedCompanies(newSelection);
+        localStorage.setItem('proinsight_briefing_companies', JSON.stringify(newSelection));
+    };
+
     // Progress State
     const [progress, setProgress] = useState(0);
     const [loadingText, setLoadingText] = useState('미국 주요 언론사(Reuters, Bloomberg) 접속 중...');
@@ -18,7 +34,7 @@ export const DailyBriefingWidget: React.FC = () => {
         setProgress(0);
         const steps = [
             { pct: 10, text: '미국 주요 언론사(Reuters, Bloomberg) 접속 중...' },
-            { pct: 30, text: '최근 7일간의 빅테크 뉴스 수집 중...' },
+            { pct: 30, text: `선택하신 ${selectedCompanies.length}개 기업 뉴스 수집 중...` },
             { pct: 50, text: '중요도 기반 상위 5개 뉴스 선별 중...' },
             { pct: 70, text: '핵심 내용 한국어 요약 및 번역 중...' },
             { pct: 90, text: '브리핑 리포트 생성 마무리 중...' }
@@ -35,12 +51,17 @@ export const DailyBriefingWidget: React.FC = () => {
     };
 
     const handleGenerate = async () => {
+        if (selectedCompanies.length === 0) {
+            alert("최소 1개 이상의 기업을 선택해주세요.");
+            return;
+        }
+
         setLoading(true);
         setError(false);
         const intervalId = simulateProgress();
 
         try {
-            const result = await generateDailyBriefing();
+            const result = await generateDailyBriefing(selectedCompanies);
 
             // Complete progress
             clearInterval(intervalId);
@@ -65,6 +86,7 @@ export const DailyBriefingWidget: React.FC = () => {
 
         const text = `
 📅 ${briefing.date} 미국 빅테크 데일리 브리핑
+(대상: ${selectedCompanies.join(', ')})
 
 📊 오늘 시장 요약
 ${briefing.marketSummary}
@@ -73,6 +95,7 @@ ${briefing.marketSummary}
 ${briefing.items.map((item, i) => `
 ${i + 1}. [${item.company}] ${item.title}
    - ${item.summary}
+   - 원문: ${item.url}
    - 출처: ${item.source}
 `).join('')}
         `.trim();
@@ -95,14 +118,35 @@ ${i + 1}. [${item.company}] ${item.title}
                         </h2>
                         <p className="text-slate-300 mb-6 max-w-lg">
                             신뢰할 수 있는 미국 현지 언론사(Reuters, Bloomberg 등)의 <br />
-                            빅테크 기업 관련 뉴스를 실시간으로 수집하고 요약합니다.
+                            선택하신 기업 관련 뉴스를 실시간으로 수집하고 요약합니다.
                         </p>
+
+                        {/* Company Selection UI */}
+                        <div className="mb-8">
+                            <div className="text-sm font-bold text-slate-400 mb-3 uppercase tracking-wider">관심 기업 선택</div>
+                            <div className="flex flex-wrap gap-2">
+                                {allCompanies.map(company => (
+                                    <button
+                                        key={company}
+                                        onClick={() => toggleCompany(company)}
+                                        className={`px-3 py-1.5 rounded-full text-sm font-bold transition-all border ${selectedCompanies.includes(company)
+                                                ? 'bg-indigo-500 border-indigo-500 text-white shadow-lg shadow-indigo-500/30'
+                                                : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700'
+                                            }`}
+                                    >
+                                        {company}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
                         <button
                             onClick={handleGenerate}
-                            className="py-3 px-6 bg-white text-slate-900 rounded-lg font-bold hover:bg-indigo-50 transition-colors flex items-center gap-2 shadow-lg"
+                            disabled={selectedCompanies.length === 0}
+                            className="py-3 px-6 bg-white text-slate-900 rounded-lg font-bold hover:bg-indigo-50 transition-colors flex items-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <SparklesIcon className="w-5 h-5 text-indigo-600" />
-                            오늘의 브리핑 생성하기
+                            {selectedCompanies.length}개 기업 브리핑 생성하기
                         </button>
                     </div>
                 </div>
