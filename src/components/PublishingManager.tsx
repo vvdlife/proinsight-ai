@@ -184,58 +184,7 @@ export const PublishingManager: React.FC<PublishingManagerProps> = ({ post }) =>
         }
     };
 
-    // --- Naver Blog Logic ---
-    const [naverId, setNaverId] = useState('');
-    const [naverApiKey, setNaverApiKey] = useState('');
 
-    useEffect(() => {
-        const savedNaverId = localStorage.getItem('proinsight_naver_id');
-        const savedNaverKey = localStorage.getItem('proinsight_naver_key');
-        if (savedNaverId) setNaverId(savedNaverId);
-        if (savedNaverKey) setNaverApiKey(savedNaverKey);
-    }, []);
-
-    const handleSaveNaver = () => {
-        localStorage.setItem('proinsight_naver_id', naverId);
-        localStorage.setItem('proinsight_naver_key', naverApiKey);
-        alert('네이버 블로그 정보가 저장되었습니다.');
-    };
-
-    const handlePublishNaver = async () => {
-        if (!naverId || !naverApiKey) {
-            alert('네이버 아이디와 API 연결 암호를 입력해주세요.');
-            return;
-        }
-
-        setPublishing('NAVER');
-        setPublishResult(null);
-
-        try {
-            const response = await fetch('/api/naver/publish', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    naverId,
-                    apiKey: naverApiKey,
-                    title: post.title,
-                    content: post.content,
-                    tags: ['ProInsightAI']
-                })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                setPublishResult({ platform: 'Naver', success: true, url: data.url });
-            } else {
-                throw new Error(data.error || 'Failed to publish');
-            }
-        } catch (error: any) {
-            setPublishResult({ platform: 'Naver', success: false, error: error.message });
-        } finally {
-            setPublishing(null);
-        }
-    };
 
     return (
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mt-8">
@@ -263,48 +212,7 @@ export const PublishingManager: React.FC<PublishingManagerProps> = ({ post }) =>
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {/* Naver Blog Section (New) */}
-                    <div className="border border-slate-200 rounded-xl p-4 hover:border-green-400 transition-colors">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-8 h-8 bg-[#03C75A] text-white rounded-full flex items-center justify-center font-bold text-lg">N</div>
-                            <div className="font-bold text-slate-800">네이버 블로그</div>
-                        </div>
 
-                        <div className="space-y-2">
-                            <input
-                                type="text"
-                                value={naverId}
-                                onChange={(e) => setNaverId(e.target.value)}
-                                placeholder="네이버 아이디 (ID)"
-                                className="w-full p-2 text-sm border border-slate-200 rounded outline-none focus:border-[#03C75A]"
-                            />
-                            <input
-                                type="password"
-                                value={naverApiKey}
-                                onChange={(e) => setNaverApiKey(e.target.value)}
-                                placeholder="API 연결 암호"
-                                className="w-full p-2 text-sm border border-slate-200 rounded outline-none focus:border-[#03C75A]"
-                            />
-                            <p className="text-[10px] text-slate-400">
-                                * 관리자 &gt; 메뉴·글·동영상 관리 &gt; 플러그인·연동 관리 &gt; API 연결정보
-                            </p>
-                            <div className="flex gap-2 pt-1">
-                                <button
-                                    onClick={handleSaveNaver}
-                                    className="flex-1 py-2 bg-slate-100 text-slate-600 text-xs font-bold rounded hover:bg-slate-200"
-                                >
-                                    저장
-                                </button>
-                                <button
-                                    onClick={handlePublishNaver}
-                                    disabled={publishing === 'NAVER'}
-                                    className="flex-1 py-2 bg-[#03C75A] text-white text-xs font-bold rounded hover:bg-[#02b350] disabled:opacity-50"
-                                >
-                                    {publishing === 'NAVER' ? '발행 중...' : '원클릭 발행'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
                     {/* Medium Section */}
                     <div className="border border-slate-200 rounded-xl p-4 hover:border-slate-300 transition-colors">
                         <div className="flex items-center gap-3 mb-4">
