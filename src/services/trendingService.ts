@@ -5,7 +5,7 @@ import { safeJsonParse } from './utils';
 
 const CACHE_KEY = 'proinsight_trending_cache';
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
-const MODEL_ID = "gemini-2.5-flash";
+const MODEL_ID = "gemini-2.5-flash"; // Default
 
 // Helper to get client securely
 const getGenAI = () => {
@@ -28,7 +28,7 @@ const FALLBACK_TOPICS: TrendingTopic[] = [
 /**
  * Generates trending topics using Gemini API
  */
-const generateTrendingTopics = async (): Promise<TrendingTopic[]> => {
+const generateTrendingTopics = async (modelId: string = MODEL_ID): Promise<TrendingTopic[]> => {
     try {
         const ai = getGenAI();
 
@@ -69,7 +69,7 @@ const generateTrendingTopics = async (): Promise<TrendingTopic[]> => {
 `;
 
         const response = await ai.models.generateContent({
-            model: MODEL_ID,
+            model: modelId,
             contents: prompt,
             config: {
                 tools: [{ googleSearch: {} }],
@@ -86,7 +86,7 @@ const generateTrendingTopics = async (): Promise<TrendingTopic[]> => {
         // Track API usage
         const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
         const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(text);
-        trackApiCall(MODEL_ID, promptTokens, completionTokens, 'trending');
+        trackApiCall(modelId, promptTokens, completionTokens, 'trending');
 
         const topics = safeJsonParse<TrendingTopic[]>(text);
 
@@ -106,7 +106,7 @@ const generateTrendingTopics = async (): Promise<TrendingTopic[]> => {
 /**
  * Analyzes a specific topic for trend insights
  */
-export const analyzeTrend = async (topic: string): Promise<TrendAnalysis> => {
+export const analyzeTrend = async (topic: string, modelId: string = MODEL_ID): Promise<TrendAnalysis> => {
     const ai = getGenAI();
 
     // Default fallback
@@ -134,7 +134,7 @@ export const analyzeTrend = async (topic: string): Promise<TrendAnalysis> => {
         `;
 
         const response = await ai.models.generateContent({
-            model: MODEL_ID,
+            model: modelId,
             contents: prompt,
             config: {
                 tools: [{ googleSearch: {} }],
@@ -160,7 +160,7 @@ export const analyzeTrend = async (topic: string): Promise<TrendAnalysis> => {
 /**
  * Gets trending topics from cache or generates new ones
  */
-export const getTrendingTopics = async (): Promise<TrendingTopic[]> => {
+export const getTrendingTopics = async (modelId?: string): Promise<TrendingTopic[]> => {
     try {
         // Check cache first
         const cached = localStorage.getItem(CACHE_KEY);
@@ -177,7 +177,7 @@ export const getTrendingTopics = async (): Promise<TrendingTopic[]> => {
 
         // Cache miss or expired - generate new topics
         console.log("Generating new trending topics");
-        const topics = await generateTrendingTopics();
+        const topics = await generateTrendingTopics(modelId);
 
         // Save to cache
         const cacheData: TrendingCache = {

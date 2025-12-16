@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { RefreshIcon, ChartIcon, CheckIcon, CopyIcon, ChevronRightIcon } from './Icons'; // Ensure Icons check
+import { RefreshIcon, ChartIcon, CheckIcon, CopyIcon, ChevronRightIcon } from './Icons';
+import { useSeoAnalysis } from '../hooks/useSeoAnalysis';
 
 interface SeoAnalyzerProps {
     content: string;
@@ -10,89 +11,15 @@ interface SeoAnalyzerProps {
     onHighlight?: (text: string) => void;
 }
 
-export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keyword, language = 'ko', tone = 'polite', onHighlight }) => {
-    // Diagnosis State (Moved up for Score Calculation)
+export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keyword = '', language = 'ko', tone = 'polite', onHighlight }) => {
     const [detailsOpen, setDetailsOpen] = useState(false);
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [suggestions, setSuggestions] = useState<import('../types').SeoDiagnosis[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
 
-    // 1. Basic Metrics & Robust Regex
-    const wordCount = content.replace(/#/g, '').trim().split(/\s+/).length;
-    const charCount = content.replace(/\s/g, '').length;
-    const h2Count = (content.match(/^##\s?/gm) || []).length; // Allow optional space
-    const linkCount = (content.match(/\[.*?\]\(.*?\)/g) || []).length;
-    const imageCount = (content.match(/!\[.*?\]\(.*?\)/g) || []).length;
-
-    // 2. Keyword Analysis
-    let keywordCount = 0;
-    let keywordDensity = 0;
-    let inTitle = false;
-    let inFirstPara = false;
-
-    if (keyword) {
-        const regex = new RegExp(keyword, 'gi');
-        const matches = content.match(regex);
-        keywordCount = matches ? matches.length : 0;
-        keywordDensity = wordCount > 0 ? (keywordCount / wordCount) * 100 : 0;
-        inTitle = title.includes(keyword);
-
-        // Simple heuristic for first paragraph (first 200 chars)
-        const firstPara = content.slice(0, 300);
-        inFirstPara = firstPara.includes(keyword);
-    }
-
-    // 3. Advanced Scoring Logic (Segmented)
-    // Total: 100 Points
-
-    // A. Content Length (20 pts)
-    let lengthScore = 0;
-    if (charCount >= 1500) lengthScore = 20;
-    else lengthScore = Math.round((charCount / 1500) * 20);
-
-    // B. Structure (20 pts)
-    let structureScore = 0;
-    structureScore += Math.min((h2Count / 3) * 10, 10); // 3+ Headers = 10pts
-    structureScore += Math.min((imageCount / 1) * 5, 5); // 1+ Image = 5pts
-    structureScore += Math.min((linkCount / 1) * 5, 5);  // 1+ Link = 5pts
-
-    // C. Keyword Optimization (40 pts)
-    let keywordScore = 0;
-    if (keyword) {
-        if (inTitle) keywordScore += 15;
-        if (inFirstPara) keywordScore += 10;
-        // Density 0.5% ~ 3.0% = 15pts
-        if (keywordDensity >= 0.5 && keywordDensity <= 3.0) keywordScore += 15;
-        else if (keywordDensity > 0 && keywordDensity < 0.5) keywordScore += 5;
-        else if (keywordDensity > 3.0) keywordScore += 5;
-    } else {
-        // Fallback if no keyword: Redistribute to Structure/Length
-        lengthScore = Math.min(lengthScore * 1.5, 30);
-        structureScore = Math.min(structureScore * 2, 40);
-    }
-
-    // D. Quality & AI (20 pts)
-    // Starts at 20, penalized by AI suggestions
-    let qualityScore = 20;
-    if (suggestions.length > 0) {
-        qualityScore = Math.max(0, 20 - (suggestions.length * 5));
-    }
-
-    const totalScore = Math.min(Math.round(lengthScore + structureScore + keywordScore + qualityScore), 100);
+    const { metrics, scores, suggestions, isAnalyzing, runDeepAnalysis } = useSeoAnalysis(content, title, keyword, language, tone);
 
     const handleDeepAnalysis = async () => {
-        setIsAnalyzing(true);
         setShowSuggestions(true);
-        try {
-            const { analyzeSeoDetails } = await import('../services/geminiService');
-            const result = await analyzeSeoDetails(content, keyword || '', language as 'ko' | 'en', tone);
-            setSuggestions(result);
-        } catch (e) {
-            console.error(e);
-            alert("분석 중 오류가 발생했습니다.");
-        } finally {
-            setIsAnalyzing(false);
-        }
+        await runDeepAnalysis();
     };
 
     return (
@@ -110,35 +37,35 @@ export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keywor
             </h3>
 
             <div className="flex items-center gap-6 mb-6">
-                <div className={`w-20 h-20 shrink-0 rounded-full flex items-center justify-center text-3xl font-bold border-4 ${totalScore >= 80 ? 'border-green-500 text-green-600 bg-green-50' :
-                    totalScore >= 50 ? 'border-yellow-500 text-yellow-600 bg-yellow-50' :
+                <div className={`w-20 h-20 shrink-0 rounded-full flex items-center justify-center text-3xl font-bold border-4 ${scores.total >= 80 ? 'border-green-500 text-green-600 bg-green-50' :
+                    scores.total >= 50 ? 'border-yellow-500 text-yellow-600 bg-yellow-50' :
                         'border-red-500 text-red-600 bg-red-50'
                     }`}>
-                    {totalScore}
+                    {scores.total}
                 </div>
                 <div className="flex-1 grid grid-cols-2 gap-2 text-xs text-slate-500">
                     <div className="flex justify-between border-b pb-1">
-                        <span>분량 ({lengthScore}/20)</span>
+                        <span>분량 ({scores.length}/20)</span>
                         <div className="w-16 bg-slate-100 h-1.5 rounded-full mt-1 overflow-hidden">
-                            <div className="bg-blue-400 h-full" style={{ width: `${(lengthScore / 20) * 100}%` }}></div>
+                            <div className="bg-blue-400 h-full" style={{ width: `${(scores.length / 20) * 100}%` }}></div>
                         </div>
                     </div>
                     <div className="flex justify-between border-b pb-1">
-                        <span>구조 ({structureScore}/20)</span>
+                        <span>구조 ({scores.structure}/20)</span>
                         <div className="w-16 bg-slate-100 h-1.5 rounded-full mt-1 overflow-hidden">
-                            <div className="bg-purple-400 h-full" style={{ width: `${(structureScore / 20) * 100}%` }}></div>
+                            <div className="bg-purple-400 h-full" style={{ width: `${(scores.structure / 20) * 100}%` }}></div>
                         </div>
                     </div>
                     <div className="flex justify-between border-b pb-1">
-                        <span>키워드 ({keywordScore}/40)</span>
+                        <span>키워드 ({scores.keyword}/40)</span>
                         <div className="w-16 bg-slate-100 h-1.5 rounded-full mt-1 overflow-hidden">
-                            <div className="bg-green-400 h-full" style={{ width: `${(keywordScore / 40) * 100}%` }}></div>
+                            <div className="bg-green-400 h-full" style={{ width: `${(scores.keyword / 40) * 100}%` }}></div>
                         </div>
                     </div>
                     <div className="flex justify-between border-b pb-1">
-                        <span>품질 ({qualityScore}/20)</span>
+                        <span>품질 ({scores.quality}/20)</span>
                         <div className="w-16 bg-slate-100 h-1.5 rounded-full mt-1 overflow-hidden">
-                            <div className="bg-amber-400 h-full" style={{ width: `${(qualityScore / 20) * 100}%` }}></div>
+                            <div className="bg-amber-400 h-full" style={{ width: `${(scores.quality / 20) * 100}%` }}></div>
                         </div>
                     </div>
                 </div>
@@ -155,18 +82,18 @@ export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keywor
                     <>
                         <CheckItem
                             label="키워드 사용 (제목)"
-                            passed={inTitle}
-                            msg={inTitle ? "제목에 키워드가 포함됨 (+15점)" : "제목에 키워드가 없습니다"}
+                            passed={metrics.inTitle}
+                            msg={metrics.inTitle ? "제목에 키워드가 포함됨 (+15점)" : "제목에 키워드가 없습니다"}
                         />
                         <CheckItem
                             label="키워드 사용 (첫 문단)"
-                            passed={inFirstPara}
-                            msg={inFirstPara ? "첫 문단에 키워드 배치됨 (+10점)" : "첫 부분에 키워드를 넣어주세요"}
+                            passed={metrics.inFirstPara}
+                            msg={metrics.inFirstPara ? "첫 문단에 키워드 배치됨 (+10점)" : "첫 부분에 키워드를 넣어주세요"}
                         />
                         <CheckItem
-                            label={`키워드 밀도(${keywordDensity.toFixed(1)} %)`}
-                            passed={keywordDensity >= 0.5 && keywordDensity <= 3.0}
-                            msg={keywordDensity < 0.5 ? "키워드를 더 자주 사용하세요" : keywordDensity > 3.0 ? "키워드가 너무 과도합니다" : "아주 적절한 비율입니다"}
+                            label={`키워드 밀도(${metrics.keywordDensity.toFixed(1)} %)`}
+                            passed={metrics.keywordDensity >= 0.5 && metrics.keywordDensity <= 3.0}
+                            msg={metrics.keywordDensity < 0.5 ? "키워드를 더 자주 사용하세요" : metrics.keywordDensity > 3.0 ? "키워드가 너무 과도합니다" : "아주 적절한 비율입니다"}
                         />
                     </>
                 ) : (
@@ -186,23 +113,23 @@ export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keywor
                     <div className="pt-2 space-y-3 animate-in fade-in slide-in-from-top-1">
                         <CheckItem
                             label="본문 분량 (1,500~5,000자)"
-                            passed={charCount >= 1500 && charCount <= 5000}
-                            msg={`${charCount}자 / 1500자 이상 권장`}
+                            passed={metrics.charCount >= 1500 && metrics.charCount <= 5000}
+                            msg={`${metrics.charCount}자 / 1500자 이상 권장`}
                         />
                         <CheckItem
                             label="문단 구조 (H2)"
-                            passed={h2Count >= 3}
-                            msg={`소제목 ${h2Count}개 (3개 이상 권장)`}
+                            passed={metrics.h2Count >= 3}
+                            msg={`소제목 ${metrics.h2Count}개 (3개 이상 권장)`}
                         />
                         <CheckItem
                             label="이미지 활용"
-                            passed={imageCount >= 1}
-                            msg={`이미지 ${imageCount}개 (1개 이상 권장)`}
+                            passed={metrics.imageCount >= 1}
+                            msg={`이미지 ${metrics.imageCount}개 (1개 이상 권장)`}
                         />
                         <CheckItem
                             label="링크 활용"
-                            passed={linkCount >= 1}
-                            msg={`링크 ${linkCount}개 (1개 이상 권장)`}
+                            passed={metrics.linkCount >= 1}
+                            msg={`링크 ${metrics.linkCount}개 (1개 이상 권장)`}
                         />
                     </div>
                 )}            </div>

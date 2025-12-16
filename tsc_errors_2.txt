@@ -1,0 +1,7 @@
+﻿src/components/steps/FinalResultStep.tsx(204,26): error TS2741: Property 'post' is missing in type '{}' but required in type 'PublishingManagerProps'.
+src/components/steps/FinalResultStep.tsx(227,33): error TS2322: Type '{ imageUrl: string; initialTitle: string; }' is not assignable to type 'IntrinsicAttributes & ThumbnailEditorProps'.
+  Property 'imageUrl' does not exist on type 'IntrinsicAttributes & ThumbnailEditorProps'.
+src/hooks/useBlogGenerator.ts(55,21): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/services/geminiService.ts(349,32): error TS2532: Object is possibly 'undefined'.
+src/services/geminiService.ts(350,26): error TS2532: Object is possibly 'undefined'.

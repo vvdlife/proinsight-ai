@@ -2,23 +2,19 @@
 import React, { useState, useEffect } from 'react';
 import { NaverIcon, TistoryIcon, MediumIcon, WordPressIcon, SubstackIcon } from './Icons';
 
+// Imports needing update? No, just usage.
+import { useBlogContext } from '../context/BlogContext';
+
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
+  const { blogUrls: contextBlogUrls, setBlogUrls } = useBlogContext();
   const [apiKey, setApiKey] = useState('');
-  const [customPersona, setCustomPersona] = useState(''); // [NEW] 커스텀 페르소나 상태
-
-  // Multi-platform URL state
-  const [blogUrls, setBlogUrls] = useState<{ [key: string]: string }>({
-    NAVER: '',
-    TISTORY: '',
-    MEDIUM: '',
-    WORDPRESS: '',
-    SUBSTACK: ''
-  });
+  const [customPersona, setCustomPersona] = useState('');
+  const [localBlogUrls, setLocalBlogUrls] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     if (isOpen) {
@@ -26,36 +22,31 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       const key = localStorage.getItem('proinsight_api_key') || sessionStorage.getItem('proinsight_api_key') || '';
       setApiKey(key);
 
-      // [NEW] 커스텀 페르소나 로드
+      // 커스텀 페르소나 로드
       const savedPersona = localStorage.getItem('proinsight_custom_persona') || '';
       setCustomPersona(savedPersona);
 
-      // Load saved URLs
-      try {
-        const savedUrls = JSON.parse(localStorage.getItem('proinsight_blog_urls') || '{}');
-        setBlogUrls(prev => ({ ...prev, ...savedUrls }));
-      } catch (e) {
-        console.error('Failed to parse blog URLs', e);
-      }
+      // 블로그 URL 로드 (Context에서)
+      setLocalBlogUrls(contextBlogUrls);
     }
-  }, [isOpen]);
+  }, [isOpen, contextBlogUrls]);
 
   const handleSave = () => {
     if (apiKey) {
       localStorage.setItem('proinsight_api_key', apiKey);
     }
-    // [NEW] 커스텀 페르소나 저장
+    // 커스텀 페르소나 저장
     localStorage.setItem('proinsight_custom_persona', customPersona);
 
-    // Blog URLs 저장
-    localStorage.setItem('proinsight_blog_urls', JSON.stringify(blogUrls));
+    // Blog URLs 저장 (Context에 반영)
+    setBlogUrls(localBlogUrls);
 
     alert('설정이 저장되었습니다.');
     onClose();
   };
 
   const handleUrlChange = (platform: string, value: string) => {
-    setBlogUrls(prev => ({ ...prev, [platform]: value }));
+    setLocalBlogUrls(prev => ({ ...prev, [platform]: value }));
   };
 
   const handleLogout = () => {
@@ -130,7 +121,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   </label>
                   <input
                     type="text"
-                    value={blogUrls[platform.id]}
+                    value={localBlogUrls[platform.id] || ''}
                     onChange={(e) => handleUrlChange(platform.id, e.target.value)}
                     placeholder={`https://...`}
                     className="w-full p-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-500 bg-slate-50 focus:bg-white transition-colors"

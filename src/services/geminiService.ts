@@ -3,11 +3,12 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { BlogTone, OutlineData, SocialPost, ImageStyle, UploadedFile, SeoDiagnosis } from "../types";
 import { trackApiCall, estimateTokens } from './apiUsageTracker';
 import { safeJsonParse } from './utils';
+import { PROMPTS, PERSONA_INSTRUCTIONS } from '../constants/prompts';
 
 // Constants
 const MODEL_IDS = {
   TEXT: "gemini-2.5-flash",
-  IMAGE: "gemini-2.5-flash-image", // Reverted to the version user requested
+  IMAGE: "gemini-2.5-flash-image",
 } as const;
 
 // Helper to get client securely
@@ -23,43 +24,19 @@ const getGenAI = () => {
 /**
  * Generates a blog post outline.
  */
-export const generateOutline = async (topic: string, files: UploadedFile[], urls: string[], memo: string): Promise<OutlineData> => {
+export const generateOutline = async (
+  topic: string,
+  files: UploadedFile[],
+  urls: string[],
+  memo: string,
+  modelId: string = MODEL_IDS.TEXT // [NEW] Accept modelId
+): Promise<OutlineData> => {
   const ai = getGenAI();
 
   // Get current date for context
   const currentDate = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
 
-  let promptText = `
-    Current Date: ${currentDate}
-    
-    You are a professional content strategist specializing in high-traffic blogs.
-      Task: Create a blog post outline for the topic: "${topic}".
-      
-      1. **Title**: Create a **Viral, Click-worthy, and SEO-optimized** title.
-         - **CRITICAL**: The Title MUST include the exact keyword: "${topic}".
-        - It must be provocative, benefit-driven, or a listicle (e.g., "Top 5...", "Why you are wrong about...", "The Ultimate Guide to...").
-        - Maximize curiosity and click-through rate (CTR).
-      
-      2. **Target Audience & Keywords**:
-        - Define the **Target Audience Persona** (e.g., Beginners, Experts).
-        - List 3-5 **Primary & LSI Keywords** for SEO.
-      
-      3. **Sections**: Create 5-7 logical sections.
-      
-      **CRITICAL INSTRUCTION FOR SPECIFICITY**:
-      - If the topic refers to a specific industry or group (e.g., "Big Tech", "K-Pop", "EV Market"), you MUST identify 3-5 SPECIFIC real-world entities (companies, people, products) to focus on.
-      - Create sections that specifically analyze these entities. Do not just use generic headers like "Market Trends". Use headers like "Microsoft: Copilot's Expansion" or "Tesla: New Model Launch".
-      - **CRITICAL**: The \`sections\` array must contain ONLY STRINGS. Do NOT return objects (e.g., no { "title": ... }). Just simple strings.
-      
-      The output must be in Korean.
-      
-      **CRITICAL OUTPUT FORMAT**:
-      Return strictly a JSON object. Do not include markdown formatting.
-    {
-      "title": "String",
-      "sections": ["String", "String", ...]
-    }
-  `;
+  let promptText = PROMPTS.OUTLINE(currentDate, topic);
 
   if (memo && memo.trim()) {
     promptText += `\n\n[USER MEMO]: \n"${memo}"\n(Prioritize this instruction.)`;
@@ -85,7 +62,7 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
   });
 
   const response = await ai.models.generateContent({
-    model: MODEL_IDS.TEXT,
+    model: modelId, // [NEW] Use passed modelId
     contents: { role: 'user', parts },
     config: {
       tools: [{ googleSearch: {} }],
@@ -122,19 +99,7 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
  * 주제에 대한 핵심 팩트(수치, 날짜 등)를 먼저 검색하여 추출하는 함수
  */
 const generateKeyFacts = async (topic: string, ai: GoogleGenAI): Promise<string> => {
-  const prompt = `
-    Topic: "${topic}"
-    
-    Task: Use Google Search to find 5-7 CRITICAL FACTS needed to write a professional blog post about this topic.
-    
-    Output Format (Bulleted List):
-    - [Data/Number]: Specific Revenue, Stock Price, or Growth Rate (e.g., $100B, +15%).
-    - [Date]: Release dates or event dates.
-    - [Quote]: A short key quote from a CEO or Official.
-    - [Context]: Why this matters now.
-    
-    Constraint: Only output the facts. Do not write an intro.
-  `;
+  const prompt = PROMPTS.KEY_FACTS(topic);
 
   try {
     // 검색 도구(googleSearch)를 사용하여 팩트 수집
@@ -153,7 +118,7 @@ const generateKeyFacts = async (topic: string, ai: GoogleGenAI): Promise<string>
 /**
  * Helper to generate text with files
  */
-const generateText = async (ai: GoogleGenAI, prompt: string, files: UploadedFile[], systemInstruction: string = "You are a helpful assistant."): Promise<string> => {
+const generateText = async (ai: GoogleGenAI, prompt: string, files: UploadedFile[], systemInstruction: string = "You are a helpful assistant.", modelId: string = MODEL_IDS.TEXT): Promise<string> => {
   const parts: any[] = [{ text: prompt }];
 
   files.forEach(file => {
@@ -167,7 +132,7 @@ const generateText = async (ai: GoogleGenAI, prompt: string, files: UploadedFile
 
   try {
     const response = await ai.models.generateContent({
-      model: MODEL_IDS.TEXT,
+      model: modelId,
       contents: { role: 'user', parts },
       config: {
         tools: [{ googleSearch: {} }],
@@ -202,7 +167,8 @@ export const generateBlogPostContent = async (
   urls: string[],
   memo: string,
   language: string = 'Korean',
-  topic: string // [NEW] Add topic for SEO keyword optimization
+  topic: string, // [NEW] Add topic for SEO keyword optimization
+  modelId: string = MODEL_IDS.TEXT // [NEW] Accept modelId
 ): Promise<{ content: string; title: string }> => {
   const ai = getGenAI();
   const isEnglish = language === 'English';
@@ -214,131 +180,38 @@ export const generateBlogPostContent = async (
   // [NEW] 커스텀 페르소나 가져오기
   const customPersona = localStorage.getItem('proinsight_custom_persona') || '';
 
-  // Common Context (기존 코드에 keyFacts 변수 내용을 주입)
-  let baseContext = `
-    Blog Title: "${outline.title}"
-    Tone: ${tone}
-    Language: ${language}
-    Style: Use ** Standard Unicode Emojis ** actively(e.g., 💡, 🚀, ✅, 📌).
+  // Common Context (Use PROMPTS.BASE_CONTEXT)
+  const baseContext = PROMPTS.BASE_CONTEXT(
+    outline.title,
+    tone,
+    language,
+    keyFacts,
+    customPersona,
+    isEnglish,
+    topic,
+    memo,
+    urls,
+    files.length > 0
+  );
 
-    **CRITICAL CONTEXT (KEY FACTS)**:
-    You MUST use the following facts to ensure accuracy. Do not hallucinate numbers if they are provided here.
-    ${keyFacts}
-    
-    ** USER CUSTOM INSTRUCTION (HIGHEST PRIORITY) **:
-    ${customPersona ? customPersona : "No custom instructions."}
-
-    **CRITICAL LANGUAGE INSTRUCTION**:
-    ${isEnglish ? '- **MUST WRITE IN ENGLISH**. Even if the outline or context is in Korean, you MUST translate and write the output in English.' : '- Write in natural, native Korean.'}
-    
-    ** EDITOR'S GUIDELINES (7 CORE PRINCIPLES)**:
-    1. **SEO Optimization (CRITICAL)**: 
-       - **Keyword Density**: Naturally repeat the main keyword "${topic}" 2-3 times per section. Aim for ~2% density.
-       - **Placement**: Ensure keywords appear in the *First Paragraph* and *Headers*.
-    2. **Reader Analysis**: Write for the specific audience. Use "F-pattern" formatting (bolding, bullets).
-    3. **Visuals**: Use emojis and formatting to break up text.
-    4. **Visuals & Infographics(CRITICAL)**:
-       - **Markdown Tables**: Use for comparing data, pros/cons, or features.
-       - **Mermaid Diagrams**: Use for processes, hierarchies, or timelines.
-         - Syntax Rule 1: **ALWAYS enclose node labels in quotes** (e.g., id["Label with spaces!"]).
-         - Syntax Rule 2: Do not use special characters like parentheses() inside the ID, only in the label.
-         - Supported types: \`graph TD\`, \`mindmap\`, \`timeline\`, \`pie\`.
-    5. **Interactive Elements**: Use **Emoji-based Checklists** (e.g., "- ✅ Item").
-    6. **Data-Driven & Specific**:
-           - **CRITICAL**: Use the \`googleSearch\` tool to find SPECIFIC data points (numbers, dates, quotes).
-           - Do not say "Many companies". Say "Apple and Nvidia".
-           - Cite real recent events.
-    7. **References**: Provide external sources **ONLY if they are critical** for verification. 
-       - Limit to max 1 high-quality link per section.
-       - Format: \`[Source Name](https://...)\`. 
-       - If no specific URL is found, omit the link. Do NOT create fake deep-links.
-    8. **NO DISCLAIMERS**: Do NOT add "This is a fictional post" or "For illustrative purposes". Write with authority.
-    9. **Target Length**: Aim for ~300-350 characters (Korean) per section to keep the total length around 3,000 characters. Be concise and impactful.
-    10. **NO TITLE REPETITION**: The H1 title is already rendered by the system. Do NOT include the Main Title or "Title: ..." at the beginning of your output. Start directly with the Introduction.
-  `;
-  if (memo && memo.trim()) {
-    baseContext += `
-
-  [USER CUSTOM CONTEXT / INSTRUCTION START]
-    ${memo}
-  [USER CUSTOM CONTEXT / INSTRUCTION END]
-
-    (Prioritize the above user instructions over default guidelines.)
-    `;
-  }
-  if (urls.length > 0) baseContext += `\nSOURCE URLs(For reference only): \n${urls.join('\n')} `;
-  if (files.length > 0) baseContext += `\n(Refer to attached documents)`;
-
-  // 1. Intro Generation (Ask for translated title if English)
-  const introPrompt = `
-    ${baseContext}
-
-  Task: Write an engaging ** Introduction ** for this blog post.
-    Outline of the whole post: ${outline.sections.join(", ")}
-
-  Instructions:
-    ${isEnglish ? '- **TRANSLATION TASK**: Start your response with the English translation of the Blog Title on the first line, prefixed with "TITLE: ". Remove any labels like "(Preview)" or "(미리보기)".' : ''}
-    - ** SEO Hook **: ** Start the very first sentence with the exact keyword: "${outline.title}".**
-    - ** Value **: Briefly state what the reader will gain.
-    - ** Conciseness **: Write about 300 - 400 characters(or 80 - 100 words).
-    - Do NOT write any section headers(like ## Introduction).
-    - Do NOT use horizontal rules(---).
-  `;
+  // 1. Intro Generation
+  const introPrompt = PROMPTS.INTRO(baseContext, outline.sections, outline.title, isEnglish);
 
   // 2. Section Generation (Parallel)
   const sectionPromises = outline.sections.map(async (section, idx) => {
-    const sectionPrompt = `
-      ${baseContext}
+    const sectionPrompt = PROMPTS.SECTION(baseContext, section, outline.sections, isEnglish);
 
-  Task: Write the content for the section: "${section}".
-    Context(Full Outline): ${outline.sections.join(", ")}
-
-  Instructions:
-      ${isEnglish ? `- **HEADER TRANSLATION**: Start your response with the English translation of the section title "${section}" as a Level 2 Markdown Header (e.g. ## English Title).` : ''}
-      - ** Structure **:
-  1. ** Core Concept **: Clear explanation.
-        2. ** Visual / Interactive ** (Choose one that fits best):
-           - ** Comparison Table **: Use a Markdown Table for data / pros - cons.
-           - ** Mermaid Diagram **: Use \`\`\`mermaid\`\`\` for flows/structures.
-             **MERMAID DIAGRAM RULES (CRITICAL)**:
-             • Use \`graph TD\`.
-             • **Do NOT use text on arrows/edges**. Just use simple arrows (-->).
-             • Format: \`NodeID["Label"]\`.
-             • **Labels must be quoted in double quotes**.
-             • **NO PARENTHESES () in Label**.
-             • Example:
-               graph TD
-                 A["AI Market"] --> B["Growth"]
-                 A --> C["Decline"]
-           - **Checklist**: Use Emojis (e.g., "- ✅ Item").
-           - **Bulleted List**: Use emojis for key points.
-        3. **Key Insight**: Bold summary.
-      
-      - **Formatting**: ${isEnglish ? 'Use the translated header provided above.' : 'No subsections (###), no repeated headers, no horizontal rules.'}
-      - **Length**: Write comprehensively. Aim for 400-500 characters (Korean) or 150-200 words (English) per section to meet deep content standards.
-    `;
-    return generateText(ai, sectionPrompt, files, "You are an expert content writer. Use Tables and Emojis.");
+    return generateText(ai, sectionPrompt, files, "You are an expert content writer. Use Tables and Emojis.", modelId);
   });
 
   // 3. Conclusion Generation
-  const conclusionPrompt = `
-    ${baseContext}
-    
-    Task: Write a **Conclusion** and **3-Line Summary**.
-    Outline of the whole post: ${outline.sections.join(", ")}
-    
-    Instructions:
-    - Summarize the key takeaways.
-    - **Interactive CTA**: Ask a question to encourage comments.
-    - End with "## ⚡ 3줄 요약" (Or English equivalent "## ⚡ 3-Line Summary").
-    - Do NOT use horizontal rules (---).
-  `;
+  const conclusionPrompt = PROMPTS.CONCLUSION(baseContext, outline.sections);
 
   // Execute all requests in parallel
   const [introRaw, ...bodyAndConclusion] = await Promise.all([
-    generateText(ai, introPrompt, files, "You are a professional blog writer. Write an engaging intro."),
+    generateText(ai, introPrompt, files, "You are a professional blog writer. Write an engaging intro.", modelId),
     ...sectionPromises,
-    generateText(ai, conclusionPrompt, files, "You are a professional editor. Summarize perfectly.")
+    generateText(ai, conclusionPrompt, files, "You are a professional editor. Summarize perfectly.", modelId)
   ]);
 
   const conclusion = bodyAndConclusion.pop() || ""; // Last one is conclusion
@@ -392,19 +265,7 @@ export const generateBlogPostContent = async (
 export const generateSocialPosts = async (title: string, summary: string, imageStyle: ImageStyle): Promise<SocialPost[]> => {
   const ai = getGenAI();
 
-  const prompt = `
-    Create promotional social media posts for: "${title}".
-    Summary: "${summary.substring(0, 300)}..."
-    
-    Generate 3 posts:
-    1. **Instagram**: Engaging Caption. Use emojis. Do NOT use "(Slide 1)" markers.
-    2. **LinkedIn**: Professional Insight.
-    3. **Twitter**: Thread Hook.
-    
-    Use placeholder [Link] for the URL.
-    Output JSON.
-    IMPORTANT: All content must be in Korean.
-  `;
+  const prompt = PROMPTS.SOCIAL(title, summary);
 
   const response = await ai.models.generateContent({
     model: MODEL_IDS.TEXT,
@@ -426,10 +287,9 @@ export const generateSocialPosts = async (title: string, summary: string, imageS
     }
   });
 
-  let text = response.text;
+  let text = response.text || "";
   if (!text) return [];
 
-  // Track API usage with actual token counts from response
   // Track API usage with actual token counts from response
   const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
   const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(text);
@@ -487,17 +347,13 @@ export const generateBlogImage = async (title: string, style: ImageStyle, ratio:
   try {
     const response = await ai.models.generateContent({
       model: MODEL_IDS.IMAGE,
-      contents: `Create a high-quality image for: "${title}". ${stylePrompt} Aspect Ratio: ${ratio}. 
-      **CRITICAL INSTRUCTION: NO TEXT.** 
-      - Do NOT include any text, letters, numbers, or characters in the image.
-      - No signboards, no watermarks, no typography.
-      - Pure visual representation only.`,
+      contents: PROMPTS.IMAGE(title, stylePrompt, ratio),
       config: {
         imageConfig: { aspectRatio: ratio }
       }
     });
 
-    if (response.candidates && response.candidates[0].content.parts) {
+    if (response.candidates?.[0]?.content?.parts) {
       for (const part of response.candidates[0].content.parts) {
         if (part.inlineData) {
           // Track API usage for image generation
@@ -522,48 +378,16 @@ export const analyzeSeoDetails = async (content: string, keyword: string, langua
   const isEnglish = language === 'en';
 
   // 1. Define Persona based on Tone
-  let personaInstruction = "";
+  let personaInstruction = PERSONA_INSTRUCTIONS.DEFAULT;
   if (tone === 'witty' || tone === 'humorous') {
-    personaInstruction = "Role: A Viral Content Editor who loves witty, punchy, and entertaining writing. Criticism should focus on 'boring' parts.";
+    personaInstruction = PERSONA_INSTRUCTIONS.WITTY;
   } else if (tone === 'professional' || tone === 'formal') {
-    personaInstruction = "Role: A Senior Editor at a top-tier journal. Focus on Authority, Trustworthiness, and Clarity. Criticism should focus on 'vague' or 'unsupported' claims.";
+    personaInstruction = PERSONA_INSTRUCTIONS.PROFESSIONAL;
   } else if (tone === 'emotional' || tone === 'emphathetic') {
-    personaInstruction = "Role: An Emotional Storyteller. Focus on Empathy, Connection, and Human Touch. Criticism should focus on 'robotic' or 'cold' writing.";
-  } else {
-    personaInstruction = "Role: A Best-Selling Copywriter. Focus on Persuasion, Clarity, and Reader Retention.";
+    personaInstruction = PERSONA_INSTRUCTIONS.EMOTIONAL;
   }
 
-  const prompt = `
-    ${personaInstruction}
-    
-    Task: Analyze the following blog post and identify exactly 3 critical weaknesses that serve as barriers to viral growth or reader retention.
-    
-    Target Keyword: "${keyword || 'General'}"
-    Context Language: ${isEnglish ? 'English' : 'Korean'}
-    
-    Evaluate based on these 3 criteria:
-    1. **The Hook (First 3 seconds)**: Does the opening grab attention immediately? Is it boring?
-    2. **Scannability (Mobile Experience)**: Is there a "Wall of Text"? Are sentences too long?
-    3. **Viral Trigger / Authority**: Is there a reason to share this? (Emotion, Utility, or Insight).
-    
-    Output JSON format (Strict Array of Objects):
-    [
-      {
-        "issue": "Short name of the issue (e.g., 'Weak Hook', 'Wall of Text', 'Robotic Tone') (${isEnglish ? 'in English' : 'in Korean'})",
-        "original": "The exact sentence/segment causing the issue (max 50 chars)",
-        "suggestion": "Specific, actionable advice on HOW to fix it. Be direct but helpful. (${isEnglish ? 'in English' : 'in Korean'})",
-        "rewrite": "A perfect, polished rewrite of the segment that the user can use immediately."
-      }
-    ]
-    
-    **CRITICAL INSTRUCTION**:
-    - If Context Language is Korean, 'issue' and 'suggestion' MUST be in Korean.
-    - If Context Language is English, they MUST be treated in English.
-    - Do NOT output markdown code blocks (like \`\`\`json). Just the raw JSON.
-    
-    Content to analyze:
-    "${content.substring(0, 3000)}..." 
-  `;
+  const prompt = PROMPTS.SEO_ANALYSIS(personaInstruction, keyword, isEnglish, content);
 
   try {
     const response = await ai.models.generateContent({
@@ -574,7 +398,9 @@ export const analyzeSeoDetails = async (content: string, keyword: string, langua
       }
     });
 
-    const text = response.response.text();
+    // [FIX] Use response.text instead of response.response.text()
+    const text = response.text || "";
+
     // Clean potential markdown formatting
     const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
