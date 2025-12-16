@@ -298,11 +298,12 @@ export const generateBlogPostContent = async (
         2. **Visual/Interactive** (Choose one that fits best):
            - **Comparison Table**: Use a Markdown Table for data/pros-cons.
            - **Mermaid Diagram**: Use \`\`\`mermaid\`\`\` for flows/structures.
-             **CRITICAL MERMAID RULES**:
-             • USE ONLY \`graph TD\` (Top-Down Flowchart). Do NOT use mindmap or timeline.
-             • Format: \`NodeID["Label"]\` (Labels must be in English if language is English).
-             • KEEP IT SIMPLE: Max 5-7 nodes.
-             • AVOID special characters in specific Node IDs (use A, B, C...).
+             **MERMAID DIAGRAM RULES (CRITICAL)**:
+             • Use \`graph TD\`.
+             • **Do NOT use text on arrows/edges**. Just use simple arrows (-->).
+             • Format: \`NodeID["Label"]\`.
+             • **Labels must be quoted in double quotes**.
+             • **NO PARENTHESES () in Label**.
              • Example:
                graph TD
                  A["AI Market"] --> B["Growth"]

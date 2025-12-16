@@ -125,21 +125,31 @@ const App: React.FC = () => {
         const exists = prev.find(p => p.topic === newItem.topic && p.finalPost.content.length === newItem.finalPost.content.length);
         if (exists) return prev;
 
-        const updated = [newItem, ...prev].slice(0, 5); // Reduce to 5 items to save space
-
+        const updated = [newItem, ...prev].slice(0, 5); // Reduce to 5 items
         try {
-          localStorage.setItem('proinsight_history', JSON.stringify(updated));
-        } catch (e) {
-          console.warn("LocalStorage Quota Exceeded. Attempting to save without heavy images...");
-          // Fallback: Remove images from all items to recover space
+          // [FIX] Strip images from history to prevent QuotaExceededError
           const safeHistory = updated.map(item => ({
             ...item,
-            finalPost: { ...item.finalPost, images: [] }
+            images: [], // Do not save base64 images to localStorage
+            finalPost: item.finalPost ? { ...item.finalPost, images: [] } : null,
+            finalPostEn: item.finalPostEn ? { ...item.finalPostEn, images: [] } : null
           }));
+          localStorage.setItem('proinsight_history', JSON.stringify(safeHistory));
+        } catch (e) {
+          console.error("Failed to save history:", e);
+          // Fallback: Try saving only essential metadata (Title, Date, ID)
           try {
-            localStorage.setItem('proinsight_history', JSON.stringify(safeHistory));
+            const minimalHistory = updated.map(item => ({
+              id: item.id,
+              date: item.date,
+              topic: item.topic, // Use topic instead of title
+              outline: { ...item.outline, sections: item.outline.sections }, // Keep outline
+              finalPost: null, // Drop huge content
+              finalPostEn: null
+            }));
+            localStorage.setItem('proinsight_history', JSON.stringify(minimalHistory));
           } catch (retryError) {
-            console.error("Failed to save history even after compression", retryError);
+            console.error("Critical: Failed to save even minimal history", retryError);
           }
         }
         return updated;
