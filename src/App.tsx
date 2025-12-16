@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { StepWizard } from './components/StepWizard';
 import { LoadingOverlay } from './components/LoadingOverlay';
-import { SparklesIcon, ChevronRightIcon, RefreshIcon, PenIcon, ImageIcon, CopyIcon, TrendIcon, ChartIcon, CodeIcon, LinkIcon, UploadIcon, TrashIcon, FileTextIcon, PlusIcon, MemoIcon } from './components/Icons';
+import { SparklesIcon, ChevronRightIcon, RefreshIcon, PenIcon, ImageIcon, CopyIcon, TrendIcon, ChartIcon, CodeIcon, LinkIcon, UploadIcon, TrashIcon, FileTextIcon, PlusIcon, MemoIcon, XIcon, CheckIcon } from './components/Icons';
 import { generateOutline, generateBlogPostContent, generateBlogImage, generateSocialPosts } from './services/geminiService';
 import { AppStep, BlogTone, OutlineData, BlogPost, LoadingState, ImageStyle, UploadedFile, BlogFont, ModelType, TrendingTopic } from './types';
 import { SettingsModal } from './components/SettingsModal';
@@ -63,6 +63,35 @@ const App: React.FC = () => {
   //   ];
   //   keysToRemove.forEach(key => localStorage.removeItem(key));
   // }, []);
+
+  // Edit Mode State
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editContent, setEditContent] = useState('');
+
+  const handleEdit = () => {
+    const post = activeLang === 'ko' ? finalPost : finalPostEn;
+    if (post) {
+      setEditTitle(post.title);
+      setEditContent(post.content);
+      setIsEditing(true);
+    }
+  };
+
+  const handleSaveEdit = () => {
+    if (activeLang === 'ko') {
+      setFinalPost(prev => prev ? { ...prev, title: editTitle, content: editContent } : null);
+    } else {
+      setFinalPostEn(prev => prev ? { ...prev, title: editTitle, content: editContent } : null);
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditTitle('');
+    setEditContent('');
+  };
 
   // History State
   const [history, setHistory] = useState<{ id: string, date: string, topic: string, finalPost: BlogPost, outline: OutlineData }[]>([]);
@@ -730,6 +759,30 @@ const App: React.FC = () => {
               >
                 <CopyIcon className="w-4 h-4" /> 복사하기
               </button>
+
+              {!isEditing ? (
+                <button
+                  onClick={handleEdit}
+                  className="ml-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg font-medium shadow-sm transition-all flex items-center gap-2"
+                >
+                  <PenIcon className="w-4 h-4" /> 수정
+                </button>
+              ) : (
+                <div className="flex gap-2 ml-2">
+                  <button
+                    onClick={handleCancelEdit}
+                    className="px-4 py-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg font-medium shadow-sm transition-all flex items-center gap-2"
+                  >
+                    <XIcon className="w-4 h-4" /> 취소
+                  </button>
+                  <button
+                    onClick={handleSaveEdit}
+                    className="px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg font-medium shadow-sm transition-all flex items-center gap-2"
+                  >
+                    <CheckIcon className="w-4 h-4" /> 저장
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Tabs for Dual Mode */}
@@ -763,13 +816,32 @@ const App: React.FC = () => {
               <div className="lg:col-span-2 space-y-8">
                 <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
                   <div className="p-10 md:p-14">
-                    <h1 className={`text-4xl font-extrabold text-slate-900 mb-8 leading-tight`}>
-                      {activeLang === 'ko' ? finalPost?.title : finalPostEn?.title}
-                    </h1>
-                    <MarkdownRenderer
-                      content={activeLang === 'ko' ? (finalPost?.content || '') : (finalPostEn?.content || '')}
-                      font={selectedFont}
-                    />
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        className="w-full text-4xl font-extrabold text-slate-900 mb-8 border-b-2 border-indigo-200 focus:border-indigo-600 outline-none bg-transparent py-2"
+                      />
+                    ) : (
+                      <h1 className={`text-4xl font-extrabold text-slate-900 mb-8 leading-tight`}>
+                        {activeLang === 'ko' ? finalPost?.title : finalPostEn?.title}
+                      </h1>
+                    )}
+
+                    {isEditing ? (
+                      <textarea
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        className="w-full h-[60vh] p-4 border border-slate-200 rounded-lg text-lg leading-relaxed focus:border-indigo-500 outline-none resize-none font-sans"
+                        placeholder="내용을 입력하세요..."
+                      />
+                    ) : (
+                      <MarkdownRenderer
+                        content={activeLang === 'ko' ? (finalPost?.content || '') : (finalPostEn?.content || '')}
+                        font={selectedFont}
+                      />
+                    )}
                   </div>
                 </div>
 
@@ -794,8 +866,8 @@ const App: React.FC = () => {
 
                 {/* [NEW] 1. SEO 분석기 */}
                 <SeoAnalyzer
-                  title={activeLang === 'ko' ? finalPost?.title || '' : finalPostEn?.title || ''}
-                  content={activeLang === 'ko' ? finalPost?.content || '' : finalPostEn?.content || ''}
+                  title={isEditing ? editTitle : (activeLang === 'ko' ? finalPost?.title || '' : finalPostEn?.title || '')}
+                  content={isEditing ? editContent : (activeLang === 'ko' ? finalPost?.content || '' : finalPostEn?.content || '')}
                   keyword={topic} // 검색했던 주제를 키워드로 간주
                 />
 
