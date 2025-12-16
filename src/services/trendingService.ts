@@ -29,7 +29,8 @@ const FALLBACK_TOPICS: TrendingTopic[] = [
 /**
  * Generates trending topics using Gemini API
  */
-const generateTrendingTopics = async (modelId: string = MODEL_ID): Promise<TrendingTopic[]> => {
+const generateTrendingTopics = async (/* specific model ignored for stability */): Promise<TrendingTopic[]> => {
+    const modelId = MODEL_ID; // Force use of verified model (gemini-2.5-flash)
     try {
         const ai = getGenAI();
         if (!ai) {
@@ -111,7 +112,8 @@ const generateTrendingTopics = async (modelId: string = MODEL_ID): Promise<Trend
 /**
  * Analyzes a specific topic for trend insights
  */
-export const analyzeTrend = async (topic: string, modelId: string = MODEL_ID): Promise<TrendAnalysis> => {
+export const analyzeTrend = async (topic: string, /* specific model ignored */): Promise<TrendAnalysis> => {
+    const modelId = MODEL_ID; // Force use of verified model
     const ai = getGenAI();
 
     // Default fallback
@@ -186,7 +188,7 @@ export const getTrendingTopics = async (modelId?: string): Promise<TrendingTopic
 
         // Cache miss or expired - generate new topics
         console.log("Generating new trending topics");
-        const topics = await generateTrendingTopics(modelId);
+        const topics = await generateTrendingTopics();
 
         // Save to cache ONLY if not fallback
         if (JSON.stringify(topics) !== JSON.stringify(FALLBACK_TOPICS)) {

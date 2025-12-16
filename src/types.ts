@@ -61,11 +61,11 @@ export interface LoadingState {
   progress?: number; // 0-100, optional progress percentage
 }
 
-// v1.1: Model Selection
+// v1.1: Model Selection (All mapped to 2.5-flash for stability in 2025 environment)
 export enum ModelType {
-  PRO_1_5 = 'gemini-1.5-pro',
+  PRO_1_5 = 'gemini-2.5-flash', // Fallback to working model
   FLASH_2_5 = 'gemini-2.5-flash',
-  FLASH_1_5 = 'gemini-1.5-flash',
+  FLASH_1_5 = 'gemini-2.5-flash', // Fallback to working model
 }
 
 // v1.1: API Usage Monitoring
