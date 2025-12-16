@@ -629,8 +629,8 @@ const App: React.FC = () => {
                             key={tone}
                             onClick={() => setSelectedTone(tone)}
                             className={`w - full text - left px - 3 py - 2 rounded - lg text - xs font - medium transition - all ${selectedTone === tone
-                                ? 'bg-indigo-50 border-2 border-indigo-500 text-indigo-700'
-                                : 'bg-slate-50 border border-transparent text-slate-600 hover:bg-slate-100'
+                              ? 'bg-indigo-50 border-2 border-indigo-500 text-indigo-700'
+                              : 'bg-slate-50 border border-transparent text-slate-600 hover:bg-slate-100'
                               } `}
                           >
                             {tone}
@@ -640,7 +640,7 @@ const App: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center text-xs">🎨</span>
+                        <span className="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs">🎨</span>
                         이미지 스타일
                       </h3>
                       <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
@@ -648,10 +648,10 @@ const App: React.FC = () => {
                           <button
                             key={style}
                             onClick={() => setSelectedImageStyle(style)}
-                            className={`w - full text - left px - 3 py - 2 rounded - lg text - xs font - medium transition - all ${selectedImageStyle === style
-                                ? 'bg-pink-50 border-2 border-pink-500 text-pink-700'
-                                : 'bg-slate-50 border border-transparent text-slate-600 hover:bg-slate-100'
-                              } `}
+                            className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all ${selectedImageStyle === style
+                              ? 'bg-indigo-50 border-2 border-indigo-500 text-indigo-700'
+                              : 'bg-slate-50 border border-transparent text-slate-600 hover:bg-slate-100'
+                              }`}
                           >
                             {style}
                           </button>
@@ -811,8 +811,8 @@ const App: React.FC = () => {
                   <button
                     onClick={() => setActiveLang('ko')}
                     className={`px - 6 py - 2 rounded - lg text - sm font - bold transition - all ${activeLang === 'ko'
-                        ? 'bg-indigo-600 text-white shadow-md'
-                        : 'text-slate-500 hover:bg-slate-50'
+                      ? 'bg-indigo-600 text-white shadow-md'
+                      : 'text-slate-500 hover:bg-slate-50'
                       } `}
                   >
                     🇰🇷 한국어 (Korean)
@@ -820,8 +820,8 @@ const App: React.FC = () => {
                   <button
                     onClick={() => setActiveLang('en')}
                     className={`px - 6 py - 2 rounded - lg text - sm font - bold transition - all ${activeLang === 'en'
-                        ? 'bg-indigo-600 text-white shadow-md'
-                        : 'text-slate-500 hover:bg-slate-50'
+                      ? 'bg-indigo-600 text-white shadow-md'
+                      : 'text-slate-500 hover:bg-slate-50'
                       } `}
                   >
                     🇺🇸 English (Global)
@@ -902,7 +902,36 @@ const App: React.FC = () => {
                     setTimeout(() => {
                       if (textareaRef.current) {
                         const content = isEditing ? editContent : (activeLang === 'ko' ? finalPost?.content || '' : finalPostEn?.content || '');
-                        const index = content.indexOf(text);
+
+                        // Normalizer function: remove whitespaces and markdown symbols for comparison
+                        const normalize = (str: string) => str.replace(/[\s\n\r*#_`\-]/g, '');
+
+                        // 1. Try exact match first
+                        let index = content.indexOf(text);
+
+                        // 2. If fail, try normalized match
+                        if (index === -1) {
+                          const normSearch = normalize(text);
+                          const normContent = normalize(content);
+                          const normIndex = normContent.indexOf(normSearch);
+
+                          if (normIndex !== -1) {
+                            // Map normalized index back to original index (approximate but effective)
+                            // This is a naive reconstruction, finding the first occurrence of the raw text sequence roughly matching
+                            // A better way is to scan the original content and match normalized chars
+                            let matchCount = 0;
+                            for (let i = 0; i < content.length; i++) {
+                              if (normalize(content[i])) { // is it a significant char?
+                                if (matchCount === normIndex) {
+                                  index = i;
+                                  break;
+                                }
+                                matchCount++;
+                              }
+                            }
+                          }
+                        }
+
                         if (index >= 0) {
                           textareaRef.current.focus();
                           textareaRef.current.setSelectionRange(index, index + text.length);
@@ -911,7 +940,18 @@ const App: React.FC = () => {
                           const linesBefore = content.substring(0, index).split('\n').length;
                           textareaRef.current.scrollTop = linesBefore * lineHeight - 100;
                         } else {
-                          alert("원문을 찾을 수 없습니다. (내용이 변경되었을 수 있습니다)");
+                          // 3. Fallback: Try finding just the first 10 chars (partial match)
+                          const shortText = text.substring(0, 10);
+                          if (content.includes(shortText)) {
+                            const shortIndex = content.indexOf(shortText);
+                            textareaRef.current.focus();
+                            textareaRef.current.setSelectionRange(shortIndex, shortIndex + text.length);
+                            // Scroll to selection
+                            const linesBefore = content.substring(0, shortIndex).split('\n').length;
+                            textareaRef.current.scrollTop = linesBefore * lineHeight - 100;
+                          } else {
+                            alert("원문을 찾을 수 없습니다. (내용이 변경되었을 수 있습니다)");
+                          }
                         }
                       }
                     }, 100);

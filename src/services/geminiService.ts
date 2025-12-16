@@ -254,51 +254,52 @@ export const generateBlogPostContent = async (
        - If no specific URL is found, omit the link. Do NOT create fake deep-links.
     8. **NO DISCLAIMERS**: Do NOT add "This is a fictional post" or "For illustrative purposes". Write with authority.
     9. **Target Length**: Aim for ~300-350 characters (Korean) per section to keep the total length around 3,000 characters. Be concise and impactful.
+    10. **NO TITLE REPETITION**: The H1 title is already rendered by the system. Do NOT include the Main Title or "Title: ..." at the beginning of your output. Start directly with the Introduction.
   `;
   if (memo && memo.trim()) {
     baseContext += `
-    
-    [USER CUSTOM CONTEXT / INSTRUCTION START]
+
+  [USER CUSTOM CONTEXT / INSTRUCTION START]
     ${memo}
-    [USER CUSTOM CONTEXT / INSTRUCTION END]
-    
+  [USER CUSTOM CONTEXT / INSTRUCTION END]
+
     (Prioritize the above user instructions over default guidelines.)
     `;
   }
-  if (urls.length > 0) baseContext += `\nSOURCE URLs (For reference only):\n${urls.join('\n')}`;
+  if (urls.length > 0) baseContext += `\nSOURCE URLs(For reference only): \n${urls.join('\n')} `;
   if (files.length > 0) baseContext += `\n(Refer to attached documents)`;
 
   // 1. Intro Generation (Ask for translated title if English)
   const introPrompt = `
     ${baseContext}
-    
-    Task: Write an engaging **Introduction** for this blog post.
+
+  Task: Write an engaging ** Introduction ** for this blog post.
     Outline of the whole post: ${outline.sections.join(", ")}
-    
-    Instructions:
+
+  Instructions:
     ${isEnglish ? '- **TRANSLATION TASK**: Start your response with the English translation of the Blog Title on the first line, prefixed with "TITLE: ". Remove any labels like "(Preview)" or "(미리보기)".' : ''}
-    - **SEO Hook**: **Start the very first sentence with the exact keyword: "${outline.title}".**
-    - **Value**: Briefly state what the reader will gain.
-    - **Conciseness**: Write about 300-400 characters (or 80-100 words).
-    - Do NOT write any section headers (like ## Introduction).
-    - Do NOT use horizontal rules (---).
+    - ** SEO Hook **: ** Start the very first sentence with the exact keyword: "${outline.title}".**
+    - ** Value **: Briefly state what the reader will gain.
+    - ** Conciseness **: Write about 300 - 400 characters(or 80 - 100 words).
+    - Do NOT write any section headers(like ## Introduction).
+    - Do NOT use horizontal rules(---).
   `;
 
   // 2. Section Generation (Parallel)
   const sectionPromises = outline.sections.map(async (section, idx) => {
     const sectionPrompt = `
       ${baseContext}
-      
-      Task: Write the content for the section: "${section}".
-      Context (Full Outline): ${outline.sections.join(", ")}
-      
-      Instructions:
+
+  Task: Write the content for the section: "${section}".
+    Context(Full Outline): ${outline.sections.join(", ")}
+
+  Instructions:
       ${isEnglish ? `- **HEADER TRANSLATION**: Start your response with the English translation of the section title "${section}" as a Level 2 Markdown Header (e.g. ## English Title).` : ''}
-      - **Structure**:
-        1. **Core Concept**: Clear explanation.
-        2. **Visual/Interactive** (Choose one that fits best):
-           - **Comparison Table**: Use a Markdown Table for data/pros-cons.
-           - **Mermaid Diagram**: Use \`\`\`mermaid\`\`\` for flows/structures.
+      - ** Structure **:
+  1. ** Core Concept **: Clear explanation.
+        2. ** Visual / Interactive ** (Choose one that fits best):
+           - ** Comparison Table **: Use a Markdown Table for data / pros - cons.
+           - ** Mermaid Diagram **: Use \`\`\`mermaid\`\`\` for flows/structures.
              **MERMAID DIAGRAM RULES (CRITICAL)**:
              • Use \`graph TD\`.
              • **Do NOT use text on arrows/edges**. Just use simple arrows (-->).
