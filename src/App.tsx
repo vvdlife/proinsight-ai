@@ -701,7 +701,7 @@ const App: React.FC = () => {
 
       case AppStep.FINAL_RESULT:
         return (
-          <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700 pb-20">
+          <div className="max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700 pb-20">
             <div className="flex justify-between items-center mb-6">
               <button
                 onClick={handleReset}
@@ -775,6 +775,18 @@ const App: React.FC = () => {
 
                 {/* 소셜 포스트 */}
                 {activeLang === 'ko' && finalPost?.socialPosts && <SocialGenerator posts={finalPost.socialPosts} />}
+
+                <div className="mt-8 border-t border-slate-100 pt-8">
+                  {(activeLang === 'ko' ? finalPost : finalPostEn) && (
+                    <ExportManager post={activeLang === 'ko' ? finalPost! : finalPostEn!} />
+                  )}
+                  {(activeLang === 'ko' ? finalPost : finalPostEn) && (
+                    <PublishingManager
+                      post={activeLang === 'ko' ? finalPost! : finalPostEn!}
+                      isAuthenticated={isAuthenticated}
+                    />
+                  )}
+                </div>
               </div>
 
               {/* 오른쪽: 사이드바 영역 (1/3 차지) */}
@@ -790,7 +802,7 @@ const App: React.FC = () => {
                 {/* [NEW] 2. 썸네일 에디터 */}
                 <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                   <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    🎨 썸네일 편집
+                    🎨 썸네일 편집 (BETA)
                   </h3>
                   {finalPost?.images && finalPost.images.length > 0 ? (
                     <ThumbnailEditor
@@ -809,18 +821,6 @@ const App: React.FC = () => {
                   <ApiUsageMonitor usage={getApiUsageStats()} />
                 </React.Suspense>
               </div>
-            </div>
-
-            <div className="mt-8">
-              {(activeLang === 'ko' ? finalPost : finalPostEn) && (
-                <ExportManager post={activeLang === 'ko' ? finalPost! : finalPostEn!} />
-              )}
-              {(activeLang === 'ko' ? finalPost : finalPostEn) && (
-                <PublishingManager
-                  post={activeLang === 'ko' ? finalPost! : finalPostEn!}
-                  isAuthenticated={isAuthenticated}
-                />
-              )}
             </div>
           </div>
         );
