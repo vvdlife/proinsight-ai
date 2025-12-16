@@ -904,6 +904,7 @@ const App: React.FC = () => {
                   content={isEditing ? editContent : (activeLang === 'ko' ? finalPost?.content || '' : finalPostEn?.content || '')}
                   keyword={topic} // 검색했던 주제를 키워드로 간주
                   language={activeLang as 'ko' | 'en'}
+                  tone={selectedTone}
                   onHighlight={(text) => {
                     // Switch to edit mode if not already
                     if (!isEditing) {

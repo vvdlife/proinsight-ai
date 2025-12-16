@@ -515,38 +515,54 @@ export const generateBlogImage = async (title: string, style: ImageStyle, ratio:
 };
 
 /**
- * Performs deep SEO diagnosis on the content.
+ * Performs deep SEO diagnosis on the content with Viral/Persona awareness.
  */
-export const analyzeSeoDetails = async (content: string, keyword: string, language: 'ko' | 'en' = 'ko'): Promise<SeoDiagnosis[]> => {
+export const analyzeSeoDetails = async (content: string, keyword: string, language: 'ko' | 'en' = 'ko', tone: string = 'polite'): Promise<SeoDiagnosis[]> => {
   const ai = getGenAI();
   const isEnglish = language === 'en';
 
+  // 1. Define Persona based on Tone
+  let personaInstruction = "";
+  if (tone === 'witty' || tone === 'humorous') {
+    personaInstruction = "Role: A Viral Content Editor who loves witty, punchy, and entertaining writing. Criticism should focus on 'boring' parts.";
+  } else if (tone === 'professional' || tone === 'formal') {
+    personaInstruction = "Role: A Senior Editor at a top-tier journal. Focus on Authority, Trustworthiness, and Clarity. Criticism should focus on 'vague' or 'unsupported' claims.";
+  } else if (tone === 'emotional' || tone === 'emphathetic') {
+    personaInstruction = "Role: An Emotional Storyteller. Focus on Empathy, Connection, and Human Touch. Criticism should focus on 'robotic' or 'cold' writing.";
+  } else {
+    personaInstruction = "Role: A Best-Selling Copywriter. Focus on Persuasion, Clarity, and Reader Retention.";
+  }
+
   const prompt = `
-    Analyze this blog post for SEO weaknesses.
+    ${personaInstruction}
+    
+    Task: Analyze the following blog post and identify exactly 3 critical weaknesses that serve as barriers to viral growth or reader retention.
+    
     Target Keyword: "${keyword || 'General'}"
     Context Language: ${isEnglish ? 'English' : 'Korean'}
     
-    Find 3-4 specific areas that need improvement. Focus on:
-    1. Keyword placement (if missing in critical areas).
-    2. Readability (long sentences, passive voice).
-    3. Engagement (boring intros, lack of questions).
+    Evaluate based on these 3 criteria:
+    1. **The Hook (First 3 seconds)**: Does the opening grab attention immediately? Is it boring?
+    2. **Scannability (Mobile Experience)**: Is there a "Wall of Text"? Are sentences too long?
+    3. **Viral Trigger / Authority**: Is there a reason to share this? (Emotion, Utility, or Insight).
     
-    Output JSON format:
+    Output JSON format (Strict Array of Objects):
     [
       {
-        "issue": "Brief description of the problem (${isEnglish ? 'in English' : 'in Korean'})",
-        "original": "The specific sentence or segment that is problematic (max 50 chars)",
-        "suggestion": "Explanation of WHY and HOW to fix it (${isEnglish ? 'in English' : 'in Korean'})",
-        "rewrite": "The actual full rewritten sentence/paragraph that the user can copy & paste. Make it perfect."
+        "issue": "Short name of the issue (e.g., 'Weak Hook', 'Wall of Text', 'Robotic Tone') (${isEnglish ? 'in English' : 'in Korean'})",
+        "original": "The exact sentence/segment causing the issue (max 50 chars)",
+        "suggestion": "Specific, actionable advice on HOW to fix it. Be direct but helpful. (${isEnglish ? 'in English' : 'in Korean'})",
+        "rewrite": "A perfect, polished rewrite of the segment that the user can use immediately."
       }
     ]
     
     **CRITICAL INSTRUCTION**:
-    - If Context Language is Korean, the 'issue' and 'suggestion' fields MUST be written in Korean.
-    - If Context Language is English, they MUST be written in English.
+    - If Context Language is Korean, 'issue' and 'suggestion' MUST be in Korean.
+    - If Context Language is English, they MUST be treated in English.
+    - Do NOT output markdown code blocks (like \`\`\`json). Just the raw JSON.
     
     Content to analyze:
-    "${content.substring(0, 2000)}..." 
+    "${content.substring(0, 3000)}..." 
   `;
 
   try {
@@ -558,14 +574,17 @@ export const analyzeSeoDetails = async (content: string, keyword: string, langua
       }
     });
 
-    const text = response.text || "[]";
+    const text = response.response.text();
+    // Clean potential markdown formatting
+    const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
     // Track API usage
     const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
-    const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(text);
+    const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(jsonStr);
     trackApiCall(MODEL_IDS.TEXT, promptTokens, completionTokens, 'seo_analysis');
 
-    return safeJsonParse<SeoDiagnosis[]>(text);
+    return JSON.parse(jsonStr);
+
   } catch (error) {
     console.error("SEO Analysis failed:", error);
     return [];

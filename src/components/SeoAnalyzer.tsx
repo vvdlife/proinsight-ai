@@ -6,10 +6,11 @@ interface SeoAnalyzerProps {
     title: string;
     keyword?: string;
     language?: 'ko' | 'en';
+    tone?: string;
     onHighlight?: (text: string) => void;
 }
 
-export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keyword, language = 'ko', onHighlight }) => {
+export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keyword, language = 'ko', tone = 'polite', onHighlight }) => {
     // Diagnosis State (Moved up for Score Calculation)
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -84,7 +85,7 @@ export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keywor
         setShowSuggestions(true);
         try {
             const { analyzeSeoDetails } = await import('../services/geminiService');
-            const result = await analyzeSeoDetails(content, keyword || '', language as 'ko' | 'en');
+            const result = await analyzeSeoDetails(content, keyword || '', language as 'ko' | 'en', tone);
             setSuggestions(result);
         } catch (e) {
             console.error(e);
