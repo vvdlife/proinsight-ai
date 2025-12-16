@@ -790,7 +790,7 @@ const App: React.FC = () => {
               </div>
 
               {/* 오른쪽: 사이드바 영역 (1/3 차지) */}
-              <div className="space-y-6">
+              <div className="space-y-6 sticky top-24 self-start">
 
                 {/* [NEW] 1. SEO 분석기 */}
                 <SeoAnalyzer

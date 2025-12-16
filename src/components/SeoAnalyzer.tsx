@@ -21,15 +21,15 @@ export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keywor
     score = Math.min(Math.round(score), 100);
 
     return (
-        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm h-full">
+        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
             <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
                 📊 SEO 분석 리포트
             </h3>
 
             <div className="flex items-center gap-4 mb-6">
                 <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold border-4 ${score >= 80 ? 'border-green-500 text-green-600 bg-green-50' :
-                        score >= 50 ? 'border-yellow-500 text-yellow-600 bg-yellow-50' :
-                            'border-red-500 text-red-600 bg-red-50'
+                    score >= 50 ? 'border-yellow-500 text-yellow-600 bg-yellow-50' :
+                        'border-red-500 text-red-600 bg-red-50'
                     }`}>
                     {score}
                 </div>
