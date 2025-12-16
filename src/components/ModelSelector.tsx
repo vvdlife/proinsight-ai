@@ -28,21 +28,21 @@ const MODELS: ModelInfo[] = [
     },
     {
         id: ModelType.FLASH_2_5,
-        name: 'Gemini 2.5 Flash',
-        description: '빠르고 최신 모델 (기본값)',
+        name: 'Gemini 1.5 Flash (Latest)',
+        description: '가장 최신 성능의 Flash 모델 (권장)',
         speed: '빠름',
         quality: '높음',
         cost: '중간',
-        badge: '⚡ 기본'
+        badge: '⚡ 최신'
     },
     {
         id: ModelType.FLASH_1_5,
-        name: 'Gemini 1.5 Flash',
-        description: '가장 빠른 경량 모델',
+        name: 'Gemini 1.5 Flash (Legacy)',
+        description: '안정적인 기본 모델',
         speed: '매우 빠름',
         quality: '보통',
         cost: '낮음',
-        badge: '💨 FREE'
+        badge: '💨 FAST'
     }
 ];
 
@@ -66,8 +66,8 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ selectedModel, onM
                             key={model.id}
                             onClick={() => onModelChange(model.id)}
                             className={`relative p-4 rounded-xl border-2 transition-all text-left ${selectedModel === model.id
-                                    ? 'border-purple-500 bg-purple-50 shadow-lg'
-                                    : 'border-slate-200 hover:border-purple-300 hover:shadow-md'
+                                ? 'border-purple-500 bg-purple-50 shadow-lg'
+                                : 'border-slate-200 hover:border-purple-300 hover:shadow-md'
                                 }`}
                         >
                             {/* Badge */}

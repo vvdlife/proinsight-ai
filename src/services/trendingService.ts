@@ -12,7 +12,8 @@ const getGenAI = () => {
     const key = sessionStorage.getItem('proinsight_api_key') || localStorage.getItem('proinsight_api_key') || (import.meta as any).env.VITE_API_KEY;
 
     if (!key) {
-        throw new Error("API Key가 없습니다. 설정에서 키를 등록해주세요.");
+        // Return null instead of throwing to avoid crashing background services
+        return null;
     }
     return new GoogleGenAI({ apiKey: key });
 };
@@ -31,6 +32,10 @@ const FALLBACK_TOPICS: TrendingTopic[] = [
 const generateTrendingTopics = async (modelId: string = MODEL_ID): Promise<TrendingTopic[]> => {
     try {
         const ai = getGenAI();
+        if (!ai) {
+            console.warn("API Key missing, using fallback topics.");
+            return FALLBACK_TOPICS;
+        }
 
         // Get current date for context
         const currentDate = new Date().toLocaleDateString('ko-KR', {
@@ -118,6 +123,10 @@ export const analyzeTrend = async (topic: string, modelId: string = MODEL_ID): P
     };
 
     try {
+        if (!ai) {
+            return { ...fallback, reason: "API Key가 설정되지 않았습니다." };
+        }
+
         const prompt = `
         Analyze the current search trend and popularity for the keyword: "${topic}" in South Korea.
         
