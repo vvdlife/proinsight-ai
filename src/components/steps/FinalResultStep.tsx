@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { PenIcon, RefreshIcon, CheckIcon, XIcon, DownloadIcon, ImageIcon, CopyIcon } from '../Icons'; // Removed ShareIcon to be safe
+import { PenIcon, RefreshIcon, CheckIcon, XIcon, DownloadIcon, ImageIcon, CopyIcon } from '../Icons';
 import { MarkdownRenderer } from '../MarkdownRenderer';
 import { BlogFont } from '../../types';
-import { SeoAnalyzer } from '../SeoAnalyzer'; // Corrected
-import { SocialGenerator } from '../SocialGenerator'; // Corrected
+import { SeoAnalyzer } from '../SeoAnalyzer';
+import { SocialGenerator } from '../SocialGenerator';
 import { ThumbnailEditor } from '../ThumbnailEditor';
 import { useBlogContext } from '../../context/BlogContext';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 
 export const FinalResultStep: React.FC = () => {
@@ -104,6 +106,49 @@ export const FinalResultStep: React.FC = () => {
         a.click();
     };
 
+    const handleExportPdf = async () => {
+        const element = document.getElementById('blog-content-area');
+        if (!element) return;
+
+        try {
+            const canvas = await html2canvas(element, {
+                scale: 2, // High resolution
+                useCORS: true,
+                logging: false,
+                windowWidth: element.scrollWidth,
+                windowHeight: element.scrollHeight
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            const imgWidth = 210; // A4 width in mm
+            const pageHeight = 297; // A4 height in mm
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+
+            while (heightLeft >= 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+
+            pdf.save(`${currentPost.title}.pdf`);
+        } catch (error) {
+            console.error("PDF Export Failed", error);
+            alert("PDF 저장 중 오류가 발생했습니다.");
+        }
+    };
+
     return (
         <div className="max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
 
@@ -149,6 +194,8 @@ export const FinalResultStep: React.FC = () => {
                             <option value={BlogFont.PRETENDARD}>Pretendard (기본)</option>
                             <option value={BlogFont.NOTO_SERIF}>Noto Serif (명조)</option>
                             <option value={BlogFont.NANUM_GOTHIC}>나눔고딕 (본문)</option>
+                            <option value={BlogFont.RIDIBATANG}>리디바탕 (이북)</option>
+                            <option value={BlogFont.NANUM_PEN}>나눔손글씨 (캐주얼)</option>
                         </select>
                     </div>
 
@@ -173,6 +220,7 @@ export const FinalResultStep: React.FC = () => {
                                 <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden hidden group-hover:block animate-in fade-in zoom-in-95 duration-200 z-50">
                                     <button onClick={handleExportHtml} className="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors">HTML로 저장</button>
                                     <button onClick={handleExportMarkdown} className="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors">Markdown으로 저장</button>
+                                    <button onClick={handleExportPdf} className="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors">PDF로 저장</button>
                                 </div>
                             </div>
                         </>
@@ -211,7 +259,7 @@ export const FinalResultStep: React.FC = () => {
                     )}
 
                     {/* Blog Post Content */}
-                    <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden min-h-[600px]">
+                    <div id="blog-content-area" className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden min-h-[600px]">
                         {isEditing ? (
                             <div className="p-8 space-y-6">
                                 <input
