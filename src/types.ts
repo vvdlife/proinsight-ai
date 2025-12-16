@@ -94,6 +94,12 @@ export interface ApiUsageStats {
 }
 
 // v1.2: Trending Topics
+export interface SeoDiagnosis {
+  issue: string;
+  original: string;
+  suggestion: string;
+}
+
 export interface TrendingTopic {
   icon: string; // Icon name (e.g., "TrendIcon", "ChartIcon")
   text: string; // Topic text

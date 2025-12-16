@@ -63,6 +63,26 @@ export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keywor
 
     const [detailsOpen, setDetailsOpen] = useState(false);
 
+    // Diagnosis State
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [suggestions, setSuggestions] = useState<import('../types').SeoDiagnosis[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+
+    const handleDeepAnalysis = async () => {
+        setIsAnalyzing(true);
+        setShowSuggestions(true);
+        try {
+            const { analyzeSeoDetails } = await import('../services/geminiService');
+            const result = await analyzeSeoDetails(content, keyword || '');
+            setSuggestions(result);
+        } catch (e) {
+            console.error(e);
+            alert("분석 중 오류가 발생했습니다.");
+        } finally {
+            setIsAnalyzing(false);
+        }
+    };
+
     return (
         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
             <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
@@ -146,6 +166,54 @@ export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keywor
                         />
                     </div>
                 )}
+
+                {/* AI Deep Analysis Section */}
+                <div className="pt-4 mt-2 border-t border-slate-100">
+                    {!showSuggestions ? (
+                        <button
+                            onClick={handleDeepAnalysis}
+                            className="w-full py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                        >
+                            <span>🤖 AI 심층 진단 & 수정 제안</span>
+                        </button>
+                    ) : (
+                        <div className="animate-in fade-in slide-in-from-bottom-2">
+                            <div className="flex justify-between items-center mb-3">
+                                <h4 className="font-bold text-indigo-900 text-sm">💡 AI 수정 제안</h4>
+                                <button onClick={() => setShowSuggestions(false)} className="text-xs text-slate-400">닫기</button>
+                            </div>
+
+                            {isAnalyzing ? (
+                                <div className="p-4 bg-slate-50 rounded-xl text-center">
+                                    <div className="animate-spin w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                                    <p className="text-xs text-slate-500">콘텐츠를 정밀 분석 중입니다...</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {suggestions.length > 0 ? suggestions.map((item, idx) => (
+                                        <div key={idx} className="bg-indigo-50 border border-indigo-100 p-3 rounded-lg">
+                                            <div className="text-xs font-bold text-indigo-800 mb-1 flex items-center gap-1">
+                                                ⚠️ {item.issue}
+                                            </div>
+                                            <div className="text-[11px] text-slate-500 mb-2 line-through opacity-70">
+                                                "{item.original}"
+                                            </div>
+                                            <div className="text-xs text-slate-700 bg-white p-2 rounded border border-indigo-50">
+                                                <span className="text-indigo-600 font-bold mr-1">제안:</span>
+                                                {item.suggestion}
+                                            </div>
+                                        </div>
+                                    )) : (
+                                        <div className="text-center p-3">
+                                            <span className="text-2xl">🎉</span>
+                                            <p className="text-xs text-slate-500 mt-1">완벽합니다! 특별한 문제점이 발견되지 않았습니다.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

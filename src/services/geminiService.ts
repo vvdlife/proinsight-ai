@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { BlogTone, OutlineData, SocialPost, ImageStyle, UploadedFile } from "../types";
+import { BlogTone, OutlineData, SocialPost, ImageStyle, UploadedFile, SeoDiagnosis } from "../types";
 import { trackApiCall, estimateTokens } from './apiUsageTracker';
 import { safeJsonParse } from './utils';
 
@@ -503,6 +503,56 @@ export const generateBlogImage = async (title: string, style: ImageStyle, ratio:
     return undefined;
   } catch (error) {
     console.error("Image generation failed:", error);
-    return undefined;
+  }
+};
+
+/**
+ * Performs deep SEO diagnosis on the content.
+ */
+export const analyzeSeoDetails = async (content: string, keyword: string): Promise<SeoDiagnosis[]> => {
+  const ai = getGenAI();
+
+  const prompt = `
+    Analyze this blog post for SEO weaknesses.
+    Target Keyword: "${keyword || 'General'}"
+    
+    Find 3-4 specific areas that need improvement. Focus on:
+    1. Keyword placement (if missing in critical areas).
+    2. Readability (long sentences, passive voice).
+    3. Engagement (boring intros, lack of questions).
+    
+    Output JSON format:
+    [
+      {
+        "issue": "Brief description of the problem",
+        "original": "The specific sentence or segment that is problematic (max 50 chars)",
+        "suggestion": "How to fix it (specific actionable advice)"
+      }
+    ]
+    
+    Content to analyze:
+    "${content.substring(0, 5000)}..." 
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: MODEL_IDS.TEXT,
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+      }
+    });
+
+    const text = response.text || "[]";
+
+    // Track API usage
+    const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
+    const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(text);
+    trackApiCall(MODEL_IDS.TEXT, promptTokens, completionTokens, 'seo_analysis');
+
+    return safeJsonParse<SeoDiagnosis[]>(text);
+  } catch (error) {
+    console.error("SEO Analysis failed:", error);
+    return [];
   }
 };
