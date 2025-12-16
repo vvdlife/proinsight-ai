@@ -188,12 +188,17 @@ export const getTrendingTopics = async (modelId?: string): Promise<TrendingTopic
         console.log("Generating new trending topics");
         const topics = await generateTrendingTopics(modelId);
 
-        // Save to cache
-        const cacheData: TrendingCache = {
-            topics,
-            timestamp: Date.now()
-        };
-        localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+        // Save to cache ONLY if not fallback
+        if (JSON.stringify(topics) !== JSON.stringify(FALLBACK_TOPICS)) {
+            const cacheData: TrendingCache = {
+                topics,
+                timestamp: Date.now()
+            };
+            localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+        } else {
+            console.warn("Skipping cache for fallback topics");
+            // Optional: Clear existing cache if it was old? No, logic above handles expiration.
+        }
 
         return topics;
     } catch (error) {
