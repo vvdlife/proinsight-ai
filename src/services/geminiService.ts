@@ -253,6 +253,7 @@ export const generateBlogPostContent = async (
        - If you found specific URLs via googleSearch, use them.
        - If no specific URL is found, omit the link or use a general domain (e.g., [OpenAI](https://openai.com)) if relevant. Do NOT create fake deep-links.
     8. **NO DISCLAIMERS**: Do NOT add "This is a fictional post" or "For illustrative purposes". Write with authority.
+    9. **Target Length**: Aim for a total length of approximately 2,500 ~ 3,500 characters (Korean) to meet the optimal SEO range (1,500~5,000). Avoid being too short or excessively long.
   `;
   if (memo && memo.trim()) {
     baseContext += `

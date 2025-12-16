@@ -37,8 +37,14 @@ export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keywor
 
     // 4. Scoring Logic (Weighted)
     let score = 0;
-    // Length (30pts)
-    score += Math.min((charCount / 1500) * 30, 30);
+    // Length (30pts) - Ideal: 1500 ~ 5000 characters
+    if (charCount >= 1500 && charCount <= 5000) {
+        score += 30;
+    } else if (charCount < 1500) {
+        score += (charCount / 1500) * 30; // Partial score
+    } else {
+        score += 25; // Slight penalty for being too long (> 5000)
+    }
 
     // Structure (20pts)
     score += Math.min((h2Count / 4) * 10, 10); // Max 10 for Headers
@@ -74,7 +80,7 @@ export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keywor
         setShowSuggestions(true);
         try {
             const { analyzeSeoDetails } = await import('../services/geminiService');
-            const result = await analyzeSeoDetails(content, keyword || '', language);
+            const result = await analyzeSeoDetails(content, keyword || '', language as 'ko' | 'en');
             setSuggestions(result);
         } catch (e) {
             console.error(e);
@@ -146,9 +152,9 @@ export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keywor
                 {detailsOpen && (
                     <div className="pt-2 space-y-3 animate-in fade-in slide-in-from-top-1">
                         <CheckItem
-                            label="본문 분량"
-                            passed={charCount >= 1500}
-                            msg={`공백제외 ${charCount}자 (권장 1,500자 이상)`}
+                            label="본문 분량 (1,500~5,000자)"
+                            passed={charCount >= 1500 && charCount <= 5000}
+                            msg={charCount < 1500 ? `현재 ${charCount}자 (조금 더 길게 작성해보세요)` : charCount > 5000 ? `현재 ${charCount}자 (너무 깁니다, 가독성을 위해 분할 고려)` : `현재 ${charCount}자 (적절합니다)`}
                         />
                         <CheckItem
                             label="문단 구조 (H2)"
