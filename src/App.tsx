@@ -509,20 +509,24 @@ const App: React.FC = () => {
                     </ul>
                   </div>
 
-                  {/* Memo Input */}
-                  <div className="space-y-3">
-                    <label className="text-sm font-semibold text-slate-700">직접 입력 (메모)</label>
-                    <div className="relative">
-                      <textarea
-                        value={memo}
-                        onChange={(e) => setMemo(e.target.value)}
-                        placeholder="핵심 키워드, 포함할 내용, 혹은 나만의 아이디어를 자유롭게 적어주세요."
-                        className="w-full p-3 h-[100px] text-sm border border-slate-200 rounded-lg outline-none focus:border-indigo-500 resize-none bg-slate-50 focus:bg-white transition-colors"
-                      />
-
-                    </div>
-                  </div>
                 </div>
+              </div>
+            </div>
+
+            {/* AI Prompt Command Section (New) */}
+            <div className="bg-gradient-to-br from-indigo-50 to-white rounded-xl border border-indigo-100 p-6 mb-12 shadow-sm">
+              <h3 className="text-sm font-bold text-indigo-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <CodeIcon className="w-4 h-4 text-indigo-600" /> AI 프롬프트 / 추가 요청사항 (선택)
+              </h3>
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-300 to-purple-300 rounded-lg blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+                <textarea
+                  value={memo}
+                  onChange={(e) => setMemo(e.target.value)}
+                  placeholder="AI에게 내릴 구체적인 지시사항을 입력하세요. 
+예시: '서론은 짧게 써줘', '전문적인 톤으로 작성해', '20대 여성이 타겟이야', '장단점을 표로 정리해줘'"
+                  className="relative w-full p-4 h-[120px] text-sm border border-indigo-100 rounded-lg outline-none focus:border-indigo-500 resize-none bg-white/80 focus:bg-white transition-colors text-slate-700 leading-relaxed shadow-sm"
+                />
               </div>
             </div>
 
