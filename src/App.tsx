@@ -824,19 +824,19 @@ const App: React.FC = () => {
                 <div className="bg-white p-1 rounded-xl border border-slate-200 shadow-sm inline-flex">
                   <button
                     onClick={() => setActiveLang('ko')}
-                    className={`px - 6 py - 2 rounded - lg text - sm font - bold transition - all ${activeLang === 'ko'
+                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeLang === 'ko'
                       ? 'bg-indigo-600 text-white shadow-md'
                       : 'text-slate-500 hover:bg-slate-50'
-                      } `}
+                      }`}
                   >
                     🇰🇷 한국어 (Korean)
                   </button>
                   <button
                     onClick={() => setActiveLang('en')}
-                    className={`px - 6 py - 2 rounded - lg text - sm font - bold transition - all ${activeLang === 'en'
+                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeLang === 'en'
                       ? 'bg-indigo-600 text-white shadow-md'
                       : 'text-slate-500 hover:bg-slate-50'
-                      } `}
+                      }`}
                   >
                     🇺🇸 English (Global)
                   </button>
@@ -857,7 +857,7 @@ const App: React.FC = () => {
                         className="w-full text-4xl font-extrabold text-slate-900 mb-8 border-b-2 border-indigo-200 focus:border-indigo-600 outline-none bg-transparent py-2"
                       />
                     ) : (
-                      <h1 className={`text - 4xl font - extrabold text - slate - 900 mb - 8 leading - tight`}>
+                      <h1 className={`text-4xl font-extrabold text-slate-900 mb-8 leading-tight`}>
                         {activeLang === 'ko' ? finalPost?.title : finalPostEn?.title}
                       </h1>
                     )}
