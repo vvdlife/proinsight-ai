@@ -5,9 +5,10 @@ interface SeoAnalyzerProps {
     title: string;
     keyword?: string;
     language?: 'ko' | 'en';
+    onHighlight?: (text: string) => void;
 }
 
-export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keyword, language = 'ko' }) => {
+export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keyword, language = 'ko', onHighlight }) => {
     // 1. Basic Metrics
     const wordCount = content.replace(/#/g, '').trim().split(/\s+/).length;
     const charCount = content.replace(/\s/g, '').length;
@@ -205,7 +206,13 @@ export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keywor
                                             </div>
                                             <div className="flex gap-2 text-xs text-slate-500 bg-white p-2 rounded border border-slate-100">
                                                 <span className="font-bold shrink-0 text-slate-400">원문:</span>
-                                                <span className="italic">"{item.original}"</span>
+                                                <span
+                                                    className={`italic ${onHighlight ? "cursor-pointer hover:bg-yellow-100 hover:text-slate-900 transition-colors border-b border-dashed border-slate-300" : ""}`}
+                                                    onClick={() => onHighlight && onHighlight(item.original)}
+                                                    title={onHighlight ? "클릭하여 에디터에서 원문 찾기" : undefined}
+                                                >
+                                                    "{item.original}"
+                                                </span>
                                             </div>
                                             <div className="text-sm font-semibold text-slate-700 bg-indigo-50 p-3 rounded-lg border border-indigo-100">
                                                 <div className="flex items-center gap-2 mb-1">

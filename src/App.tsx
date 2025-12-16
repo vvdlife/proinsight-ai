@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { StepWizard } from './components/StepWizard';
 import { LoadingOverlay } from './components/LoadingOverlay';
 import { SparklesIcon, ChevronRightIcon, RefreshIcon, PenIcon, ImageIcon, CopyIcon, TrendIcon, ChartIcon, CodeIcon, LinkIcon, UploadIcon, TrashIcon, FileTextIcon, PlusIcon, MemoIcon, XIcon, CheckIcon } from './components/Icons';
@@ -48,6 +48,8 @@ const App: React.FC = () => {
   const [newUrl, setNewUrl] = useState('');
   const [sourceFiles, setSourceFiles] = useState<UploadedFile[]>([]);
   const [memo, setMemo] = useState('');
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null); // For highlighting logic
 
   // Trending Topics State
   const [suggestions, setSuggestions] = useState<TrendingTopic[]>([]);
@@ -266,7 +268,7 @@ const App: React.FC = () => {
         alert("API Key 오류입니다. 키를 확인해주세요.");
         setIsSettingsOpen(true);
       } else {
-        alert(`개요 생성 실패: ${msg}\n다시 시도해주세요.`);
+        alert(`개요 생성 실패: ${msg} \n다시 시도해주세요.`);
       }
     } finally {
       setLoading({ isLoading: false, message: '', progress: 0 });
@@ -339,7 +341,7 @@ const App: React.FC = () => {
       setCurrentStep(AppStep.FINAL_RESULT);
     } catch (error: any) {
       console.error(error);
-      alert(`글 작성 중 오류가 발생했습니다: ${error?.message || '알 수 없는 오류'}`);
+      alert(`글 작성 중 오류가 발생했습니다: ${error?.message || '알 수 없는 오류'} `);
     } finally {
       setLoading({ isLoading: false, message: '', progress: 0 });
     }
@@ -357,7 +359,7 @@ const App: React.FC = () => {
 
   const copyToClipboard = () => {
     if (!finalPost) return;
-    const textToCopy = `# ${finalPost.title}\n\n${finalPost.content}`;
+    const textToCopy = `# ${finalPost.title} \n\n${finalPost.content} `;
     navigator.clipboard.writeText(textToCopy);
     alert("클립보드에 복사되었습니다!");
   };
@@ -377,11 +379,11 @@ const App: React.FC = () => {
   // Generate Draft Preview content based on outline
   const getDraftPreview = () => {
     if (!outline) return "";
-    let draft = `# ${outline.title}\n\n> 이 글은 **${selectedTone}** 톤으로 작성될 예정입니다.\n\n`;
+    let draft = `# ${outline.title} \n\n > 이 글은 ** ${selectedTone}** 톤으로 작성될 예정입니다.\n\n`;
     outline.sections.forEach((section, idx) => {
-      draft += `## ${idx + 1}. ${section}\n(이 섹션에 대한 상세 내용이 여기에 생성됩니다. 관련 데이터와 예시가 포함될 수 있습니다.)\n\n`;
+      draft += `## ${idx + 1}. ${section} \n(이 섹션에 대한 상세 내용이 여기에 생성됩니다.관련 데이터와 예시가 포함될 수 있습니다.) \n\n`;
     });
-    draft += `## ⚡ 3줄 요약\n- 핵심 포인트 1\n- 핵심 포인트 2\n- 핵심 포인트 3\n`;
+    draft += `## ⚡ 3줄 요약\n - 핵심 포인트 1\n - 핵심 포인트 2\n - 핵심 포인트 3\n`;
     return draft;
   };
 
@@ -533,7 +535,7 @@ const App: React.FC = () => {
                   value={memo}
                   onChange={(e) => setMemo(e.target.value)}
                   placeholder={`XML, JSON, Markdown 등 구조화된 프롬프트를 입력할 수 있습니다.
-예시:
+  예시:
 <instruction>
   <tone>Professional</tone>
   <focus>Data Analysis</focus>
@@ -555,7 +557,7 @@ const App: React.FC = () => {
                   className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
                   title="새로운 주제 추천받기"
                 >
-                  <RefreshIcon className={`w-4 h-4 ${loadingTrends ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+                  <RefreshIcon className={`w - 4 h - 4 ${loadingTrends ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'} `} />
                 </button>
               </div>
               {loadingTrends ? (
@@ -626,10 +628,10 @@ const App: React.FC = () => {
                           <button
                             key={tone}
                             onClick={() => setSelectedTone(tone)}
-                            className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all ${selectedTone === tone
-                              ? 'bg-indigo-50 border-2 border-indigo-500 text-indigo-700'
-                              : 'bg-slate-50 border border-transparent text-slate-600 hover:bg-slate-100'
-                              }`}
+                            className={`w - full text - left px - 3 py - 2 rounded - lg text - xs font - medium transition - all ${selectedTone === tone
+                                ? 'bg-indigo-50 border-2 border-indigo-500 text-indigo-700'
+                                : 'bg-slate-50 border border-transparent text-slate-600 hover:bg-slate-100'
+                              } `}
                           >
                             {tone}
                           </button>
@@ -646,10 +648,10 @@ const App: React.FC = () => {
                           <button
                             key={style}
                             onClick={() => setSelectedImageStyle(style)}
-                            className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all ${selectedImageStyle === style
-                              ? 'bg-pink-50 border-2 border-pink-500 text-pink-700'
-                              : 'bg-slate-50 border border-transparent text-slate-600 hover:bg-slate-100'
-                              }`}
+                            className={`w - full text - left px - 3 py - 2 rounded - lg text - xs font - medium transition - all ${selectedImageStyle === style
+                                ? 'bg-pink-50 border-2 border-pink-500 text-pink-700'
+                                : 'bg-slate-50 border border-transparent text-slate-600 hover:bg-slate-100'
+                              } `}
                           >
                             {style}
                           </button>
@@ -808,19 +810,19 @@ const App: React.FC = () => {
                 <div className="bg-white p-1 rounded-xl border border-slate-200 shadow-sm inline-flex">
                   <button
                     onClick={() => setActiveLang('ko')}
-                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeLang === 'ko'
-                      ? 'bg-indigo-600 text-white shadow-md'
-                      : 'text-slate-500 hover:bg-slate-50'
-                      }`}
+                    className={`px - 6 py - 2 rounded - lg text - sm font - bold transition - all ${activeLang === 'ko'
+                        ? 'bg-indigo-600 text-white shadow-md'
+                        : 'text-slate-500 hover:bg-slate-50'
+                      } `}
                   >
                     🇰🇷 한국어 (Korean)
                   </button>
                   <button
                     onClick={() => setActiveLang('en')}
-                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeLang === 'en'
-                      ? 'bg-indigo-600 text-white shadow-md'
-                      : 'text-slate-500 hover:bg-slate-50'
-                      }`}
+                    className={`px - 6 py - 2 rounded - lg text - sm font - bold transition - all ${activeLang === 'en'
+                        ? 'bg-indigo-600 text-white shadow-md'
+                        : 'text-slate-500 hover:bg-slate-50'
+                      } `}
                   >
                     🇺🇸 English (Global)
                   </button>
@@ -841,13 +843,14 @@ const App: React.FC = () => {
                         className="w-full text-4xl font-extrabold text-slate-900 mb-8 border-b-2 border-indigo-200 focus:border-indigo-600 outline-none bg-transparent py-2"
                       />
                     ) : (
-                      <h1 className={`text-4xl font-extrabold text-slate-900 mb-8 leading-tight`}>
+                      <h1 className={`text - 4xl font - extrabold text - slate - 900 mb - 8 leading - tight`}>
                         {activeLang === 'ko' ? finalPost?.title : finalPostEn?.title}
                       </h1>
                     )}
 
                     {isEditing ? (
                       <textarea
+                        ref={textareaRef}
                         value={editContent}
                         onChange={(e) => setEditContent(e.target.value)}
                         className="w-full h-[60vh] p-4 border border-slate-200 rounded-lg text-lg leading-relaxed focus:border-indigo-500 outline-none resize-none font-sans"
@@ -887,6 +890,32 @@ const App: React.FC = () => {
                   content={isEditing ? editContent : (activeLang === 'ko' ? finalPost?.content || '' : finalPostEn?.content || '')}
                   keyword={topic} // 검색했던 주제를 키워드로 간주
                   language={activeLang as 'ko' | 'en'}
+                  onHighlight={(text) => {
+                    // Switch to edit mode if not already
+                    if (!isEditing) {
+                      setIsEditing(true);
+                      setEditTitle(activeLang === 'ko' ? finalPost?.title || '' : finalPostEn?.title || '');
+                      setEditContent(activeLang === 'ko' ? finalPost?.content || '' : finalPostEn?.content || '');
+                    }
+
+                    // Allow UI to render textarea first
+                    setTimeout(() => {
+                      if (textareaRef.current) {
+                        const content = isEditing ? editContent : (activeLang === 'ko' ? finalPost?.content || '' : finalPostEn?.content || '');
+                        const index = content.indexOf(text);
+                        if (index >= 0) {
+                          textareaRef.current.focus();
+                          textareaRef.current.setSelectionRange(index, index + text.length);
+                          // Scroll to selection
+                          const lineHeight = 24; // approx
+                          const linesBefore = content.substring(0, index).split('\n').length;
+                          textareaRef.current.scrollTop = linesBefore * lineHeight - 100;
+                        } else {
+                          alert("원문을 찾을 수 없습니다. (내용이 변경되었을 수 있습니다)");
+                        }
+                      }
+                    }, 100);
+                  }}
                 />
 
                 {/* [NEW] 2. 썸네일 에디터 */}
