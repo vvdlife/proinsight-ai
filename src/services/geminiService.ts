@@ -249,7 +249,16 @@ export const generateBlogPostContent = async (
     7. **No External Links**: Do not add inline links.
     8. **NO DISCLAIMERS**: Do NOT add "This is a fictional post" or "For illustrative purposes". Write with authority as a prediction/analysis.
   `;
-  if (memo && memo.trim()) baseContext += `\n[USER MEMO]: "${memo}"`;
+  if (memo && memo.trim()) {
+    baseContext += `
+    
+    [USER CUSTOM CONTEXT / INSTRUCTION START]
+    ${memo}
+    [USER CUSTOM CONTEXT / INSTRUCTION END]
+    
+    (Prioritize the above user instructions over default guidelines.)
+    `;
+  }
   if (urls.length > 0) baseContext += `\nSOURCE URLs (For reference only):\n${urls.join('\n')}`;
   if (files.length > 0) baseContext += `\n(Refer to attached documents)`;
 

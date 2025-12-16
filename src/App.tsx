@@ -513,19 +513,22 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* AI Prompt Command Section (New) */}
             <div className="bg-gradient-to-br from-indigo-50 to-white rounded-xl border border-indigo-100 p-6 mb-12 shadow-sm">
               <h3 className="text-sm font-bold text-indigo-900 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <CodeIcon className="w-4 h-4 text-indigo-600" /> AI 프롬프트 / 추가 요청사항 (선택)
+                <CodeIcon className="w-4 h-4 text-indigo-600" /> AI 프롬프트 / 컨텍스트 명령 (Markdown, XML, JSON 지원)
               </h3>
               <div className="relative group">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-300 to-purple-300 rounded-lg blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
                 <textarea
                   value={memo}
                   onChange={(e) => setMemo(e.target.value)}
-                  placeholder="AI에게 내릴 구체적인 지시사항을 입력하세요. 
-예시: '서론은 짧게 써줘', '전문적인 톤으로 작성해', '20대 여성이 타겟이야', '장단점을 표로 정리해줘'"
-                  className="relative w-full p-4 h-[120px] text-sm border border-indigo-100 rounded-lg outline-none focus:border-indigo-500 resize-none bg-white/80 focus:bg-white transition-colors text-slate-700 leading-relaxed shadow-sm"
+                  placeholder={`XML, JSON, Markdown 등 구조화된 프롬프트를 입력할 수 있습니다.
+예시:
+<instruction>
+  <tone>Professional</tone>
+  <focus>Data Analysis</focus>
+</instruction>`}
+                  className="relative w-full p-4 h-[160px] text-sm border border-indigo-100 rounded-lg outline-none focus:border-indigo-500 resize-none bg-white/80 focus:bg-white transition-colors text-slate-700 leading-relaxed shadow-sm font-mono"
                 />
               </div>
             </div>
