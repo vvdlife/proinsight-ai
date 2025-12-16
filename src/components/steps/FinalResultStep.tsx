@@ -66,13 +66,54 @@ export const FinalResultStep: React.FC = () => {
     if (!currentPost) return null;
 
     // Helper for SEO Highlighting (matches SeoAnalyzer props)
+    // Helper for SEO Highlighting
     const handleHighlight = (text: string) => {
-        // Just alert for now as we don't have ref access easily without forwarding or moving logic
-        // Or we can try to find the textarea if editing.
-        // For read-only, we can't highlight easily without DOM manipulation.
-        // Let's simplified behavior:
         if (isEditing) {
-            alert("텍스트 찾기: " + text);
+            const textarea = document.querySelector('textarea');
+            if (textarea) {
+                const index = editContent.indexOf(text);
+                if (index !== -1) {
+                    textarea.focus();
+                    textarea.setSelectionRange(index, index + text.length);
+                    // Scroll to selection
+                    const lineHeight = 24; // approx
+                    const lines = editContent.substring(0, index).split('\n').length;
+                    textarea.scrollTop = lines * lineHeight - textarea.clientHeight / 2;
+                } else {
+                    alert("편집기에서 해당 문구를 찾을 수 없습니다. (내용이 수정되었을 수 있습니다)");
+                }
+            }
+        } else {
+            // View Mode
+            // Try to find the text in the rendered view
+            // Since markdown rendering might change the text (e.g. # Header vs Header), this is inexact.
+            // Simple approach: Use window.find() if available, or just alert user to switch to edit mode.
+            if ((window as any).find && (window as any).find(text)) {
+                // Found and highlighted by browser
+            } else {
+                // If not found (e.g. markdown syntax vs rendered), ask to edit
+                const confirmEdit = window.confirm(`뷰어에서 정확한 위치를 찾기 어렵습니다.\n'편집 모드'로 전환하여 해당 위치를 찾으시겠습니까?\n\n찾을 내용: "${text.substring(0, 20)}..."`);
+                if (confirmEdit) {
+                    onEdit();
+                    // We need to wait for state update and render. 
+                    // Use setTimeout to allow render cycle to complete
+                    setTimeout(() => {
+                        // Re-run highlighting in edit mode
+                        const textarea = document.querySelector('textarea');
+                        if (textarea) { // Re-query
+                            const index = currentPost.content.indexOf(text); // Use currentPost.content as editContent might not be set yet inside this closure scope fully if strictly React, but we set it in onEdit. 
+                            // Wait, onEdit sets state. editContent will be set.
+                            // But we need to use the value.
+                            if (index !== -1) {
+                                textarea.focus();
+                                textarea.setSelectionRange(index, index + text.length);
+                                const lines = currentPost.content.substring(0, index).split('\n').length;
+                                textarea.scrollTop = lines * 24 - textarea.clientHeight / 2;
+                            }
+                        }
+                    }, 100);
+                }
+            }
         }
     };
 
@@ -291,9 +332,9 @@ export const FinalResultStep: React.FC = () => {
                 </div>
 
                 {/* Right Sidebar: SEO & Social */}
-                <div className="space-y-6">
+                <div className="space-y-6 lg:sticky lg:top-24 lg:h-[calc(100vh-120px)] lg:overflow-y-auto lg:pr-2 custom-scrollbar">
                     {/* SEO Analyzer */}
-                    <div className="sticky top-24 space-y-6">
+                    <div className="space-y-6">
                         <SeoAnalyzer
                             title={currentPost.title}
                             content={currentPost.content}

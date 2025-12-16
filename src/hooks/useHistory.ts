@@ -61,21 +61,38 @@ export const useHistory = (
                     updated = [newItem, ...prev];
                 }
 
-                // Limit to 10 items (increased from 5 for better UX)
-                updated = updated.slice(0, 10);
+                // Limit to 5 items to prevent QuotaExceededError
+                updated = updated.slice(0, 5);
 
                 try {
-                    // Strip images to prevent QuotaExceededError
+                    // Strip images and truncate extremely long content to prevent QuotaExceededError
                     const safeHistory = updated.map(item => ({
                         ...item,
                         images: [],
-                        finalPost: item.finalPost ? { ...item.finalPost, images: [] } : null,
-                        finalPostEn: item.finalPostEn ? { ...item.finalPostEn, images: [] } : null
+                        finalPost: item.finalPost ? {
+                            ...item.finalPost,
+                            images: [],
+                            content: item.finalPost.content.length > 30000 ? item.finalPost.content.substring(0, 30000) + '... (truncated)' : item.finalPost.content
+                        } : null,
+                        finalPostEn: item.finalPostEn ? {
+                            ...item.finalPostEn,
+                            images: [],
+                            content: item.finalPostEn.content.length > 30000 ? item.finalPostEn.content.substring(0, 30000) + '... (truncated)' : item.finalPostEn.content
+                        } : null
                     }));
                     localStorage.setItem('proinsight_history', JSON.stringify(safeHistory));
                 } catch (e) {
                     console.error("Failed to save history:", e);
-                    // Fallback strategies...
+                    // If even that fails, try clearing old history or just stop saving
+                    if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+                        // Clear oldest
+                        const recover = updated.slice(0, 1); // Keep only current
+                        try {
+                            localStorage.setItem('proinsight_history', JSON.stringify(recover));
+                        } catch (e2) {
+                            console.error("Could not even save current item", e2);
+                        }
+                    }
                 }
 
                 return updated;
