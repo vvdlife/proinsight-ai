@@ -869,7 +869,7 @@ const App: React.FC = () => {
               </div>
 
               {/* 오른쪽: 사이드바 영역 (1/3 차지) */}
-              <div className="space-y-6 sticky top-24 self-start">
+              <div className="lg:col-span-1 space-y-6 sticky top-24 h-[calc(100vh-6rem)] overflow-y-auto pr-2 custom-scrollbar">
 
                 {/* [NEW] 1. SEO 분석기 */}
                 <SeoAnalyzer
