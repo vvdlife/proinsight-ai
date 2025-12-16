@@ -209,6 +209,9 @@ export const generateBlogPostContent = async (
   // AI가 글을 쓰기 전에 팩트부터 찾아오게 시킵니다.
   const keyFacts = await generateKeyFacts(outline.title, ai);
 
+  // [NEW] 커스텀 페르소나 가져오기
+  const customPersona = localStorage.getItem('proinsight_custom_persona') || '';
+
   // Common Context (기존 코드에 keyFacts 변수 내용을 주입)
   let baseContext = `
     Blog Title: "${outline.title}"
@@ -219,6 +222,9 @@ export const generateBlogPostContent = async (
     **CRITICAL CONTEXT (KEY FACTS)**:
     You MUST use the following facts to ensure accuracy. Do not hallucinate numbers if they are provided here.
     ${keyFacts}
+    
+    ** USER CUSTOM INSTRUCTION (HIGHEST PRIORITY) **:
+    ${customPersona ? customPersona : "No custom instructions."}
 
     **CRITICAL LANGUAGE INSTRUCTION**:
     ${isEnglish ? '- **MUST WRITE IN ENGLISH**. Even if the outline or context is in Korean, you MUST translate and write the output in English.' : '- Write in natural, native Korean.'}

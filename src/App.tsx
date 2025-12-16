@@ -18,6 +18,8 @@ const PublishingManager = React.lazy(() => import('./components/PublishingManage
 const ApiUsageMonitor = React.lazy(() => import('./components/ApiUsageMonitor').then(module => ({ default: module.ApiUsageMonitor })));
 const ModelSelector = React.lazy(() => import('./components/ModelSelector').then(module => ({ default: module.ModelSelector })));
 const TrendAnalysisWidget = React.lazy(() => import('./components/TrendAnalysisWidget').then(module => ({ default: module.TrendAnalysisWidget })));
+import { SeoAnalyzer } from './components/SeoAnalyzer';
+import { ThumbnailEditor } from './components/ThumbnailEditor';
 
 
 const App: React.FC = () => {
@@ -756,64 +758,70 @@ const App: React.FC = () => {
               </div>
             )}
 
-            <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
-              {/* Image Section */}
-              {finalPost?.images && finalPost.images.length > 0 ? (
-                <div className="w-full bg-slate-100">
-                  {finalPost.images.map((img, idx) => (
-                    <div key={idx} className="relative group">
-                      <img
-                        src={img}
-                        alt={`${finalPost.title} - ${idx + 1}`}
-                        className="w-full h-auto max-h-[500px] object-cover"
-                      />
-                      <a
-                        href={img}
-                        download={`proinsight-image-${idx + 1}.png`}
-                        className="absolute bottom-4 right-4 bg-white/90 hover:bg-white text-slate-800 px-4 py-2 rounded-lg font-bold text-sm shadow-lg flex items-center gap-2 transition-all opacity-0 group-hover:opacity-100"
-                      >
-                        <CopyIcon className="w-4 h-4" /> 이미지 다운로드
-                      </a>
-                    </div>
-                  ))}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* 왼쪽: 본문 영역 (2/3 차지) */}
+              <div className="lg:col-span-2 space-y-8">
+                <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
+                  <div className="p-10 md:p-14">
+                    <h1 className={`text-4xl font-extrabold text-slate-900 mb-8 leading-tight`}>
+                      {activeLang === 'ko' ? finalPost?.title : finalPostEn?.title}
+                    </h1>
+                    <MarkdownRenderer
+                      content={activeLang === 'ko' ? (finalPost?.content || '') : (finalPostEn?.content || '')}
+                      font={selectedFont}
+                    />
+                  </div>
                 </div>
-              ) : (
-                <div className="w-full h-48 bg-slate-100 flex flex-col items-center justify-center text-slate-400 border-b">
-                  <ImageIcon className="w-12 h-12 mb-2 opacity-50" />
-                  <span>이미지를 생성하지 못했습니다</span>
-                </div>
-              )}
 
-              <div className="p-10 md:p-14">
-                <h1 className={`text-4xl font-extrabold text-slate-900 mb-8 leading-tight`}>
-                  {activeLang === 'ko' ? finalPost?.title : finalPostEn?.title}
-                </h1>
+                {/* 소셜 포스트 */}
+                {activeLang === 'ko' && finalPost?.socialPosts && <SocialGenerator posts={finalPost.socialPosts} />}
+              </div>
 
-                {/* Conditional Rendering based on Active Tab */}
-                <MarkdownRenderer
-                  content={activeLang === 'ko' ? (finalPost?.content || '') : (finalPostEn?.content || '')}
-                  font={selectedFont}
+              {/* 오른쪽: 사이드바 영역 (1/3 차지) */}
+              <div className="space-y-6">
+
+                {/* [NEW] 1. SEO 분석기 */}
+                <SeoAnalyzer
+                  title={activeLang === 'ko' ? finalPost?.title || '' : finalPostEn?.title || ''}
+                  content={activeLang === 'ko' ? finalPost?.content || '' : finalPostEn?.content || ''}
+                  keyword={topic} // 검색했던 주제를 키워드로 간주
                 />
+
+                {/* [NEW] 2. 썸네일 에디터 */}
+                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                  <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    🎨 썸네일 편집
+                  </h3>
+                  {finalPost?.images && finalPost.images.length > 0 ? (
+                    <ThumbnailEditor
+                      originalImage={finalPost.images[0]}
+                      defaultText={finalPost.title}
+                    />
+                  ) : (
+                    <div className="text-center text-slate-400 py-10 bg-slate-50 rounded-lg">
+                      이미지가 없습니다.
+                    </div>
+                  )}
+                </div>
+
+                {/* API 사용량 */}
+                <React.Suspense fallback={<div>Loading...</div>}>
+                  <ApiUsageMonitor usage={getApiUsageStats()} />
+                </React.Suspense>
               </div>
             </div>
 
-            {/* Export Manager (Naver/Tistory Copy) */}
-            {(activeLang === 'ko' ? finalPost : finalPostEn) && (
-              <ExportManager post={activeLang === 'ko' ? finalPost! : finalPostEn!} />
-            )}
-
-            {/* Auto Publishing Manager */}
-            {(activeLang === 'ko' ? finalPost : finalPostEn) && (
-              <PublishingManager post={activeLang === 'ko' ? finalPost! : finalPostEn!} />
-            )}
-
-            {/* Social Generator Section (Only show for KO currently as we didn't gen EN social) */}
-            {activeLang === 'ko' && finalPost?.socialPosts && <SocialGenerator posts={finalPost.socialPosts} />}
-
-            {/* API Usage Monitor */}
-            <React.Suspense fallback={<div>Loading...</div>}>
-              <ApiUsageMonitor usage={getApiUsageStats()} />
-            </React.Suspense>
+            <div className="mt-8">
+              {(activeLang === 'ko' ? finalPost : finalPostEn) && (
+                <ExportManager post={activeLang === 'ko' ? finalPost! : finalPostEn!} />
+              )}
+              {(activeLang === 'ko' ? finalPost : finalPostEn) && (
+                <PublishingManager
+                  post={activeLang === 'ko' ? finalPost! : finalPostEn!}
+                  isAuthenticated={isAuthenticated}
+                />
+              )}
+            </div>
           </div>
         );
       default:
