@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { RefreshIcon, ChartIcon, CheckIcon, CopyIcon, ChevronRightIcon } from './Icons'; // Ensure Icons check
 
 interface SeoAnalyzerProps {
     content: string;
@@ -13,6 +14,8 @@ export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keywor
     const wordCount = content.replace(/#/g, '').trim().split(/\s+/).length;
     const charCount = content.replace(/\s/g, '').length;
     const h2Count = (content.match(/^## /gm) || []).length;
+
+    // ... (metrics calculation) ...
 
     // 2. Keyword Analysis
     let keywordCount = 0;
@@ -98,10 +101,10 @@ export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keywor
             </h3>
 
             <div className="flex items-center gap-4 mb-6">
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold border-4 ${score >= 80 ? 'border-green-500 text-green-600 bg-green-50' :
+                <div className={`w - 16 h - 16 rounded - full flex items - center justify - center text - 2xl font - bold border - 4 ${score >= 80 ? 'border-green-500 text-green-600 bg-green-50' :
                     score >= 50 ? 'border-yellow-500 text-yellow-600 bg-yellow-50' :
                         'border-red-500 text-red-600 bg-red-50'
-                    }`}>
+                    } `}>
                     {score}
                 </div>
                 <div>
@@ -132,7 +135,7 @@ export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keywor
                             msg={inFirstPara ? "첫 문단에 키워드 배치됨 (Excellent)" : "첫 부분에 키워드를 넣어주세요"}
                         />
                         <CheckItem
-                            label={`키워드 밀도 (${keywordDensity.toFixed(1)}%)`}
+                            label={`키워드 밀도(${keywordDensity.toFixed(1)} %)`}
                             passed={keywordDensity >= 0.5 && keywordDensity <= 3.0}
                             msg={keywordDensity < 0.5 ? "키워드를 더 자주 사용하세요" : keywordDensity > 3.0 ? "키워드가 너무 과도합니다 (어뷰징 주의)" : "아주 적절한 비율입니다 (0.5~3%)"}
                         />
@@ -155,22 +158,22 @@ export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keywor
                         <CheckItem
                             label="본문 분량 (1,500~5,000자)"
                             passed={charCount >= 1500 && charCount <= 5000}
-                            msg={charCount < 1500 ? `현재 ${charCount}자 (조금 더 길게 작성해보세요)` : charCount > 5000 ? `현재 ${charCount}자 (너무 깁니다, 가독성을 위해 분할 고려)` : `현재 ${charCount}자 (적절합니다)`}
+                            msg={charCount < 1500 ? `현재 ${charCount} 자(조금 더 길게 작성해보세요)` : charCount > 5000 ? `현재 ${charCount} 자(너무 깁니다, 가독성을 위해 분할 고려)` : `현재 ${charCount} 자(적절합니다)`}
                         />
                         <CheckItem
                             label="문단 구조 (H2)"
                             passed={h2Count >= 4}
-                            msg={`소제목 ${h2Count}개 (4개 이상 권장)`}
+                            msg={`소제목 ${h2Count} 개(4개 이상 권장)`}
                         />
                         <CheckItem
                             label="이미지 활용"
                             passed={imageCount >= 1}
-                            msg={`이미지 ${imageCount}개 (가독성 향상)`}
+                            msg={`이미지 ${imageCount} 개(가독성 향상)`}
                         />
                         <CheckItem
                             label="링크 활용"
                             passed={linkCount >= 1}
-                            msg={`링크 ${linkCount}개 (체류시간 증대)`}
+                            msg={`링크 ${linkCount} 개(체류시간 증대)`}
                         />
                     </div>
                 )}
@@ -187,8 +190,19 @@ export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keywor
                     ) : (
                         <div className="animate-in fade-in slide-in-from-bottom-2">
                             <div className="flex justify-between items-center mb-3">
-                                <h4 className="font-bold text-indigo-900 text-sm">💡 AI 수정 제안</h4>
-                                <button onClick={() => setShowSuggestions(false)} className="text-xs text-slate-400">닫기</button>
+                                <h4 className="font-bold text-indigo-900 text-sm flex items-center gap-2">
+                                    💡 AI 수정 제안
+                                </h4>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={handleDeepAnalysis}
+                                        className="text-xs text-indigo-600 bg-indigo-50 px-2 py-1 rounded hover:bg-indigo-100 transition-colors flex items-center gap-1"
+                                        title="현재 내용으로 다시 분석"
+                                    >
+                                        <RefreshIcon className="w-3 h-3" /> 재분석
+                                    </button>
+                                    <button onClick={() => setShowSuggestions(false)} className="text-xs text-slate-400 hover:text-slate-600">닫기</button>
+                                </div>
                             </div>
 
                             {isAnalyzing ? (
@@ -207,7 +221,7 @@ export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keywor
                                             <div className="flex gap-2 text-xs text-slate-500 bg-white p-2 rounded border border-slate-100">
                                                 <span className="font-bold shrink-0 text-slate-400">원문:</span>
                                                 <span
-                                                    className={`italic ${onHighlight ? "cursor-pointer hover:bg-yellow-100 hover:text-slate-900 transition-colors border-b border-dashed border-slate-300" : ""}`}
+                                                    className={`italic ${onHighlight ? "cursor-pointer hover:bg-yellow-100 hover:text-slate-900 transition-colors border-b border-dashed border-slate-300" : ""} `}
                                                     onClick={() => onHighlight && onHighlight(item.original)}
                                                     title={onHighlight ? "클릭하여 에디터에서 원문 찾기" : undefined}
                                                 >

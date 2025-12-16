@@ -317,12 +317,26 @@ const App: React.FC = () => {
 
       // 2. Generate Social Posts (Based on Korean content)
       setLoading({ isLoading: true, message: '소셜 미디어 포스트를 생성하고 있습니다...', progress: 85 });
-      const summary = postData.content.substring(0, 500);
+
+      let finalContent = postData.content;
+      const mainTitle = postData.title;
+      // [Fix] Remove Title if it appears at the start of the body
+      const titlePattern = new RegExp(`^${mainTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*`, 'i');
+      if (finalContent.match(titlePattern) || finalContent.startsWith('Title:') || finalContent.startsWith('# ')) {
+        // Removing exact title match or simple clean up if AI messed up
+        finalContent = finalContent
+          .replace(titlePattern, '')
+          .replace(/^Title:.*?\n+/i, '')
+          .replace(/^# .*?\n+/, '')
+          .trim();
+      }
+
+      const summary = finalContent.substring(0, 500);
       const socialPosts = await generateSocialPosts(outline.title, summary, selectedImageStyle);
 
       setFinalPost({
-        title: postData.title,
-        content: postData.content,
+        title: mainTitle,
+        content: finalContent, // Use cleaned content
         images: imageUrl ? [imageUrl] : [],
         socialPosts
       });
@@ -557,7 +571,7 @@ const App: React.FC = () => {
                   className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
                   title="새로운 주제 추천받기"
                 >
-                  <RefreshIcon className={`w - 4 h - 4 ${loadingTrends ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'} `} />
+                  <RefreshIcon className={`w-4 h-4 ${loadingTrends ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
                 </button>
               </div>
               {loadingTrends ? (
@@ -628,10 +642,10 @@ const App: React.FC = () => {
                           <button
                             key={tone}
                             onClick={() => setSelectedTone(tone)}
-                            className={`w - full text - left px - 3 py - 2 rounded - lg text - xs font - medium transition - all ${selectedTone === tone
+                            className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all ${selectedTone === tone
                               ? 'bg-indigo-50 border-2 border-indigo-500 text-indigo-700'
                               : 'bg-slate-50 border border-transparent text-slate-600 hover:bg-slate-100'
-                              } `}
+                              }`}
                           >
                             {tone}
                           </button>
@@ -916,9 +930,6 @@ const App: React.FC = () => {
                           const normIndex = normContent.indexOf(normSearch);
 
                           if (normIndex !== -1) {
-                            // Map normalized index back to original index (approximate but effective)
-                            // This is a naive reconstruction, finding the first occurrence of the raw text sequence roughly matching
-                            // A better way is to scan the original content and match normalized chars
                             let matchCount = 0;
                             for (let i = 0; i < content.length; i++) {
                               if (normalize(content[i])) { // is it a significant char?
@@ -947,6 +958,7 @@ const App: React.FC = () => {
                             textareaRef.current.focus();
                             textareaRef.current.setSelectionRange(shortIndex, shortIndex + text.length);
                             // Scroll to selection
+                            const lineHeight = 24;
                             const linesBefore = content.substring(0, shortIndex).split('\n').length;
                             textareaRef.current.scrollTop = linesBefore * lineHeight - 100;
                           } else {
