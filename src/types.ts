@@ -98,6 +98,7 @@ export interface SeoDiagnosis {
   issue: string;
   original: string;
   suggestion: string;
+  rewrite?: string; // New: Concrete rewrite example
 }
 
 export interface TrendingTopic {

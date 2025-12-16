@@ -253,7 +253,7 @@ export const generateBlogPostContent = async (
        - Format: \`[Source Name](https://...)\`. 
        - If no specific URL is found, omit the link. Do NOT create fake deep-links.
     8. **NO DISCLAIMERS**: Do NOT add "This is a fictional post" or "For illustrative purposes". Write with authority.
-    9. **Target Length**: Aim for a total length of approximately 2,500 ~ 3,500 characters (Korean) to meet the optimal SEO range (1,500~5,000). Avoid being too short or excessively long.
+    9. **Target Length**: Aim for ~300-350 characters (Korean) per section to keep the total length around 3,000 characters. Be concise and impactful.
   `;
   if (memo && memo.trim()) {
     baseContext += `
@@ -535,7 +535,8 @@ export const analyzeSeoDetails = async (content: string, keyword: string, langua
       {
         "issue": "Brief description of the problem (${isEnglish ? 'in English' : 'in Korean'})",
         "original": "The specific sentence or segment that is problematic (max 50 chars)",
-        "suggestion": "How to fix it (specific actionable advice ${isEnglish ? 'in English' : 'in Korean'})"
+        "suggestion": "Explanation of WHY and HOW to fix it (${isEnglish ? 'in English' : 'in Korean'})",
+        "rewrite": "The actual full rewritten sentence/paragraph that the user can copy & paste. Make it perfect."
       }
     ]
     
@@ -544,7 +545,7 @@ export const analyzeSeoDetails = async (content: string, keyword: string, langua
     - If Context Language is English, they MUST be written in English.
     
     Content to analyze:
-    "${content.substring(0, 5000)}..." 
+    "${content.substring(0, 2000)}..." 
   `;
 
   try {

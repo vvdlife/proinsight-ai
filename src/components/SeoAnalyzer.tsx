@@ -198,16 +198,40 @@ export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keywor
                             ) : (
                                 <div className="space-y-3">
                                     {suggestions.length > 0 ? suggestions.map((item, idx) => (
-                                        <div key={idx} className="bg-indigo-50 border border-indigo-100 p-3 rounded-lg">
-                                            <div className="text-xs font-bold text-indigo-800 mb-1 flex items-center gap-1">
-                                                ⚠️ {item.issue}
+                                        <div key={idx} className="space-y-2">
+                                            <div className="flex gap-2 text-xs text-slate-500 bg-white p-2 rounded border border-slate-100">
+                                                <span className="font-bold shrink-0 text-red-400">문제점:</span>
+                                                <span>{item.issue}</span>
                                             </div>
-                                            <div className="text-[11px] text-slate-500 mb-2 line-through opacity-70">
-                                                "{item.original}"
+                                            <div className="flex gap-2 text-xs text-slate-500 bg-white p-2 rounded border border-slate-100">
+                                                <span className="font-bold shrink-0 text-slate-400">원문:</span>
+                                                <span className="italic">"{item.original}"</span>
                                             </div>
-                                            <div className="text-xs text-slate-700 bg-white p-2 rounded border border-indigo-50">
-                                                <span className="text-indigo-600 font-bold mr-1">제안:</span>
-                                                {item.suggestion}
+                                            <div className="text-sm font-semibold text-slate-700 bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-indigo-600">💡 개선 제안:</span>
+                                                </div>
+                                                <p className="mb-2 text-indigo-900">{item.suggestion}</p>
+
+                                                {item.rewrite && (
+                                                    <div className="mt-3 pt-3 border-t border-indigo-100">
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <span className="text-xs font-bold text-indigo-500">✨ 이렇게 바꿔보세요 (예시):</span>
+                                                            <button
+                                                                onClick={() => {
+                                                                    navigator.clipboard.writeText(item.rewrite || '');
+                                                                    alert("수정 제안이 복사되었습니다!");
+                                                                }}
+                                                                className="flex items-center gap-1 text-[10px] bg-white text-indigo-600 px-2 py-1 rounded border border-indigo-200 hover:bg-indigo-600 hover:text-white transition-colors"
+                                                            >
+                                                                복사하기
+                                                            </button>
+                                                        </div>
+                                                        <div className="bg-white p-2 rounded text-slate-700 italic text-xs border border-indigo-100">
+                                                            "{item.rewrite}"
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     )) : (
