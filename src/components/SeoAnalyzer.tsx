@@ -10,6 +10,12 @@ interface SeoAnalyzerProps {
 }
 
 export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keyword, language = 'ko', onHighlight }) => {
+    // Diagnosis State (Moved up for Score Calculation)
+    const [detailsOpen, setDetailsOpen] = useState(false);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [suggestions, setSuggestions] = useState<import('../types').SeoDiagnosis[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+
     // 1. Basic Metrics
     const wordCount = content.replace(/#/g, '').trim().split(/\s+/).length;
     const charCount = content.replace(/\s/g, '').length;
@@ -70,14 +76,14 @@ export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keywor
         score = Math.min(score * 1.5, 100); // Boost other scores
     }
 
-    score = Math.min(Math.round(score), 100);
+    // [New] AI Penalty: Deduct 5 points per identified issue
+    if (suggestions.length > 0) {
+        score -= (suggestions.length * 5);
+    }
 
-    const [detailsOpen, setDetailsOpen] = useState(false);
+    score = Math.max(0, Math.min(Math.round(score), 100)); // Clamp 0-100
 
-    // Diagnosis State
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [suggestions, setSuggestions] = useState<import('../types').SeoDiagnosis[]>([]);
-    const [showSuggestions, setShowSuggestions] = useState(false);
+    score = Math.max(0, Math.min(Math.round(score), 100)); // Clamp 0-100
 
     const handleDeepAnalysis = async () => {
         setIsAnalyzing(true);
@@ -96,15 +102,23 @@ export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keywor
 
     return (
         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-            <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                📊 SEO 분석 리포트
+            <h3 className="font-bold text-slate-800 mb-4 flex items-center justify-between">
+                <span className="flex items-center gap-2">📊 SEO 분석 리포트</span>
+                <button
+                    onClick={handleDeepAnalysis}
+                    className="text-xs flex items-center gap-1 bg-slate-50 hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 px-2 py-1 rounded transition-colors border border-transparent hover:border-indigo-100"
+                    title="현재 본문 내용으로 점수 다시 계산"
+                >
+                    <RefreshIcon className={`w-3 h-3 ${isAnalyzing ? 'animate-spin' : ''}`} />
+                    {isAnalyzing ? '분석 중...' : '점수 재계산'}
+                </button>
             </h3>
 
             <div className="flex items-center gap-4 mb-6">
-                <div className={`w - 16 h - 16 rounded - full flex items - center justify - center text - 2xl font - bold border - 4 ${score >= 80 ? 'border-green-500 text-green-600 bg-green-50' :
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold border-4 ${score >= 80 ? 'border-green-500 text-green-600 bg-green-50' :
                     score >= 50 ? 'border-yellow-500 text-yellow-600 bg-yellow-50' :
                         'border-red-500 text-red-600 bg-red-50'
-                    } `}>
+                    }`}>
                     {score}
                 </div>
                 <div>
@@ -114,7 +128,6 @@ export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keywor
                     </div>
                 </div>
             </div>
-
             <div className="space-y-3">
                 <CheckItem
                     label="제목 매력도"
