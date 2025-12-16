@@ -243,15 +243,15 @@ export const generateBlogPostContent = async (
          - Syntax Rule 1: **ALWAYS enclose node labels in quotes** (e.g., id["Label with spaces!"]).
          - Syntax Rule 2: Do not use special characters like parentheses() inside the ID, only in the label.
          - Supported types: \`graph TD\`, \`mindmap\`, \`timeline\`, \`pie\`.
-       - **Image Placeholders**: Include at least 1-2 relevant image placeholders per post using: \`![Image: Description of visual](https://placehold.co/600x400?text=Image+Placeholder)\`. This boosts SEO structure scores.
     5. **Interactive Elements**: Use **Emoji-based Checklists** (e.g., "- ✅ Item").
     6. **Data-Driven & Specific**:
            - **CRITICAL**: Use the \`googleSearch\` tool to find SPECIFIC data points (numbers, dates, quotes).
            - Do not say "Many companies". Say "Apple and Nvidia".
            - Cite real recent events.
-    7. **References**: Provide 1-2 external sources. Format them strictly as Markdown Links: \`[Source Name](https://...)\`. 
-       - If you found specific URLs via googleSearch, use them.
-       - If no specific URL is found, omit the link or use a general domain (e.g., [OpenAI](https://openai.com)) if relevant. Do NOT create fake deep-links.
+    7. **References**: Provide external sources **ONLY if they are critical** for verification. 
+       - Limit to max 1 high-quality link per section.
+       - Format: \`[Source Name](https://...)\`. 
+       - If no specific URL is found, omit the link. Do NOT create fake deep-links.
     8. **NO DISCLAIMERS**: Do NOT add "This is a fictional post" or "For illustrative purposes". Write with authority.
     9. **Target Length**: Aim for a total length of approximately 2,500 ~ 3,500 characters (Korean) to meet the optimal SEO range (1,500~5,000). Avoid being too short or excessively long.
   `;
