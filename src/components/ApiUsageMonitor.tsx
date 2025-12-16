@@ -39,31 +39,37 @@ export const ApiUsageMonitor: React.FC<ApiUsageMonitorProps> = ({ usage, userLim
 
             <div className="p-6">
                 {/* Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                        <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
-                            총 호출 횟수
+                <div className="grid grid-cols-1 gap-4 mb-6">
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center">
+                        <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                            총 호출
                         </div>
-                        <div className="text-2xl font-bold text-slate-900">{usage.totalCalls.toLocaleString()}</div>
-                        <div className="text-xs text-slate-400 mt-1">전체 기간</div>
+                        <div className="text-right">
+                            <div className="text-lg font-bold text-slate-900">{usage.totalCalls.toLocaleString()}</div>
+                            <div className="text-[10px] text-slate-400">전체 기간</div>
+                        </div>
                     </div>
 
-                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                        <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
-                            총 토큰 사용량
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center">
+                        <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                            총 토큰
                         </div>
-                        <div className="text-2xl font-bold text-slate-900">{usage.totalTokens.toLocaleString()}</div>
-                        <div className="text-xs text-slate-400 mt-1">입력 + 출력</div>
+                        <div className="text-right">
+                            <div className="text-lg font-bold text-slate-900">{usage.totalTokens.toLocaleString()}</div>
+                            <div className="text-[10px] text-slate-400">입력 + 출력</div>
+                        </div>
                     </div>
 
-                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                        <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center">
+                        <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                             예상 비용
                         </div>
-                        <div className="text-2xl font-bold text-indigo-600">
-                            ${usage.estimatedCost.toFixed(4)}
+                        <div className="text-right">
+                            <div className="text-lg font-bold text-indigo-600">
+                                ${usage.estimatedCost.toFixed(4)}
+                            </div>
+                            <div className="text-[10px] text-slate-400">USD</div>
                         </div>
-                        <div className="text-xs text-slate-400 mt-1">USD</div>
                     </div>
                 </div>
 

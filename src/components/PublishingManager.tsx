@@ -211,7 +211,7 @@ export const PublishingManager: React.FC<PublishingManagerProps> = ({ post }) =>
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
                     {/* Medium Section */}
                     <div className="border border-slate-200 rounded-xl p-4 hover:border-slate-300 transition-colors">
