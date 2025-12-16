@@ -116,6 +116,39 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
   return outline;
 };
 
+
+/**
+ * 주제에 대한 핵심 팩트(수치, 날짜 등)를 먼저 검색하여 추출하는 함수
+ */
+const generateKeyFacts = async (topic: string, ai: GoogleGenAI): Promise<string> => {
+  const prompt = `
+    Topic: "${topic}"
+    
+    Task: Use Google Search to find 5-7 CRITICAL FACTS needed to write a professional blog post about this topic.
+    
+    Output Format (Bulleted List):
+    - [Data/Number]: Specific Revenue, Stock Price, or Growth Rate (e.g., $100B, +15%).
+    - [Date]: Release dates or event dates.
+    - [Quote]: A short key quote from a CEO or Official.
+    - [Context]: Why this matters now.
+    
+    Constraint: Only output the facts. Do not write an intro.
+  `;
+
+  try {
+    // 검색 도구(googleSearch)를 사용하여 팩트 수집
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: { tools: [{ googleSearch: {} }] },
+    });
+    return response.text || "";
+  } catch (e) {
+    console.error("Fact generation failed", e);
+    return ""; // 실패해도 글쓰기는 진행되도록 빈 문자열 반환
+  }
+};
+
 /**
  * Helper to generate text with files
  */
@@ -172,15 +205,23 @@ export const generateBlogPostContent = async (
   const ai = getGenAI();
   const isEnglish = language === 'English';
 
-  // Common Context
+  // [NEW] 1. 핵심 팩트 먼저 조사 (이 부분이 추가됨)
+  // AI가 글을 쓰기 전에 팩트부터 찾아오게 시킵니다.
+  const keyFacts = await generateKeyFacts(outline.title, ai);
+
+  // Common Context (기존 코드에 keyFacts 변수 내용을 주입)
   let baseContext = `
     Blog Title: "${outline.title}"
-  Tone: ${tone}
-  Language: ${language}
-  Style: Use ** Standard Unicode Emojis ** actively(e.g., 💡, 🚀, ✅, 📌).
+    Tone: ${tone}
+    Language: ${language}
+    Style: Use ** Standard Unicode Emojis ** actively(e.g., 💡, 🚀, ✅, 📌).
 
-  **CRITICAL LANGUAGE INSTRUCTION**:
-  ${isEnglish ? '- **MUST WRITE IN ENGLISH**. Even if the outline or context is in Korean, you MUST translate and write the output in English.' : '- Write in natural, native Korean.'}
+    **CRITICAL CONTEXT (KEY FACTS)**:
+    You MUST use the following facts to ensure accuracy. Do not hallucinate numbers if they are provided here.
+    ${keyFacts}
+
+    **CRITICAL LANGUAGE INSTRUCTION**:
+    ${isEnglish ? '- **MUST WRITE IN ENGLISH**. Even if the outline or context is in Korean, you MUST translate and write the output in English.' : '- Write in natural, native Korean.'}
     
     ** EDITOR'S GUIDELINES (7 CORE PRINCIPLES)**:
   1. ** SEO Optimization **: Use natural keywords.

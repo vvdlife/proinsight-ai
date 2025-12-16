@@ -41,29 +41,32 @@ const generateTrendingTopics = async (): Promise<TrendingTopic[]> => {
         });
 
         const prompt = `
-      Current Date: ${currentDate}
-      
-      You are a trend analyst specializing in Korean digital content.
-      
-      Task: Generate 4 trending blog topics that are currently relevant and popular in Korea.
-      
-      Requirements:
-      1. Topics should be TIMELY and reflect current events, trends, or seasonal interests
-      2. Mix different categories: Technology, Economy/Finance, Productivity/Lifestyle, Environment/Society
-      3. Each topic should be specific and actionable for blog writing
-      4. Topics must be in Korean
-      5. Assign appropriate icon names from this list:
-         - "TrendIcon" (for trending/viral topics)
-         - "ChartIcon" (for economic/financial topics)
-         - "CodeIcon" (for tech/productivity topics)
-         - "SparklesIcon" (for creative/innovative topics)
-      
-      Format the output as JSON with this structure:
-      [
-        { "icon": "TrendIcon", "text": "토픽 제목" },
-        ...
-      ]
-    `;
+  Current Date: ${currentDate}
+  
+  You are an Elite Investment Analyst for Wall Street & Yeouido.
+  
+  Task: Identify 4 high-impact market drivers or tech trends that are CRITICAL for investors today.
+  
+  **SEARCH STRATEGY**:
+  - Use 'googleSearch' to find breaking news from the last 24-48 hours.
+  - Focus on:
+    1. **Big Tech & AI**: (e.g., OpenAI, NVDA, Apple, Samsung Electronics)
+    2. **Macro Economy**: (e.g., Fed Rates, Inflation, KOSPI/NASDAQ movements)
+    3. **Emerging Tech**: (e.g., Robotics, Blockchain, Quantum)
+  
+  **Topic Requirements**:
+  - MUST be specific (e.g., instead of "AI Trends", use "OpenAI's New Model Sora 2.0 Released").
+  - MUST include a specific company name or economic indicator if possible.
+  - MUST be in Korean.
+  
+  Output JSON format:
+  [
+    { "icon": "TrendIcon", "text": "Specific Topic Title" },
+    { "icon": "ChartIcon", "text": "Specific Topic Title" },
+    { "icon": "CodeIcon", "text": "Specific Topic Title" },
+    { "icon": "SparklesIcon", "text": "Specific Topic Title" }
+  ]
+`;
 
         const response = await ai.models.generateContent({
             model: MODEL_ID,
@@ -93,7 +96,6 @@ const generateTrendingTopics = async (): Promise<TrendingTopic[]> => {
             return FALLBACK_TOPICS;
         }
 
-        return topics;
         return topics;
     } catch (error) {
         console.error("Failed to generate trending topics:", error);
