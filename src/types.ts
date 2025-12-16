@@ -63,9 +63,9 @@ export interface LoadingState {
 
 // v1.1: Model Selection
 export enum ModelType {
-  PRO_1_5 = 'gemini-1.5-pro-latest',
-  FLASH_2_5 = 'gemini-1.5-flash-latest', // Mapped to stable Flash (v2.5 not yet available)
-  FLASH_1_5 = 'gemini-1.5-flash',
+  PRO_1_5 = 'gemini-1.5-pro-002',       // Explicit version 002
+  FLASH_2_5 = 'gemini-1.5-flash-002',   // Explicit version 002
+  FLASH_1_5 = 'gemini-1.5-flash-001',   // Explicit version 001
 }
 
 // v1.1: API Usage Monitoring

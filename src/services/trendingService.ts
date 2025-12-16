@@ -5,7 +5,7 @@ import { safeJsonParse } from './utils';
 
 const CACHE_KEY = 'proinsight_trending_cache';
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
-const MODEL_ID = "gemini-1.5-flash-latest"; // Default (Stable Flash)
+const MODEL_ID = "gemini-1.5-flash-002"; // Default (Stable Flash 002)
 
 // Helper to get client securely
 const getGenAI = () => {
