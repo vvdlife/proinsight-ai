@@ -509,12 +509,14 @@ export const generateBlogImage = async (title: string, style: ImageStyle, ratio:
 /**
  * Performs deep SEO diagnosis on the content.
  */
-export const analyzeSeoDetails = async (content: string, keyword: string): Promise<SeoDiagnosis[]> => {
+export const analyzeSeoDetails = async (content: string, keyword: string, language: 'ko' | 'en' = 'ko'): Promise<SeoDiagnosis[]> => {
   const ai = getGenAI();
+  const isEnglish = language === 'en';
 
   const prompt = `
     Analyze this blog post for SEO weaknesses.
     Target Keyword: "${keyword || 'General'}"
+    Context Language: ${isEnglish ? 'English' : 'Korean'}
     
     Find 3-4 specific areas that need improvement. Focus on:
     1. Keyword placement (if missing in critical areas).
@@ -524,11 +526,15 @@ export const analyzeSeoDetails = async (content: string, keyword: string): Promi
     Output JSON format:
     [
       {
-        "issue": "Brief description of the problem",
+        "issue": "Brief description of the problem (${isEnglish ? 'in English' : 'in Korean'})",
         "original": "The specific sentence or segment that is problematic (max 50 chars)",
-        "suggestion": "How to fix it (specific actionable advice)"
+        "suggestion": "How to fix it (specific actionable advice ${isEnglish ? 'in English' : 'in Korean'})"
       }
     ]
+    
+    **CRITICAL INSTRUCTION**:
+    - If Context Language is Korean, the 'issue' and 'suggestion' fields MUST be written in Korean.
+    - If Context Language is English, they MUST be written in English.
     
     Content to analyze:
     "${content.substring(0, 5000)}..." 

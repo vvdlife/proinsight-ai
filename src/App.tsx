@@ -876,6 +876,7 @@ const App: React.FC = () => {
                   title={isEditing ? editTitle : (activeLang === 'ko' ? finalPost?.title || '' : finalPostEn?.title || '')}
                   content={isEditing ? editContent : (activeLang === 'ko' ? finalPost?.content || '' : finalPostEn?.content || '')}
                   keyword={topic} // 검색했던 주제를 키워드로 간주
+                  language={activeLang as 'ko' | 'en'}
                 />
 
                 {/* [NEW] 2. 썸네일 에디터 */}

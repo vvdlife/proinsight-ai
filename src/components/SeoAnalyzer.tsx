@@ -4,9 +4,10 @@ interface SeoAnalyzerProps {
     content: string;
     title: string;
     keyword?: string;
+    language?: 'ko' | 'en';
 }
 
-export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keyword }) => {
+export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keyword, language = 'ko' }) => {
     // 1. Basic Metrics
     const wordCount = content.replace(/#/g, '').trim().split(/\s+/).length;
     const charCount = content.replace(/\s/g, '').length;
@@ -73,7 +74,7 @@ export const SeoAnalyzer: React.FC<SeoAnalyzerProps> = ({ content, title, keywor
         setShowSuggestions(true);
         try {
             const { analyzeSeoDetails } = await import('../services/geminiService');
-            const result = await analyzeSeoDetails(content, keyword || '');
+            const result = await analyzeSeoDetails(content, keyword || '', language);
             setSuggestions(result);
         } catch (e) {
             console.error(e);
