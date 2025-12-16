@@ -36,6 +36,7 @@ export const generateOutline = async (topic: string, files: UploadedFile[], urls
       Task: Create a blog post outline for the topic: "${topic}".
       
       1. **Title**: Create a **Viral, Click-worthy, and SEO-optimized** title.
+         - **CRITICAL**: The Title MUST include the exact keyword: "${topic}".
         - It must be provocative, benefit-driven, or a listicle (e.g., "Top 5...", "Why you are wrong about...", "The Ultimate Guide to...").
         - Maximize curiosity and click-through rate (CTR).
       
@@ -230,24 +231,25 @@ export const generateBlogPostContent = async (
     ${isEnglish ? '- **MUST WRITE IN ENGLISH**. Even if the outline or context is in Korean, you MUST translate and write the output in English.' : '- Write in natural, native Korean.'}
     
     ** EDITOR'S GUIDELINES (7 CORE PRINCIPLES)**:
-  1. ** SEO Optimization **: Use natural keywords.
-    2. ** Reader Analysis **: Write for the specific audience.Use "F-pattern" formatting(bolding, bullets).
-    3. ** Visuals **: Use emojis and formatting to break up text.
-    4. ** Visuals & Infographics(CRITICAL) **:
-       - ** Markdown Tables **: Use for comparing data, pros / cons, or features.
-       - ** Mermaid Diagrams **: Use for processes, hierarchies, or timelines.
-         - Syntax Rule 1: ** ALWAYS enclose node labels in quotes ** (e.g., id["Label with spaces!"]).
+    1. **SEO Optimization (CRITICAL)**: 
+       - **Keyword Density**: Naturally repeat the main topic "${outline.title}" (or related keywords) 2-3 times per section. Aim for ~2% density.
+       - **Placement**: Ensure keywords appear in the *First Paragraph* and *Headers*.
+    2. **Reader Analysis**: Write for the specific audience. Use "F-pattern" formatting (bolding, bullets).
+    3. **Visuals**: Use emojis and formatting to break up text.
+    4. **Visuals & Infographics(CRITICAL)**:
+       - **Markdown Tables**: Use for comparing data, pros/cons, or features.
+       - **Mermaid Diagrams**: Use for processes, hierarchies, or timelines.
+         - Syntax Rule 1: **ALWAYS enclose node labels in quotes** (e.g., id["Label with spaces!"]).
          - Syntax Rule 2: Do not use special characters like parentheses() inside the ID, only in the label.
          - Supported types: \`graph TD\`, \`mindmap\`, \`timeline\`, \`pie\`.
+       - **Image Placeholders**: Include at least 1-2 relevant image placeholders per post using: \`![Image: Description of visual](https://placehold.co/600x400?text=Image+Placeholder)\`. This boosts SEO structure scores.
     5. **Interactive Elements**: Use **Emoji-based Checklists** (e.g., "- ✅ Item").
     6. **Data-Driven & Specific**:
            - **CRITICAL**: Use the \`googleSearch\` tool to find SPECIFIC data points (numbers, dates, quotes).
            - Do not say "Many companies". Say "Apple and Nvidia".
-           - Do not say "Revenue increased". Say "Revenue increased by 20% to $XX billion".
            - Cite real recent events.
-           - **FUTURE CHECK**: If predicting the future (e.g., 2026), do NOT cite old models as "new". Search for upcoming models.
-    7. **No External Links**: Do not add inline links.
-    8. **NO DISCLAIMERS**: Do NOT add "This is a fictional post" or "For illustrative purposes". Write with authority as a prediction/analysis.
+    7. **References**: Include 1-2 external links to reputable definitions or sources using markdown \`[Source Name](https://example.com)\` to improve credibility/SEO (use valid or plausible URLs).
+    8. **NO DISCLAIMERS**: Do NOT add "This is a fictional post" or "For illustrative purposes". Write with authority.
   `;
   if (memo && memo.trim()) {
     baseContext += `
@@ -271,9 +273,9 @@ export const generateBlogPostContent = async (
     
     Instructions:
     ${isEnglish ? '- **TRANSLATION TASK**: Start your response with the English translation of the Blog Title on the first line, prefixed with "TITLE: ". Remove any labels like "(Preview)" or "(미리보기)".' : ''}
-    - **Hook**: Start with a strong question or statement to grab attention (Reader Behavior Analysis).
+    - **SEO Hook**: **Start the very first sentence with the exact keyword: "${outline.title}".**
     - **Value**: Briefly state what the reader will gain.
-    - **Conciseness**: Max 100 words.
+    - **Conciseness**: Write about 300-400 characters (or 80-100 words).
     - Do NOT write any section headers (like ## Introduction).
     - Do NOT use horizontal rules (---).
   `;
@@ -307,7 +309,7 @@ export const generateBlogPostContent = async (
         3. **Key Insight**: Bold summary.
       
       - **Formatting**: ${isEnglish ? 'Use the translated header provided above.' : 'No subsections (###), no repeated headers, no horizontal rules.'}
-      - **Length**: Under 150 words.
+      - **Length**: Write comprehensively. Aim for 400-500 characters (Korean) or 150-200 words (English) per section to meet deep content standards.
     `;
     return generateText(ai, sectionPrompt, files, "You are an expert content writer. Use Tables and Emojis.");
   });
