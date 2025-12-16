@@ -201,7 +201,8 @@ export const generateBlogPostContent = async (
   files: UploadedFile[],
   urls: string[],
   memo: string,
-  language: string = 'Korean'
+  language: string = 'Korean',
+  topic: string // [NEW] Add topic for SEO keyword optimization
 ): Promise<{ content: string; title: string }> => {
   const ai = getGenAI();
   const isEnglish = language === 'English';
@@ -232,7 +233,7 @@ export const generateBlogPostContent = async (
     
     ** EDITOR'S GUIDELINES (7 CORE PRINCIPLES)**:
     1. **SEO Optimization (CRITICAL)**: 
-       - **Keyword Density**: Naturally repeat the main topic "${outline.title}" (or related keywords) 2-3 times per section. Aim for ~2% density.
+       - **Keyword Density**: Naturally repeat the main keyword "${topic}" 2-3 times per section. Aim for ~2% density.
        - **Placement**: Ensure keywords appear in the *First Paragraph* and *Headers*.
     2. **Reader Analysis**: Write for the specific audience. Use "F-pattern" formatting (bolding, bullets).
     3. **Visuals**: Use emojis and formatting to break up text.
@@ -248,7 +249,9 @@ export const generateBlogPostContent = async (
            - **CRITICAL**: Use the \`googleSearch\` tool to find SPECIFIC data points (numbers, dates, quotes).
            - Do not say "Many companies". Say "Apple and Nvidia".
            - Cite real recent events.
-    7. **References**: Include 1-2 external links to reputable definitions or sources using markdown \`[Source Name](https://example.com)\` to improve credibility/SEO (use valid or plausible URLs).
+    7. **References**: Provide 1-2 external sources. Format them strictly as Markdown Links: \`[Source Name](https://...)\`. 
+       - If you found specific URLs via googleSearch, use them.
+       - If no specific URL is found, omit the link or use a general domain (e.g., [OpenAI](https://openai.com)) if relevant. Do NOT create fake deep-links.
     8. **NO DISCLAIMERS**: Do NOT add "This is a fictional post" or "For illustrative purposes". Write with authority.
   `;
   if (memo && memo.trim()) {

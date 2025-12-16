@@ -285,7 +285,7 @@ const App: React.FC = () => {
       // 1. Generate Content and Image in parallel
       setLoading({ isLoading: true, message: '블로그 본문을 작성하고 있습니다...', progress: 30 });
 
-      const contentPromise = generateBlogPostContent(outline, selectedTone, sourceFiles, sourceUrls, memo, 'Korean');
+      const contentPromise = generateBlogPostContent(outline, selectedTone, sourceFiles, sourceUrls, memo, 'Korean', topic);
       const imagePromise = (async () => {
         setLoading({ isLoading: true, message: '썸네일 이미지를 생성하고 있습니다...', progress: 60 });
         return await generateBlogImage(outline.title, selectedImageStyle);
@@ -294,7 +294,7 @@ const App: React.FC = () => {
       // Dual Mode: Generate English content if enabled
       let contentEnPromise: Promise<{ content: string; title: string }> = Promise.resolve({ content: '', title: '' });
       if (isDualMode) {
-        contentEnPromise = generateBlogPostContent(outline, selectedTone, sourceFiles, sourceUrls, memo, 'English');
+        contentEnPromise = generateBlogPostContent(outline, selectedTone, sourceFiles, sourceUrls, memo, 'English', topic);
       }
 
       const [postData, imageUrl, postDataEn] = await Promise.all([
