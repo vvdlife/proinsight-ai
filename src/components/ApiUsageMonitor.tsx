@@ -129,10 +129,11 @@ export const ApiUsageMonitor: React.FC<ApiUsageMonitorProps> = ({ usage, userLim
                                         <span className="font-semibold text-slate-700">{call.operation}</span>
                                         <span className="text-slate-500">
                                             {new Date(call.timestamp).toLocaleString('ko-KR', {
-                                                month: 'short',
-                                                day: 'numeric',
+                                                month: '2-digit',
+                                                day: '2-digit',
                                                 hour: '2-digit',
-                                                minute: '2-digit'
+                                                minute: '2-digit',
+                                                hour12: false
                                             })}
                                         </span>
                                     </div>

@@ -225,7 +225,7 @@ export const PublishingManager: React.FC<PublishingManagerProps> = ({ post }) =>
                                 type="password"
                                 value={mediumToken}
                                 onChange={(e) => setMediumToken(e.target.value)}
-                                placeholder="Integration Token 입력"
+                                placeholder="Integration Token"
                                 className="w-full p-2 text-sm border border-slate-200 rounded outline-none focus:border-black"
                             />
                             <div className="flex gap-2">
@@ -264,7 +264,7 @@ export const PublishingManager: React.FC<PublishingManagerProps> = ({ post }) =>
                                     onClick={handleTistoryLogin}
                                     className="w-full py-3 bg-[#F44F05] text-white text-sm font-bold rounded hover:bg-[#d94604] transition-colors"
                                 >
-                                    티스토리 계정 연동하기
+                                    티스토리 연동
                                 </button>
                             ) : (
                                 <div className="flex gap-2">
@@ -308,14 +308,14 @@ export const PublishingManager: React.FC<PublishingManagerProps> = ({ post }) =>
                                 type="text"
                                 value={wpUsername}
                                 onChange={(e) => setWpUsername(e.target.value)}
-                                placeholder="사용자명 (ID)"
+                                placeholder="ID"
                                 className="w-full p-2 text-sm border border-slate-200 rounded outline-none focus:border-[#21759B]"
                             />
                             <input
                                 type="password"
                                 value={wpPassword}
                                 onChange={(e) => setWpPassword(e.target.value)}
-                                placeholder="앱 비밀번호 (App Password)"
+                                placeholder="App Password"
                                 className="w-full p-2 text-sm border border-slate-200 rounded outline-none focus:border-[#21759B]"
                             />
                             <div className="flex gap-2 pt-1">
