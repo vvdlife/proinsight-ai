@@ -4,6 +4,7 @@ import { BlogTone, OutlineData, SocialPost, ImageStyle, UploadedFile, SeoDiagnos
 import { trackApiCall, estimateTokens } from './apiUsageTracker';
 import { safeJsonParse } from './utils';
 import { PROMPTS, PERSONA_INSTRUCTIONS } from '../constants/prompts';
+import { FIXED_TEMPLATES } from '../constants/templates';
 
 // Constants
 const MODEL_IDS = {
@@ -57,6 +58,17 @@ export const generateOutline = async (
 
   // [NEW] Inject Market Context
   const marketContext = await fetchMarketDataContext();
+
+  // [NEW] Check for Fixed Templates (Standardized Formats)
+  if (FIXED_TEMPLATES[topic]) {
+    // Return the pre-defined template directly
+    // Allow slight title variation by appending date if needed, but structure is fixed.
+    const template = FIXED_TEMPLATES[topic];
+    return {
+      title: template.title, // You might want to append date here dynamically
+      sections: template.sections
+    };
+  }
 
   let promptText = PROMPTS.OUTLINE(currentDate, topic) + marketContext;
 
