@@ -9,6 +9,7 @@ import { AuthGate } from './components/AuthGate';
 import { TopicInputStep } from './components/steps/TopicInputStep';
 import { OutlineReviewStep } from './components/steps/OutlineReviewStep';
 import { FinalResultStep } from './components/steps/FinalResultStep';
+import { MarketWidget } from './components/MarketWidget';
 import { useBlogContext } from './context/BlogContext';
 
 const App: React.FC = () => {
@@ -114,6 +115,13 @@ const App: React.FC = () => {
         <main className="max-w-7xl mx-auto px-4 py-12">
           {/* Steps Indicator */}
           <StepWizard currentStep={currentStep} />
+
+          {/* Market Data Widget (Always Visible or only on input step based on preference. Let's make it always visible or just on dashboard main) */}
+          {currentStep === AppStep.TOPIC_INPUT && (
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-200">
+              <MarketWidget />
+            </div>
+          )}
 
           {/* Step Views */}
           <div className="animate-in fade-in duration-500">

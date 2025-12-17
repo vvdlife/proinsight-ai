@@ -21,6 +21,25 @@ const getGenAI = () => {
   return new GoogleGenAI({ apiKey: key });
 };
 
+// [NEW] Helper to fetch market data for context
+const fetchMarketDataContext = async (): Promise<string> => {
+  try {
+    const res = await fetch('/api/market_data');
+    if (!res.ok) return "";
+    const json = await res.json();
+    if (json.status !== 'success' || !json.data) return "";
+
+    const lines = json.data.map((item: any) =>
+      `- ${item.name} (${item.symbol}): ${item.currency === 'KRW' ? item.price.toLocaleString() : item.price} ${item.currency} (${item.change >= 0 ? '+' : ''}${item.changePercent.toFixed(2)}%)`
+    ).join('\n');
+
+    return `\n\n[REAL-TIME MARKET CONTEXT (${new Date().toLocaleDateString()})]:\n${lines}\n(Use this data to ground your content if relevant to the topic.)`;
+  } catch (e) {
+    console.warn("Failed to fetch market context", e);
+    return "";
+  }
+};
+
 /**
  * Generates a blog post outline.
  */
@@ -36,7 +55,10 @@ export const generateOutline = async (
   // Get current date for context
   const currentDate = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
 
-  let promptText = PROMPTS.OUTLINE(currentDate, topic);
+  // [NEW] Inject Market Context
+  const marketContext = await fetchMarketDataContext();
+
+  let promptText = PROMPTS.OUTLINE(currentDate, topic) + marketContext;
 
   if (memo && memo.trim()) {
     promptText += `\n\n[USER MEMO]: \n"${memo}"\n(Prioritize this instruction.)`;
@@ -180,12 +202,15 @@ export const generateBlogPostContent = async (
   // [NEW] 커스텀 페르소나 가져오기
   const customPersona = localStorage.getItem('proinsight_custom_persona') || '';
 
+  // [NEW] Inject Market Context
+  const marketContext = await fetchMarketDataContext();
+
   // Common Context (Use PROMPTS.BASE_CONTEXT)
   const baseContext = PROMPTS.BASE_CONTEXT(
     outline.title,
     tone,
     language,
-    keyFacts,
+    keyFacts + marketContext, // Append market context here
     customPersona,
     isEnglish,
     topic,
