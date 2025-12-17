@@ -218,7 +218,7 @@ export const generateBlogPostContent = async (
   const marketContext = await fetchMarketDataContext();
 
   // Common Context (Use PROMPTS.BASE_CONTEXT)
-  const baseContext = PROMPTS.BASE_CONTEXT(
+  let baseContext = PROMPTS.BASE_CONTEXT(
     outline.title,
     tone,
     language,
@@ -230,6 +230,23 @@ export const generateBlogPostContent = async (
     urls,
     files.length > 0
   );
+
+  // [NEW] Enforce "Briefing Report Style" for Fixed Topics
+  if (FIXED_TEMPLATES[topic]) {
+    baseContext += `
+      
+      **CRITICAL STYLE OVERRIDE (REPORT MODE)**:
+      This is a "Daily Market Briefing". You must write in a professional, concise **REPORT STYLE**.
+      - **DO NOT** use conversational filler (e.g., "Let's dive in", "In this section").
+      - **DO NOT** write long paragraphs.
+      - **MUST** use Bullet Points (•) for almost every section.
+      - **Structure**:
+         1. **Key Data**: Start with the most important numbers/facts.
+         2. **Cause**: Why did it move?
+         3. **Implication**: What does it mean?
+      - Tone: Analyst, Dry, Fact-based, High-density.
+      `;
+  }
 
   // 1. Intro Generation
   const introPrompt = PROMPTS.INTRO(baseContext, outline.sections, outline.title, isEnglish);

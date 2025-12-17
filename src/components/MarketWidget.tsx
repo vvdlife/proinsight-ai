@@ -94,8 +94,29 @@ export const MarketWidget: React.FC = () => {
                                 <span>({item.changePercent.toFixed(2)}%)</span>
                             </div>
                             {/* Hover info */}
+                            {/* Hover info */}
                             <div className="absolute inset-0 bg-white/90 hidden group-hover:flex items-center justify-center rounded-xl opacity-0 group-hover:opacity-100 transition-opacity">
-                                <span className="text-xs font-bold text-indigo-600 cursor-pointer">상세 보기</span>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Prevent parent clicks if any
+                                        let url = '';
+                                        if (item.symbol === 'GC=F') url = 'https://finance.naver.com/marketindex/worldGoldDetail.naver?marketindexCd=CMDT_GC';
+                                        else if (item.symbol === 'HG=F') url = 'https://finance.naver.com/marketindex/materialDetail.naver?marketindexCd=CMDT_HG';
+                                        else if (item.symbol === 'LIT') url = 'https://finance.naver.com/world/sise.naver?symbol=LIT'; // Global ETF
+                                        else if (item.symbol === 'NVDA') url = 'https://finance.naver.com/world/sise.naver?symbol=NVDA';
+                                        else if (item.symbol === 'AAPL') url = 'https://finance.naver.com/world/sise.naver?symbol=AAPL';
+                                        else if (item.symbol === '005930.KS') url = 'https://finance.naver.com/item/main.naver?code=005930';
+                                        else if (item.symbol === '035420.KS') url = 'https://finance.naver.com/item/main.naver?code=035420';
+                                        else if (item.symbol === '^KS11') url = 'https://finance.naver.com/sise/sise_index.naver?code=KOSPI';
+                                        else if (item.symbol === '^GSPC') url = 'https://finance.naver.com/world/sise.naver?symbol=SPI@SPX';
+                                        else if (item.symbol === 'KRW=X') url = 'https://finance.naver.com/marketindex/exchangeDetail.naver?marketindexCd=FX_USDKRW';
+
+                                        if (url) window.open(url, '_blank');
+                                    }}
+                                    className="px-3 py-1 bg-indigo-600 text-white text-xs font-bold rounded-full hover:bg-indigo-700 transition-colors shadow-sm"
+                                >
+                                    상세 보기
+                                </button>
                             </div>
                         </div>
                     ))}
