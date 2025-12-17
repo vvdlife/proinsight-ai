@@ -61,8 +61,8 @@ export const useHistory = (
                     updated = [newItem, ...prev];
                 }
 
-                // Limit to 5 items to prevent QuotaExceededError
-                updated = updated.slice(0, 5);
+                // Limit to 1 item as per user request to prevent QuotaExceededError
+                updated = updated.slice(0, 1);
 
                 try {
                     // Strip images and truncate extremely long content to prevent QuotaExceededError
@@ -72,11 +72,13 @@ export const useHistory = (
                         finalPost: item.finalPost ? {
                             ...item.finalPost,
                             images: [],
+                            socialPosts: item.finalPost.socialPosts?.map(p => ({ ...p, imageUrl: undefined })), // [NEW] Strip social images
                             content: item.finalPost.content.length > 30000 ? item.finalPost.content.substring(0, 30000) + '... (truncated)' : item.finalPost.content
                         } : null,
                         finalPostEn: item.finalPostEn ? {
                             ...item.finalPostEn,
                             images: [],
+                            socialPosts: item.finalPostEn.socialPosts?.map(p => ({ ...p, imageUrl: undefined })), // [NEW] Strip social images
                             content: item.finalPostEn.content.length > 30000 ? item.finalPostEn.content.substring(0, 30000) + '... (truncated)' : item.finalPostEn.content
                         } : null
                     }));
