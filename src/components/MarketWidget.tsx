@@ -41,6 +41,8 @@ export const MarketWidget: React.FC = () => {
             // Fallback mock data for dev/error
             setMarketData([
                 { symbol: 'GC=F', name: 'Gold', price: 2650.50, change: 12.5, changePercent: 0.47, currency: 'USD' },
+                { symbol: '^KS11', name: 'KOSPI', price: 2750.20, change: -10.5, changePercent: -0.38, currency: 'KRW' },
+                { symbol: 'KRW=X', name: 'USD/KRW', price: 1380.50, change: 5.0, changePercent: 0.36, currency: 'KRW' },
                 { symbol: 'NVDA', name: 'NVIDIA', price: 140.20, change: -2.3, changePercent: -1.6, currency: 'USD' },
                 { symbol: 'HG=F', name: 'Copper', price: 4.15, change: 0.05, changePercent: 1.2, currency: 'USD' },
                 { symbol: '005930.KS', name: 'Samsung Elec', price: 56000, change: -500, changePercent: -0.89, currency: 'KRW' }

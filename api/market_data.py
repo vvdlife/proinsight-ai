@@ -16,7 +16,10 @@ class handler(BaseHTTPRequestHandler):
                 "NVDA": "NVIDIA",
                 "AAPL": "Apple",
                 "005930.KS": "Samsung Elec",
-                "035420.KS": "Naver"
+                "035420.KS": "Naver",
+                "^KS11": "KOSPI",
+                "^GSPC": "S&P 500",
+                "KRW=X": "USD/KRW"
             }
             
             # 2. Fetch Data

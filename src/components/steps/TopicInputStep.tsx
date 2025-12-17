@@ -114,6 +114,34 @@ export const TopicInputStep: React.FC = () => {
                 </div>
             </div>
 
+            {/* Quick Feature Buttons (Fixed Topics) */}
+            <div className="flex flex-wrap justify-center gap-3 mb-10">
+                <button
+                    onClick={() => { setTopic("오늘의 국내/미국 증시 현황 및 분석"); setTimeout(() => onGenerate(), 100); }}
+                    className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors text-sm font-bold border border-indigo-100"
+                >
+                    📈 국내/미국 증시 시황
+                </button>
+                <button
+                    onClick={() => { setTopic("오늘의 국내/해외 빅테크 뉴스"); setTimeout(() => onGenerate(), 100); }}
+                    className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors text-sm font-bold border border-indigo-100"
+                >
+                    📰 빅테크 뉴스
+                </button>
+                <button
+                    onClick={() => { setTopic("오늘의 금 시세 및 전망"); setTimeout(() => onGenerate(), 100); }}
+                    className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 transition-colors text-sm font-bold border border-amber-100"
+                >
+                    🥇 금값 전망
+                </button>
+                <button
+                    onClick={() => { setTopic("오늘의 달러 환율 현황 및 전망"); setTimeout(() => onGenerate(), 100); }}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors text-sm font-bold border border-green-100"
+                >
+                    💵 환율 분석
+                </button>
+            </div>
+
             {/* Smart Trend Analysis Widget */}
             <React.Suspense fallback={null}>
                 <TrendAnalysisWidget topic={topic} />
