@@ -100,16 +100,19 @@ export const MarketWidget: React.FC = () => {
                                     onClick={(e) => {
                                         e.stopPropagation(); // Prevent parent clicks if any
                                         let url = '';
+                                        // Naver Finance for Korean Assets & Key Indices
                                         if (item.symbol === 'GC=F') url = 'https://finance.naver.com/marketindex/worldGoldDetail.naver?marketindexCd=CMDT_GC';
-                                        else if (item.symbol === 'HG=F') url = 'https://finance.naver.com/marketindex/materialDetail.naver?marketindexCd=CMDT_HG';
-                                        else if (item.symbol === 'LIT') url = 'https://finance.naver.com/world/sise.naver?symbol=LIT'; // Global ETF
-                                        else if (item.symbol === 'NVDA') url = 'https://finance.naver.com/world/sise.naver?symbol=NVDA';
-                                        else if (item.symbol === 'AAPL') url = 'https://finance.naver.com/world/sise.naver?symbol=AAPL';
                                         else if (item.symbol === '005930.KS') url = 'https://finance.naver.com/item/main.naver?code=005930';
                                         else if (item.symbol === '035420.KS') url = 'https://finance.naver.com/item/main.naver?code=035420';
                                         else if (item.symbol === '^KS11') url = 'https://finance.naver.com/sise/sise_index.naver?code=KOSPI';
                                         else if (item.symbol === '^GSPC') url = 'https://finance.naver.com/world/sise.naver?symbol=SPI@SPX';
                                         else if (item.symbol === 'KRW=X') url = 'https://finance.naver.com/marketindex/exchangeDetail.naver?marketindexCd=FX_USDKRW';
+
+                                        // Yahoo Finance for Global Assets (More reliable than Naver for these)
+                                        else if (item.symbol === 'HG=F') url = 'https://finance.yahoo.com/quote/HG=F';
+                                        else if (item.symbol === 'LIT') url = 'https://finance.yahoo.com/quote/LIT';
+                                        else if (item.symbol === 'NVDA') url = 'https://finance.yahoo.com/quote/NVDA';
+                                        else if (item.symbol === 'AAPL') url = 'https://finance.yahoo.com/quote/AAPL';
 
                                         if (url) window.open(url, '_blank');
                                     }}
