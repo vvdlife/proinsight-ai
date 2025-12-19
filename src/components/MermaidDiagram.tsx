@@ -7,106 +7,30 @@ interface MermaidDiagramProps {
 
 mermaid.initialize({
     startOnLoad: false,
-    theme: 'base',
+    look: 'handDrawn', // Enable Sketch/Hand-Drawn Mode
+    theme: 'neutral',
     securityLevel: 'loose',
-    fontFamily: 'Pretendard, -apple-system, BlinkMacSystemFont, sans-serif',
+    fontFamily: '"Nanum Pen Script", cursive',
     themeVariables: {
-        fontFamily: 'Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-        fontSize: '15px',
+        fontFamily: '"Nanum Pen Script", cursive',
+        fontSize: '20px',
         primaryColor: '#ffffff',
-        primaryTextColor: '#1e293b', // Slate 800
-        primaryBorderColor: '#cbd5e1', // Slate 300
-        lineColor: '#64748b', // Slate 500
-        secondaryColor: '#f1f5f9', // Slate 100
+        primaryTextColor: '#374151', // Dark Gray for pencil look
+        primaryBorderColor: '#4b5563', // Pencil stroke color
+        lineColor: '#374151',
+        secondaryColor: '#f3f4f6',
         tertiaryColor: '#ffffff',
     },
+    // Custom CSS disabled to allow Hand-Drawn engine to render natively
     themeCSS: `
-        /* ---------------------------------------------------------
-           Silicon Valley "Card" Design System for Mermaid
-           Clean, Minimal, High-Contrast, Shadow-Depth
-           --------------------------------------------------------- */
-        
-        /* 1. Base Node Styling (The "Card") */
-        g.node rect,
-        g.node polygon,
-        g.node circle {
+        .node rect, .node circle, .node polygon {
             fill: #ffffff !important;
-            stroke: #cbd5e1 !important; /* Slate 300 - Delicate Border */
-            stroke-width: 1.5px !important;
-            rx: 10px !important;
-            ry: 10px !important;
-            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.04)) !important; /* Soft Elevation */
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        }
-
-        /* 2. Strong Typography */
-        .node .nodeLabel, 
-        .node text {
-            font-family: 'Pretendard', sans-serif !important;
-            font-weight: 600 !important;
-            fill: #1e293b !important; /* Slate 800 */
-            font-size: 15px !important;
-            letter-spacing: -0.01em !important;
-        }
-
-        /* 3. Icon Integration */
-        .node i {
-            color: #475569 !important; /* Slate 600 */
-        }
-
-        /* 4. Highlight / Hero Nodes (The "Primary Action") */
-        /* Usage: classDef highlight fill:#4f46e5,color:#fff,stroke:none */
-        g.node.highlight rect,
-        g.node.highlight polygon,
-        g.node.highlight circle {
-            fill: #4f46e5 !important; /* Indigo 600 */
-            stroke: #4338ca !important; /* Indigo 700 */
-            stroke-width: 0px !important;
-            filter: drop-shadow(0 8px 16px rgba(79, 70, 229, 0.25)) !important; /* Glowing Depth */
-        }
-        g.node.highlight .nodeLabel, 
-        g.node.highlight text {
-            fill: #ffffff !important;
-            font-weight: 700 !important;
-        }
-        g.node.highlight i {
-            color: #ffffff !important;
-        }
-
-        /* 5. Edge / Connector Styling */
-        .edgePath .path, 
-        .flowchart-link {
-            stroke: #94a3b8 !important; /* Slate 400 */
             stroke-width: 2px !important;
-            stroke-linecap: round !important;
-            fill: none !important;
         }
-        .marker {
-            fill: #94a3b8 !important; /* Arrowhead */
-            stroke: #94a3b8 !important;
-        }
-
-        /* 6. Edge Labels (Context Bubbles) */
-        .edgeLabel rect {
-            fill: #f8fafc !important; /* Slate 50 */
-            stroke: #e2e8f0 !important;
-            stroke-width: 1px !important;
-            rx: 6px !important;
-        }
-        .edgeLabel .label {
-            fill: #64748b !important; /* Slate 500 */
-            font-size: 12px !important;
+        .node .nodeLabel, .node text {
+            font-family: 'Nanum Pen Script', cursive !important;
             font-weight: 500 !important;
-        }
-
-        /* 7. Hover Interaction */
-        g.node:hover rect,
-        g.node:hover polygon,
-        g.node:hover circle {
-            stroke: #6366f1 !important; /* Indigo 500 */
-            filter: drop-shadow(0 12px 20px rgba(99, 102, 241, 0.15)) !important;
-            transform: translateY(-2px);
-            cursor: default;
+            font-size: 22px !important; /* Larger for readability */
         }
     `
 });
