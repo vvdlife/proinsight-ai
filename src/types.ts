@@ -63,8 +63,8 @@ export interface LoadingState {
 
 // v1.1: Model Selection (Strict Gemini 3.0 Transition)
 export enum ModelType {
-  PRO_3_0 = 'gemini-3.0-pro',
-  FLASH_3_0 = 'gemini-3.0-flash',
+  PRO_3_0 = 'gemini-3-pro-preview',
+  FLASH_3_0 = 'gemini-3-flash-preview',
 }
 
 // v1.1: API Usage Monitoring

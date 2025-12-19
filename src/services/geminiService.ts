@@ -8,7 +8,7 @@ import { FIXED_TEMPLATES } from '../constants/templates';
 
 // Constants
 const MODEL_IDS = {
-  TEXT: "gemini-3.0-flash", // Default text model
+  TEXT: "gemini-3-flash-preview", // Default text model
   IMAGE: "gemini-2.5-flash-image", // "Nano Banana" - Dedicated image generation model as per documentation
 } as const;
 

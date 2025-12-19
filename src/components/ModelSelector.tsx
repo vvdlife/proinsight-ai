@@ -19,8 +19,8 @@ interface ModelInfo {
 const MODELS: ModelInfo[] = [
     {
         id: ModelType.PRO_3_0,
-        name: 'Gemini 3.0 Pro',
-        description: '최신 3.0 엔진, 최고 성능 (Main)',
+        name: 'Gemini 3.0 Pro (Preview)',
+        description: '최신 3.0 엔진, 최고 성능 (Nov 2025)',
         speed: '보통',
         quality: 'SOTA',
         cost: '높음',
@@ -28,8 +28,8 @@ const MODELS: ModelInfo[] = [
     },
     {
         id: ModelType.FLASH_3_0,
-        name: 'Gemini 3.0 Flash',
-        description: '3.0 기반 초고속 모델 (Light)',
+        name: 'Gemini 3.0 Flash (Preview)',
+        description: '3.0 기반 초고속 모델',
         speed: '매우 빠름',
         quality: '매우 높음',
         cost: '낮음',
