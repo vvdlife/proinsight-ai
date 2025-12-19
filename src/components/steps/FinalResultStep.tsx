@@ -1,6 +1,14 @@
-import { ExportManager } from '../ExportManager';
-
-// ... (props interface if any)
+import React, { useState, useEffect } from 'react';
+import { PenIcon, RefreshIcon, CheckIcon, XIcon, DownloadIcon, ImageIcon, CopyIcon } from '../Icons';
+import { MarkdownRenderer } from '../MarkdownRenderer';
+import { BlogFont } from '../../types';
+import { SeoAnalyzer } from '../SeoAnalyzer';
+import { SocialGenerator } from '../SocialGenerator';
+import { ThumbnailEditor } from '../ThumbnailEditor';
+import { useBlogContext } from '../../context/BlogContext';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { ExportManager } from '../ExportManager'; // Kept the new one
 
 export const FinalResultStep: React.FC = () => {
     // ... (existing hooks)
