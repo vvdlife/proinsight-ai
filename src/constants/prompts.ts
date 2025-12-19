@@ -98,13 +98,21 @@ export const PROMPTS = {
     8. **NO DISCLAIMERS**: Do NOT add "This is a fictional post" or "For illustrative purposes". Write with authority.
     9. **Target Length**: Aim for ~300-350 characters (Korean) per section to keep the total length around 3,000 characters. Be concise and impactful.
     10. **NO TITLE REPETITION**: The H1 title is already rendered by the system. Do NOT include the Main Title or "Title: ..." at the beginning of your output. Start directly with the Introduction.
-  `;
+
+    ** SEO & VIRAL STANDARDS (STRICT ENFORCEMENT) **:
+    You must adhere to the following criteria (These will be used to grade your work):
+    1. ** The Hook (First 3 Seconds) **: The first sentence of EVERY section must be intriguing. Never start with "In this section...". Start with a question, a shocking stat, or a bold statement.
+    2. ** Scannability (Mobile First) **: 
+       - Maximum ** 3 lines ** per paragraph.
+       - Use ** Bullet points ** vs. Blocks of text whenever possible.
+       - Highlight key phrases in ** Bold **.
+    3. ** Viral Trigger **: Include at least one "Counter-intuitive Insight" or "Insider Perspective" in every section to establish Authority and drive shares.
 
     if (memo && memo.trim()) {
       context += `\n\n[USER MEMO]: \n"${memo}"\n(Prioritize this instruction.)`;
     }
     if (urls.length > 0) {
-      context += `\nSOURCE URLs(For reference only): \n${(urls || []).join('\n')} `;
+      context += `\nSOURCE URLs(For reference only): \n${ (urls || []).join('\n') } `;
     }
     if (hasFiles) {
       context += `\n(Refer to attached documents)`;
@@ -113,13 +121,13 @@ export const PROMPTS = {
   },
 
   INTRO: (baseContext: string, outlineSections: string[], title: string, isEnglish: boolean) => `
-    ${baseContext}
+    ${ baseContext }
 
     Task: Write an engaging ** Introduction ** for this blog post.
-      Outline of the whole post: ${(outlineSections || []).join(", ")}
+      Outline of the whole post: ${ (outlineSections || []).join(", ") }
 
     Instructions:
-      ${isEnglish ? '- **TRANSLATION TASK**: Start your response with the English translation of the Blog Title on the first line, prefixed with "TITLE: ". Remove any labels like "(Preview)" or "(미리보기)".' : ''}
+      ${ isEnglish ? '- **TRANSLATION TASK**: Start your response with the English translation of the Blog Title on the first line, prefixed with "TITLE: ". Remove any labels like "(Preview)" or "(미리보기)".' : '' }
       - ** SEO Hook **: ** Start the very first sentence with the exact keyword: "${title}".**
       - ** Value **: Briefly state what the reader will gain.
       - ** Conciseness **: Write about 300 - 400 characters(or 80 - 100 words).
@@ -128,18 +136,18 @@ export const PROMPTS = {
   `,
 
   SECTION: (baseContext: string, section: string, outlineSections: string[], isEnglish: boolean) => `
-    ${baseContext}
+    ${ baseContext }
 
     Task: Write the content for the section: "${section}".
-      Context(Full Outline): ${(outlineSections || []).join(", ")}
+      Context(Full Outline): ${ (outlineSections || []).join(", ") }
 
     Instructions:
-        ${isEnglish ? `- **HEADER TRANSLATION**: Start your response with the English translation of the section title "${section}" as a Level 2 Markdown Header (e.g. ## English Title).` : ''}
+        ${ isEnglish ? `- **HEADER TRANSLATION**: Start your response with the English translation of the section title "${section}" as a Level 2 Markdown Header (e.g. ## English Title).` : '' }
         - ** Structure **:
     1. ** Core Concept **: Clear explanation.
           2. ** Visual / Interactive ** (Choose one that fits best):
              - ** Comparison Table **: Use a Markdown Table for data / pros - cons.
-             - ** High-End Mermaid Chart **: Use \`\`\`mermaid\`\`\` for flows/structures.
+             - ** High - End Mermaid Chart **: Use \`\`\`mermaid\`\`\` for flows/structures.
                **MERMAID RULES (ARCHITECT LEVEL)**:
                • **Top-Down Flow**: Use \`graph TD\`.
                • **Icons**: Use FontAwesome icons inside labels (e.g., \`A["fa:fa-robot AI Model"]\`).
@@ -161,7 +169,7 @@ export const PROMPTS = {
         - **Length**: Write comprehensively. Aim for 400-500 characters (Korean) or 150-200 words (English) per section to meet deep content standards.
   `,
 
-  CONCLUSION: (baseContext: string, outlineSections: string[]) => `
+      CONCLUSION: (baseContext: string, outlineSections: string[]) => `
     ${baseContext}
     
     Task: Write a **Conclusion** and **3-Line Summary**.
@@ -174,7 +182,7 @@ export const PROMPTS = {
     - Do NOT use horizontal rules (---).
   `,
 
-  SOCIAL: (title: string, summary: string) => `
+        SOCIAL: (title: string, summary: string) => `
     Create promotional social media posts for: "${title}".
     Summary: "${summary.substring(0, 300)}..."
     
@@ -205,13 +213,13 @@ export const PROMPTS = {
     IMPORTANT: All content must be in Korean.
   `,
 
-  IMAGE: (title: string, stylePrompt: string, ratio: string) => `Create a high-quality image for: "${title}". ${stylePrompt} Aspect Ratio: ${ratio}. 
+          IMAGE: (title: string, stylePrompt: string, ratio: string) => `Create a high-quality image for: "${title}". ${stylePrompt} Aspect Ratio: ${ratio}. 
     **CRITICAL INSTRUCTION: NO TEXT.** 
     - Do NOT include any text, letters, numbers, or characters in the image.
     - No signboards, no watermarks, no typography.
     - Pure visual representation only.`,
 
-  SEO_ANALYSIS: (personaInstruction: string, keyword: string, isEnglish: boolean, content: string) => `
+            SEO_ANALYSIS: (personaInstruction: string, keyword: string, isEnglish: boolean, content: string) => `
     ${personaInstruction}
     
     Task: Analyze the following blog post and identify exactly 3 critical weaknesses that serve as barriers to viral growth or reader retention.
@@ -242,11 +250,11 @@ export const PROMPTS = {
     Content to analyze:
     "${content.substring(0, 3000)}..." 
   `
-};
+  };
 
-export const PERSONA_INSTRUCTIONS = {
-  WITTY: "Role: A Viral Content Editor who loves witty, punchy, and entertaining writing. Criticism should focus on 'boring' parts.",
-  PROFESSIONAL: "Role: A Senior Editor at a top-tier journal. Focus on Authority, Trustworthiness, and Clarity. Criticism should focus on 'vague' or 'unsupported' claims.",
-  EMOTIONAL: "Role: An Emotional Storyteller. Focus on Empathy, Connection, and Human Touch. Criticism should focus on 'robotic' or 'cold' writing.",
-  DEFAULT: "Role: A Best-Selling Copywriter. Focus on Persuasion, Clarity, and Reader Retention."
-};
+  export const PERSONA_INSTRUCTIONS = {
+    WITTY: "Role: A Viral Content Editor who loves witty, punchy, and entertaining writing. Criticism should focus on 'boring' parts.",
+    PROFESSIONAL: "Role: A Senior Editor at a top-tier journal. Focus on Authority, Trustworthiness, and Clarity. Criticism should focus on 'vague' or 'unsupported' claims.",
+    EMOTIONAL: "Role: An Emotional Storyteller. Focus on Empathy, Connection, and Human Touch. Criticism should focus on 'robotic' or 'cold' writing.",
+    DEFAULT: "Role: A Best-Selling Copywriter. Focus on Persuasion, Clarity, and Reader Retention."
+  };
