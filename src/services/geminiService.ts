@@ -25,7 +25,10 @@ const fetchMarketDataContext = async (): Promise<string> => {
 
     return `\n\n[REAL-TIME MARKET CONTEXT (${new Date().toLocaleDateString()})]:\n${lines}\n(Use this data to ground your content if relevant to the topic.)`;
   } catch (e) {
-    console.warn("Failed to fetch market context", e);
+    // Ignore error in production/demo mode
+    if ((import.meta as any).env.DEV) {
+      console.warn("Failed to fetch market context", e);
+    }
     return "";
   }
 };
