@@ -19,8 +19,8 @@ interface ModelInfo {
 const MODELS: ModelInfo[] = [
     {
         id: ModelType.PRO_3_0,
-        name: 'Gemini 3.0 Pro (Preview)',
-        description: '최신 3.0 엔진, 최고 성능 (Nov 2025)',
+        name: 'Gemini 3.0 Pro',
+        description: '최신 3.0 엔진, 최고 성능 (Main)',
         speed: '보통',
         quality: 'SOTA',
         cost: '높음',
@@ -28,21 +28,12 @@ const MODELS: ModelInfo[] = [
     },
     {
         id: ModelType.FLASH_3_0,
-        name: 'Gemini 3.0 Flash (Preview)',
-        description: '3.0 기반 초고속 모델',
+        name: 'Gemini 3.0 Flash',
+        description: '3.0 기반 초고속 모델 (Light)',
         speed: '매우 빠름',
         quality: '매우 높음',
         cost: '낮음',
         badge: '⚡ NEW'
-    },
-    {
-        id: ModelType.PRO_2_5,
-        name: 'Gemini 2.5 Pro',
-        description: '검증된 고성능 안정화 모델',
-        speed: '빠름',
-        quality: '높음',
-        cost: '중간',
-        badge: '🛡️ Stable'
     }
 ];
 
@@ -120,7 +111,6 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ selectedModel, onM
                             <ul className="space-y-1 ml-2">
                                 <li>• <strong>3.0 Pro</strong>: 최고 성능, 복잡한 추론 및 전문적인 글쓰기 (SOTA)</li>
                                 <li>• <strong>3.0 Flash</strong>: 빠르고 효율적인 블로그 생성 (기본 권장)</li>
-                                <li>• <strong>2.5 Pro</strong>: 검증된 안정성, 이전 세대 고성능 모델</li>
                             </ul>
                         </div>
                     </div>
