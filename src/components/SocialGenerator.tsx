@@ -26,7 +26,7 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
 
   const shareToPlatform = (post: SocialPost) => {
     if (post.platform === 'Twitter') {
-      const text = encodeURIComponent(`${post.content}\n\n${post.hashtags.join(' ')}`);
+      const text = encodeURIComponent(`${post.content}\n\n${(post.hashtags || []).join(' ')}`);
       window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
     } else if (post.platform === 'LinkedIn') {
       window.open(`https://www.linkedin.com/sharing/share-offsite/`, '_blank');
@@ -106,7 +106,7 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
               />
               <input
                 type="text"
-                value={post.hashtags.join(' ')}
+                value={(post.hashtags || []).join(' ')}
                 onChange={(e) => handleHashtagsChange(index, e.target.value)}
                 className="w-full text-blue-600 outline-none text-xs mt-2"
               />
@@ -151,7 +151,7 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
             {renderMockup(post, index)}
             <div className="grid grid-cols-2 gap-2">
               <button
-                onClick={() => copyToClipboard(`${post.content}\n\n${post.hashtags.join(' ')}`, index)}
+                onClick={() => copyToClipboard(`${post.content}\n\n${(post.hashtags || []).join(' ')}`, index)}
                 className={`py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-sm ${copiedIndex === index ? 'bg-green-600 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:border-indigo-500 hover:text-indigo-600'
                   }`}
               >

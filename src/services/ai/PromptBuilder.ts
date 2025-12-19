@@ -20,8 +20,8 @@ export class PromptBuilder {
             promptText += `\n\n[USER MEMO]: \n"${memo}"\n(Prioritize this instruction.)`;
         }
 
-        if (urls.length > 0) {
-            promptText += `\n\nRefer to these URLs: \n${urls.join('\n')} `;
+        if (urls && urls.length > 0) {
+            promptText += `\n\nRefer to these URLs: \n${(urls || []).join('\n')} `;
         }
 
         if (hasFiles) {

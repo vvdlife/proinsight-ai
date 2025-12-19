@@ -1,6 +1,6 @@
 
 export const PROMPTS = {
-    OUTLINE: (currentDate: string, topic: string) => `
+  OUTLINE: (currentDate: string, topic: string) => `
     Current Date: ${currentDate}
     
     You are a professional content strategist specializing in high-traffic blogs.
@@ -32,7 +32,7 @@ export const PROMPTS = {
     }
   `,
 
-    KEY_FACTS: (topic: string) => `
+  KEY_FACTS: (topic: string) => `
     Topic: "${topic}"
     
     Task: Use Google Search to find 5-7 CRITICAL FACTS needed to write a professional blog post about this topic.
@@ -46,19 +46,19 @@ export const PROMPTS = {
     Constraint: Only output the facts. Do not write an intro.
   `,
 
-    BASE_CONTEXT: (
-        title: string,
-        tone: string,
-        language: string,
-        keyFacts: string,
-        customPersona: string,
-        isEnglish: boolean,
-        topic: string,
-        memo: string,
-        urls: string[],
-        hasFiles: boolean
-    ) => {
-        let context = `
+  BASE_CONTEXT: (
+    title: string,
+    tone: string,
+    language: string,
+    keyFacts: string,
+    customPersona: string,
+    isEnglish: boolean,
+    topic: string,
+    memo: string,
+    urls: string[],
+    hasFiles: boolean
+  ) => {
+    let context = `
     Blog Title: "${title}"
     Tone: ${tone}
     Language: ${language}
@@ -100,23 +100,23 @@ export const PROMPTS = {
     10. **NO TITLE REPETITION**: The H1 title is already rendered by the system. Do NOT include the Main Title or "Title: ..." at the beginning of your output. Start directly with the Introduction.
   `;
 
-        if (memo && memo.trim()) {
-            context += `\n\n[USER MEMO]: \n"${memo}"\n(Prioritize this instruction.)`;
-        }
-        if (urls.length > 0) {
-            context += `\nSOURCE URLs(For reference only): \n${urls.join('\n')} `;
-        }
-        if (hasFiles) {
-            context += `\n(Refer to attached documents)`;
-        }
-        return context;
-    },
+    if (memo && memo.trim()) {
+      context += `\n\n[USER MEMO]: \n"${memo}"\n(Prioritize this instruction.)`;
+    }
+    if (urls.length > 0) {
+      context += `\nSOURCE URLs(For reference only): \n${(urls || []).join('\n')} `;
+    }
+    if (hasFiles) {
+      context += `\n(Refer to attached documents)`;
+    }
+    return context;
+  },
 
-    INTRO: (baseContext: string, outlineSections: string[], title: string, isEnglish: boolean) => `
+  INTRO: (baseContext: string, outlineSections: string[], title: string, isEnglish: boolean) => `
     ${baseContext}
 
     Task: Write an engaging ** Introduction ** for this blog post.
-      Outline of the whole post: ${outlineSections.join(", ")}
+      Outline of the whole post: ${(outlineSections || []).join(", ")}
 
     Instructions:
       ${isEnglish ? '- **TRANSLATION TASK**: Start your response with the English translation of the Blog Title on the first line, prefixed with "TITLE: ". Remove any labels like "(Preview)" or "(미리보기)".' : ''}
@@ -127,11 +127,11 @@ export const PROMPTS = {
       - Do NOT use horizontal rules(---).
   `,
 
-    SECTION: (baseContext: string, section: string, outlineSections: string[], isEnglish: boolean) => `
+  SECTION: (baseContext: string, section: string, outlineSections: string[], isEnglish: boolean) => `
     ${baseContext}
 
     Task: Write the content for the section: "${section}".
-      Context(Full Outline): ${outlineSections.join(", ")}
+      Context(Full Outline): ${(outlineSections || []).join(", ")}
 
     Instructions:
         ${isEnglish ? `- **HEADER TRANSLATION**: Start your response with the English translation of the section title "${section}" as a Level 2 Markdown Header (e.g. ## English Title).` : ''}
@@ -158,11 +158,11 @@ export const PROMPTS = {
         - **Length**: Write comprehensively. Aim for 400-500 characters (Korean) or 150-200 words (English) per section to meet deep content standards.
   `,
 
-    CONCLUSION: (baseContext: string, outlineSections: string[]) => `
+  CONCLUSION: (baseContext: string, outlineSections: string[]) => `
     ${baseContext}
     
     Task: Write a **Conclusion** and **3-Line Summary**.
-    Outline of the whole post: ${outlineSections.join(", ")}
+    Outline of the whole post: ${(outlineSections || []).join(", ")}
     
     Instructions:
     - Summarize the key takeaways.
@@ -171,7 +171,7 @@ export const PROMPTS = {
     - Do NOT use horizontal rules (---).
   `,
 
-    SOCIAL: (title: string, summary: string) => `
+  SOCIAL: (title: string, summary: string) => `
     Create promotional social media posts for: "${title}".
     Summary: "${summary.substring(0, 300)}..."
     
@@ -185,13 +185,13 @@ export const PROMPTS = {
     IMPORTANT: All content must be in Korean.
   `,
 
-    IMAGE: (title: string, stylePrompt: string, ratio: string) => `Create a high-quality image for: "${title}". ${stylePrompt} Aspect Ratio: ${ratio}. 
+  IMAGE: (title: string, stylePrompt: string, ratio: string) => `Create a high-quality image for: "${title}". ${stylePrompt} Aspect Ratio: ${ratio}. 
     **CRITICAL INSTRUCTION: NO TEXT.** 
     - Do NOT include any text, letters, numbers, or characters in the image.
     - No signboards, no watermarks, no typography.
     - Pure visual representation only.`,
 
-    SEO_ANALYSIS: (personaInstruction: string, keyword: string, isEnglish: boolean, content: string) => `
+  SEO_ANALYSIS: (personaInstruction: string, keyword: string, isEnglish: boolean, content: string) => `
     ${personaInstruction}
     
     Task: Analyze the following blog post and identify exactly 3 critical weaknesses that serve as barriers to viral growth or reader retention.
@@ -225,8 +225,8 @@ export const PROMPTS = {
 };
 
 export const PERSONA_INSTRUCTIONS = {
-    WITTY: "Role: A Viral Content Editor who loves witty, punchy, and entertaining writing. Criticism should focus on 'boring' parts.",
-    PROFESSIONAL: "Role: A Senior Editor at a top-tier journal. Focus on Authority, Trustworthiness, and Clarity. Criticism should focus on 'vague' or 'unsupported' claims.",
-    EMOTIONAL: "Role: An Emotional Storyteller. Focus on Empathy, Connection, and Human Touch. Criticism should focus on 'robotic' or 'cold' writing.",
-    DEFAULT: "Role: A Best-Selling Copywriter. Focus on Persuasion, Clarity, and Reader Retention."
+  WITTY: "Role: A Viral Content Editor who loves witty, punchy, and entertaining writing. Criticism should focus on 'boring' parts.",
+  PROFESSIONAL: "Role: A Senior Editor at a top-tier journal. Focus on Authority, Trustworthiness, and Clarity. Criticism should focus on 'vague' or 'unsupported' claims.",
+  EMOTIONAL: "Role: An Emotional Storyteller. Focus on Empathy, Connection, and Human Touch. Criticism should focus on 'robotic' or 'cold' writing.",
+  DEFAULT: "Role: A Best-Selling Copywriter. Focus on Persuasion, Clarity, and Reader Retention."
 };

@@ -17,7 +17,7 @@ const fetchMarketDataContext = async (): Promise<string> => {
     const res = await fetch('/api/market_data');
     if (!res.ok) return "";
     const json = await res.json();
-    if (json.status !== 'success' || !json.data) return "";
+    if (json.status !== 'success' || !json.data || !Array.isArray(json.data)) return "";
 
     const lines = json.data.map((item: any) =>
       `- ${item.name} (${item.symbol}): ${item.currency === 'KRW' ? item.price.toLocaleString() : item.price} ${item.currency} (${item.change >= 0 ? '+' : ''}${item.changePercent.toFixed(2)}%)`
