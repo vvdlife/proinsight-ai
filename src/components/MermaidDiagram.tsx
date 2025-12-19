@@ -11,102 +11,102 @@ mermaid.initialize({
     securityLevel: 'loose',
     fontFamily: 'Pretendard, -apple-system, BlinkMacSystemFont, sans-serif',
     themeVariables: {
-        // Modern color palette with gradients
-        primaryColor: '#EEF2FF',
-        primaryTextColor: '#1E293B',
-        primaryBorderColor: '#818CF8',
-        lineColor: '#94A3B8',
-        secondaryColor: '#FEF3C7',
-        tertiaryColor: '#ECFDF5',
-
-        // Node styling
-        mainBkg: '#FFFFFF',
-        nodeBorder: '#E2E8F0',
-        clusterBkg: '#F8FAFC',
-        clusterBorder: '#CBD5E1',
-
-        // Text
-        nodeTextColor: '#0F172A',
-        fontSize: '16px',
-        fontWeight: '600',
+        fontFamily: 'Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+        fontSize: '15px',
+        primaryColor: '#ffffff',
+        primaryTextColor: '#1e293b', // Slate 800
+        primaryBorderColor: '#cbd5e1', // Slate 300
+        lineColor: '#64748b', // Slate 500
+        secondaryColor: '#f1f5f9', // Slate 100
+        tertiaryColor: '#ffffff',
     },
     themeCSS: `
-        /* Base Node Style - Clean Card Look */
+        /* ---------------------------------------------------------
+           Silicon Valley "Card" Design System for Mermaid
+           Clean, Minimal, High-Contrast, Shadow-Depth
+           --------------------------------------------------------- */
+        
+        /* 1. Base Node Styling (The "Card") */
         g.node rect,
         g.node polygon,
-        g.node circle,
-        g.node path {
-            fill: #FFFFFF !important;
-            stroke: #E2E8F0 !important;
-            stroke-width: 2px !important;
-            rx: 12px !important;
-            ry: 12px !important;
-            filter: drop-shadow(0 4px 6px rgba(148, 163, 184, 0.1)) !important;
-            transition: all 0.3s ease !important;
+        g.node circle {
+            fill: #ffffff !important;
+            stroke: #cbd5e1 !important; /* Slate 300 - Delicate Border */
+            stroke-width: 1.5px !important;
+            rx: 10px !important;
+            ry: 10px !important;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.04)) !important; /* Soft Elevation */
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
 
-        /* Base Text Style - Dark & Readable */
-        .nodeLabel, .node text {
-            fill: #1E293B !important; /* Slate 800 */
-            color: #1E293B !important;
+        /* 2. Strong Typography */
+        .node .nodeLabel, 
+        .node text {
             font-family: 'Pretendard', sans-serif !important;
-            font-weight: 700 !important;
-            font-size: 14px !important;
+            font-weight: 600 !important;
+            fill: #1e293b !important; /* Slate 800 */
+            font-size: 15px !important;
+            letter-spacing: -0.01em !important;
         }
 
-        /* Icon Style matching text */
+        /* 3. Icon Integration */
         .node i {
-            color: #1E293B !important;
+            color: #475569 !important; /* Slate 600 */
         }
 
-        /* --------------------------------------------------------
-           Highlighted / Hero Nodes (Using 'classDef highlight') 
-           This must match the prompt's instruction: classDef highlight fill:#6366F1,stroke:#4338CA,color:#fff
-           We override it here for consistency 
-        -------------------------------------------------------- */
+        /* 4. Highlight / Hero Nodes (The "Primary Action") */
+        /* Usage: classDef highlight fill:#4f46e5,color:#fff,stroke:none */
         g.node.highlight rect,
         g.node.highlight polygon,
         g.node.highlight circle {
-            fill: #4F46E5 !important; /* Indigo 600 */
-            stroke: #4338CA !important; /* Indigo 700 */
+            fill: #4f46e5 !important; /* Indigo 600 */
+            stroke: #4338ca !important; /* Indigo 700 */
             stroke-width: 0px !important;
-            filter: drop-shadow(0 8px 16px rgba(79, 70, 229, 0.3)) !important;
+            filter: drop-shadow(0 8px 16px rgba(79, 70, 229, 0.25)) !important; /* Glowing Depth */
         }
-
-        /* Hero Text */
         g.node.highlight .nodeLabel, 
         g.node.highlight text {
-            fill: #FFFFFF !important;
-            color: #FFFFFF !important;
-            font-weight: 800 !important;
+            fill: #ffffff !important;
+            font-weight: 700 !important;
         }
         g.node.highlight i {
-            color: #FFFFFF !important;
+            color: #ffffff !important;
         }
 
-        /* --------------------------------------------------------
-           Links / Edges
-        -------------------------------------------------------- */
-        .edgePath path, .flowchart-link {
-            stroke: #94A3B8 !important; /* Slate 400 */
+        /* 5. Edge / Connector Styling */
+        .edgePath .path, 
+        .flowchart-link {
+            stroke: #94a3b8 !important; /* Slate 400 */
             stroke-width: 2px !important;
-            opacity: 0.8 !important;
+            stroke-linecap: round !important;
+            fill: none !important;
         }
-        .edgeLabel {
-            background-color: #F8FAFC !important;
-            color: #64748B !important;
-            padding: 4px 8px !important;
-            border-radius: 4px !important;
-            font-size: 11px !important;
+        .marker {
+            fill: #94a3b8 !important; /* Arrowhead */
+            stroke: #94a3b8 !important;
         }
 
-        /* --------------------------------------------------------
-           Interactive / Hover
-        -------------------------------------------------------- */
-        g.node:hover rect {
-            stroke: #6366F1 !important;
+        /* 6. Edge Labels (Context Bubbles) */
+        .edgeLabel rect {
+            fill: #f8fafc !important; /* Slate 50 */
+            stroke: #e2e8f0 !important;
+            stroke-width: 1px !important;
+            rx: 6px !important;
+        }
+        .edgeLabel .label {
+            fill: #64748b !important; /* Slate 500 */
+            font-size: 12px !important;
+            font-weight: 500 !important;
+        }
+
+        /* 7. Hover Interaction */
+        g.node:hover rect,
+        g.node:hover polygon,
+        g.node:hover circle {
+            stroke: #6366f1 !important; /* Indigo 500 */
+            filter: drop-shadow(0 12px 20px rgba(99, 102, 241, 0.15)) !important;
             transform: translateY(-2px);
-            filter: drop-shadow(0 10px 15px rgba(99, 102, 241, 0.2)) !important;
+            cursor: default;
         }
     `
 });
