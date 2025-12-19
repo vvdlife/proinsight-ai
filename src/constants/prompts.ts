@@ -107,12 +107,13 @@ export const PROMPTS = {
        - Use ** Bullet points ** vs. Blocks of text whenever possible.
        - Highlight key phrases in ** Bold **.
     3. ** Viral Trigger **: Include at least one "Counter-intuitive Insight" or "Insider Perspective" in every section to establish Authority and drive shares.
+  `;
 
     if (memo && memo.trim()) {
       context += `\n\n[USER MEMO]: \n"${memo}"\n(Prioritize this instruction.)`;
     }
     if (urls.length > 0) {
-      context += `\nSOURCE URLs(For reference only): \n${ (urls || []).join('\n') } `;
+      context += `\nSOURCE URLs(For reference only): \n${(urls || []).join('\n')} `;
     }
     if (hasFiles) {
       context += `\n(Refer to attached documents)`;
@@ -121,13 +122,13 @@ export const PROMPTS = {
   },
 
   INTRO: (baseContext: string, outlineSections: string[], title: string, isEnglish: boolean) => `
-    ${ baseContext }
+    ${baseContext}
 
     Task: Write an engaging ** Introduction ** for this blog post.
-      Outline of the whole post: ${ (outlineSections || []).join(", ") }
+      Outline of the whole post: ${(outlineSections || []).join(", ")}
 
     Instructions:
-      ${ isEnglish ? '- **TRANSLATION TASK**: Start your response with the English translation of the Blog Title on the first line, prefixed with "TITLE: ". Remove any labels like "(Preview)" or "(미리보기)".' : '' }
+      ${isEnglish ? '- **TRANSLATION TASK**: Start your response with the English translation of the Blog Title on the first line, prefixed with "TITLE: ". Remove any labels like "(Preview)" or "(미리보기)".' : ''}
       - ** SEO Hook **: ** Start the very first sentence with the exact keyword: "${title}".**
       - ** Value **: Briefly state what the reader will gain.
       - ** Conciseness **: Write about 300 - 400 characters(or 80 - 100 words).
@@ -136,13 +137,13 @@ export const PROMPTS = {
   `,
 
   SECTION: (baseContext: string, section: string, outlineSections: string[], isEnglish: boolean) => `
-    ${ baseContext }
+    ${baseContext}
 
     Task: Write the content for the section: "${section}".
-      Context(Full Outline): ${ (outlineSections || []).join(", ") }
+      Context(Full Outline): ${(outlineSections || []).join(", ")}
 
     Instructions:
-        ${ isEnglish ? `- **HEADER TRANSLATION**: Start your response with the English translation of the section title "${section}" as a Level 2 Markdown Header (e.g. ## English Title).` : '' }
+        ${isEnglish ? `- **HEADER TRANSLATION**: Start your response with the English translation of the section title "${section}" as a Level 2 Markdown Header (e.g. ## English Title).` : ''}
         - ** Structure **:
     1. ** Core Concept **: Clear explanation.
           2. ** Visual / Interactive ** (Choose one that fits best):
@@ -169,7 +170,7 @@ export const PROMPTS = {
         - **Length**: Write comprehensively. Aim for 400-500 characters (Korean) or 150-200 words (English) per section to meet deep content standards.
   `,
 
-      CONCLUSION: (baseContext: string, outlineSections: string[]) => `
+  CONCLUSION: (baseContext: string, outlineSections: string[]) => `
     ${baseContext}
     
     Task: Write a **Conclusion** and **3-Line Summary**.
@@ -182,7 +183,7 @@ export const PROMPTS = {
     - Do NOT use horizontal rules (---).
   `,
 
-        SOCIAL: (title: string, summary: string) => `
+  SOCIAL: (title: string, summary: string) => `
     Create promotional social media posts for: "${title}".
     Summary: "${summary.substring(0, 300)}..."
     
@@ -213,13 +214,13 @@ export const PROMPTS = {
     IMPORTANT: All content must be in Korean.
   `,
 
-          IMAGE: (title: string, stylePrompt: string, ratio: string) => `Create a high-quality image for: "${title}". ${stylePrompt} Aspect Ratio: ${ratio}. 
+  IMAGE: (title: string, stylePrompt: string, ratio: string) => `Create a high-quality image for: "${title}". ${stylePrompt} Aspect Ratio: ${ratio}. 
     **CRITICAL INSTRUCTION: NO TEXT.** 
     - Do NOT include any text, letters, numbers, or characters in the image.
     - No signboards, no watermarks, no typography.
     - Pure visual representation only.`,
 
-            SEO_ANALYSIS: (personaInstruction: string, keyword: string, isEnglish: boolean, content: string) => `
+  SEO_ANALYSIS: (personaInstruction: string, keyword: string, isEnglish: boolean, content: string) => `
     ${personaInstruction}
     
     Task: Analyze the following blog post and identify exactly 3 critical weaknesses that serve as barriers to viral growth or reader retention.
@@ -250,11 +251,11 @@ export const PROMPTS = {
     Content to analyze:
     "${content.substring(0, 3000)}..." 
   `
-  };
+};
 
-  export const PERSONA_INSTRUCTIONS = {
-    WITTY: "Role: A Viral Content Editor who loves witty, punchy, and entertaining writing. Criticism should focus on 'boring' parts.",
-    PROFESSIONAL: "Role: A Senior Editor at a top-tier journal. Focus on Authority, Trustworthiness, and Clarity. Criticism should focus on 'vague' or 'unsupported' claims.",
-    EMOTIONAL: "Role: An Emotional Storyteller. Focus on Empathy, Connection, and Human Touch. Criticism should focus on 'robotic' or 'cold' writing.",
-    DEFAULT: "Role: A Best-Selling Copywriter. Focus on Persuasion, Clarity, and Reader Retention."
-  };
+export const PERSONA_INSTRUCTIONS = {
+  WITTY: "Role: A Viral Content Editor who loves witty, punchy, and entertaining writing. Criticism should focus on 'boring' parts.",
+  PROFESSIONAL: "Role: A Senior Editor at a top-tier journal. Focus on Authority, Trustworthiness, and Clarity. Criticism should focus on 'vague' or 'unsupported' claims.",
+  EMOTIONAL: "Role: An Emotional Storyteller. Focus on Empathy, Connection, and Human Touch. Criticism should focus on 'robotic' or 'cold' writing.",
+  DEFAULT: "Role: A Best-Selling Copywriter. Focus on Persuasion, Clarity, and Reader Retention."
+};
