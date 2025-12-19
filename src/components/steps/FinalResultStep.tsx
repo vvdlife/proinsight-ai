@@ -258,10 +258,12 @@ export const FinalResultStep: React.FC = () => {
                                 <button className="flex items-center gap-2 px-3 py-2 text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 font-medium text-sm">
                                     <DownloadIcon className="w-4 h-4" />
                                 </button>
-                                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden hidden group-hover:block animate-in fade-in zoom-in-95 duration-200 z-50">
-                                    <button onClick={handleExportHtml} className="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors">HTML로 저장</button>
-                                    <button onClick={handleExportMarkdown} className="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors">Markdown으로 저장</button>
-                                    <button onClick={handleExportPdf} className="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors">PDF로 저장</button>
+                                <div className="absolute right-0 top-full pt-2 w-48 hidden group-hover:block z-50 animate-in fade-in zoom-in-95 duration-200">
+                                    <div className="bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden">
+                                        <button onClick={handleExportHtml} className="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors">HTML로 저장</button>
+                                        <button onClick={handleExportMarkdown} className="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors">Markdown으로 저장</button>
+                                        <button onClick={handleExportPdf} className="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors">PDF로 저장</button>
+                                    </div>
                                 </div>
                             </div>
                         </>

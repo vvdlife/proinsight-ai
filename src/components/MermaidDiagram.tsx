@@ -31,88 +31,82 @@ mermaid.initialize({
         fontWeight: '600',
     },
     themeCSS: `
-        /* Modern node styling with gradients and shadows */
-        .node rect,
-        .node circle,
-        .node polygon,
-        .node path {
-            fill: #6366F1 !important;
-            stroke: #4338CA !important;
-            stroke-width: 0px !important;
-            rx: 8px !important;
-            ry: 8px !important;
-            filter: drop-shadow(0 4px 6px rgba(99, 102, 241, 0.25)) !important;
+        /* Base Node Style - Clean Card Look */
+        g.node rect,
+        g.node polygon,
+        g.node circle,
+        g.node path {
+            fill: #FFFFFF !important;
+            stroke: #E2E8F0 !important;
+            stroke-width: 2px !important;
+            rx: 12px !important;
+            ry: 12px !important;
+            filter: drop-shadow(0 4px 6px rgba(148, 163, 184, 0.1)) !important;
             transition: all 0.3s ease !important;
         }
-        
-        /* Different solid colors for each level */
-        .section-0 rect, .section-0 circle {
-            fill: #7C3AED !important; /* Violet 600 */
+
+        /* Base Text Style - Dark & Readable */
+        .nodeLabel, .node text {
+            fill: #1E293B !important; /* Slate 800 */
+            color: #1E293B !important;
+            font-family: 'Pretendard', sans-serif !important;
+            font-weight: 700 !important;
+            font-size: 14px !important;
         }
-        
-        .section-1 rect, .section-1 circle {
-            fill: #DB2777 !important; /* Pink 600 */
+
+        /* Icon Style matching text */
+        .node i {
+            color: #1E293B !important;
         }
-        
-        .section-2 rect, .section-2 circle {
-            fill: #EA580C !important; /* Orange 600 */
+
+        /* --------------------------------------------------------
+           Highlighted / Hero Nodes (Using 'classDef highlight') 
+           This must match the prompt's instruction: classDef highlight fill:#6366F1,stroke:#4338CA,color:#fff
+           We override it here for consistency 
+        -------------------------------------------------------- */
+        g.node.highlight rect,
+        g.node.highlight polygon,
+        g.node.highlight circle {
+            fill: #4F46E5 !important; /* Indigo 600 */
+            stroke: #4338CA !important; /* Indigo 700 */
+            stroke-width: 0px !important;
+            filter: drop-shadow(0 8px 16px rgba(79, 70, 229, 0.3)) !important;
         }
-        
-        .section-3 rect, .section-3 circle {
-            fill: #059669 !important; /* Emerald 600 */
-        }
-        
-        /* Root/center node - special styling */
-        .node:first-child rect,
-        .mindmap-node-0 rect {
-            fill: #4F46E5 !important;
-            stroke: #4338CA !important;
-            stroke-width: 3px !important;
-            rx: 16px !important;
-            filter: drop-shadow(0 10px 15px rgba(79, 70, 229, 0.25)) drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1)) !important;
-        }
-        
-        /* Text styling */
-        .nodeLabel,
-        .node text,
-        text.nodeLabel {
-            color: #FFFFFF !important;
+
+        /* Hero Text */
+        g.node.highlight .nodeLabel, 
+        g.node.highlight text {
             fill: #FFFFFF !important;
-            font-size: 15px !important;
-            font-weight: 600 !important;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
-            font-family: 'Pretendard', -apple-system, sans-serif !important;
+            color: #FFFFFF !important;
+            font-weight: 800 !important;
         }
-        
-        /* Connection lines - modern style */
-        .edgePath path,
-        .flowchart-link {
-            stroke: #94A3B8 !important;
-            stroke-width: 2.5px !important;
-            stroke-linecap: round !important;
-            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.05)) !important;
+        g.node.highlight i {
+            color: #FFFFFF !important;
         }
-        
-        /* Hover effects */
-        .node:hover rect,
-        .node:hover circle {
-            filter: drop-shadow(0 8px 12px rgba(99, 102, 241, 0.25)) drop-shadow(0 4px 6px rgba(0, 0, 0, 0.12)) !important;
-            transform: translateY(-2px) !important;
-        }
-        
-        /* Cluster/group styling */
-        .cluster rect {
-            fill: #F8FAFC !important;
-            stroke: #CBD5E1 !important;
+
+        /* --------------------------------------------------------
+           Links / Edges
+        -------------------------------------------------------- */
+        .edgePath path, .flowchart-link {
+            stroke: #94A3B8 !important; /* Slate 400 */
             stroke-width: 2px !important;
-            rx: 16px !important;
-            stroke-dasharray: 5,5 !important;
-            opacity: 0.6 !important;
+            opacity: 0.8 !important;
         }
-        
-        /* Clean background */
-        .mermaid {
-            background: transparent !important;
+        .edgeLabel {
+            background-color: #F8FAFC !important;
+            color: #64748B !important;
+            padding: 4px 8px !important;
+            border-radius: 4px !important;
+            font-size: 11px !important;
+        }
+
+        /* --------------------------------------------------------
+           Interactive / Hover
+        -------------------------------------------------------- */
+        g.node:hover rect {
+            stroke: #6366F1 !important;
+            transform: translateY(-2px);
+            filter: drop-shadow(0 10px 15px rgba(99, 102, 241, 0.2)) !important;
         }
     `
 });
