@@ -127,7 +127,7 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
           rows={5}
         />
         <div className="text-blue-600 text-xs font-semibold">
-          {post.hashtags.map(t => `#${t.replace('#', '')} `)}
+          {(post.hashtags || []).map(t => `#${t.replace('#', '')} `)}
         </div>
       </div>
     );
