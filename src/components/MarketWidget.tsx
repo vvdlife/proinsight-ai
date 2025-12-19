@@ -80,7 +80,7 @@ export const MarketWidget: React.FC = () => {
             </div>
 
             <div className="p-2 overflow-x-auto custom-scrollbar">
-                <div className="flex gap-4 p-2 min-w-max">
+                <div className="grid grid-rows-2 grid-flow-col gap-4 p-2 min-w-max">
                     {marketData.map((item) => (
                         <div key={item.symbol} className="flex flex-col min-w-[140px] px-4 py-3 bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow relative group">
                             <div className="text-xs font-bold text-slate-500 mb-1 flex justify-between">
