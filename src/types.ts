@@ -63,9 +63,9 @@ export interface LoadingState {
 
 // v1.1: Model Selection (All mapped to 2.5-flash for stability in 2025 environment)
 export enum ModelType {
-  PRO_1_5 = 'gemini-2.5-flash', // Fallback to working model
+  PRO_3_0 = 'gemini-3.0-pro',
+  FLASH_3_0 = 'gemini-3.0-flash',
   FLASH_2_5 = 'gemini-2.5-flash',
-  FLASH_1_5 = 'gemini-2.5-flash', // Fallback to working model
 }
 
 // v1.1: API Usage Monitoring

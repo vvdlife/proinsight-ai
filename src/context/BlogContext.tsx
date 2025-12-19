@@ -81,11 +81,11 @@ export const BlogProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [creationId, setCreationId] = useState<string>(() => Date.now().toString());
 
     // 2. Config State
-    const [selectedModel, setSelectedModel] = useState<ModelType>(ModelType.FLASH_2_5);
+    const [selectedModel, setSelectedModel] = useState<ModelType>(ModelType.FLASH_3_0);
     const [selectedTone, setSelectedTone] = useState<BlogTone>(BlogTone.PROFESSIONAL);
     const [selectedImageStyle, setSelectedImageStyle] = useState<ImageStyle>(ImageStyle.PHOTOREALISTIC);
     const [selectedFont, setSelectedFont] = useState<BlogFont>(BlogFont.PRETENDARD);
-    const [isDualMode, setIsDualMode] = useState(false);
+    const [isDualMode, setIsDualMode] = useState(true);
     const [activeLang, setActiveLang] = useState<'ko' | 'en'>('ko');
 
     // 3. Inputs
