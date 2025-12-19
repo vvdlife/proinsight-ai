@@ -9,7 +9,7 @@ import { FIXED_TEMPLATES } from '../constants/templates';
 // Constants
 const MODEL_IDS = {
   TEXT: "gemini-3-flash-preview", // Default text model
-  IMAGE: "gemini-1.5-flash", // Dedicated image generation model (3.0/2.5 Pro do not support image output yet)
+  IMAGE: "imagen-3.0-generate-001", // Dedicated image generation model (Imagen 3)
 } as const;
 
 // Helper to get client securely
