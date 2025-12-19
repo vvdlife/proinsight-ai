@@ -118,9 +118,9 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ selectedModel, onM
                         <div className="text-xs text-blue-700">
                             <div className="font-semibold mb-1">💡 모델 선택 가이드</div>
                             <ul className="space-y-1 ml-2">
-                                <li>• <strong>1.5 Pro</strong>: 긴 문서 분석, 복잡한 추론 필요 시</li>
-                                <li>• <strong>2.5 Flash</strong>: 일반적인 블로그 생성 (기본 권장)</li>
-                                <li>• <strong>1.5 Flash</strong>: 빠른 생성, 간단한 글, 비용 절약</li>
+                                <li>• <strong>3.0 Pro</strong>: 최고 성능, 복잡한 추론 및 전문적인 글쓰기 (SOTA)</li>
+                                <li>• <strong>3.0 Flash</strong>: 빠르고 효율적인 블로그 생성 (기본 권장)</li>
+                                <li>• <strong>2.5 Pro</strong>: 검증된 안정성, 이전 세대 고성능 모델</li>
                             </ul>
                         </div>
                     </div>
