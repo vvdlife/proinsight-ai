@@ -70,8 +70,26 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
 
   const generateHtml = async (type: 'NAVER' | 'TISTORY' | 'MEDIUM' | 'WORDPRESS' | 'SUBSTACK') => {
     let content = post.content;
+    const s = PLATFORM_STYLES[type];
 
-    // 0. Table Conversion
+    // [New] 0. Header Image Injection (Thumbnail)
+    let headerImageHtml = '';
+    if (post.images && post.images.length > 0) {
+      // Assuming post.images[0] is a base64 string or URL
+      // For base64, usually safe to use directly in img src for clipboard
+      const imgStyle = s.img || 'max-width: 100%; height: auto; margin-bottom: 30px; border-radius: 8px; display: block;';
+      headerImageHtml = `<img src="${post.images[0]}" alt="Representative Image" style="${imgStyle}" /><br /><br />`;
+    }
+
+    // 0.5. Markdown Image Conversion (![alt](url)) -> <img ... />
+    // Must be done BEFORE link replacement to avoid conflict
+    content = content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, url) => {
+      const imgStyle = s.img || 'max-width: 100%; height: auto; margin: 20px 0;';
+      return `<img src="${url}" alt="${alt}" style="${imgStyle}" /><br />`;
+    });
+
+
+    // 1. Table Conversion
     content = content.replace(/\|(.+)\|\n\|([-:| ]+)\|\n((?:\|.*\|\n?)+)/g, (match, header, separator, body) => {
       const headers = header.split('|').filter((h: string) => h.trim()).map((h: string) => h.trim());
       const rows = body.trim().split('\n').map((row: string) => row.split('|').filter((c: string) => c.trim()).map((c: string) => c.trim()));
@@ -90,11 +108,10 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
       return tableHtml;
     });
 
-    // 1. Mermaid Rendering & Code Block Extraction
+    // 2. Mermaid Rendering & Code Block Extraction
     const mermaidReplacements: { placeholder: string, html: string }[] = [];
-    const codeBlocks: string[] = [];
 
-    // Extract code blocks first
+    // Extract code blocks
     let blockIndex = 0;
     const mermaidMatches: { code: string, isMermaid: boolean, placeholder: string }[] = [];
 
@@ -105,15 +122,13 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
       return placeholder;
     });
 
-    // Process blocks
+    // Process blocks (Async)
     for (const { code, isMermaid, placeholder } of mermaidMatches) {
       let htmlBlock = '';
 
       if (isMermaid) {
         try {
-          // Dynamic import to avoid SSR issues if any
           const mermaid = (await import('mermaid')).default;
-          // Initialize if needed (idempotent usually)
           mermaid.initialize({ startOnLoad: false, theme: 'default' });
 
           const id = `mermaid-export-${Math.random().toString(36).substr(2, 9)}`;
@@ -122,21 +137,11 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
 
           htmlBlock = `
                   <div style="margin: 30px 0; text-align: center;">
-                     <div style="font-weight: bold; color: #475569; margin-bottom: 8px;">📊 다이어그램 (자동 생성됨)</div>
-                     <img src="${pngBase64}" alt="Mermaid Diagram" style="max-width: 500px; max-height: 500px; width: 100%; height: auto; margin: 0 auto; display: block; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);" />
-                     <details style="margin-top: 10px;">
-                        <summary style="cursor: pointer; font-size: 12px; color: #94a3b8;">원본 코드 보기</summary>
-                        <pre style="background: #f1f5f9; padding: 12px; border-radius: 6px; text-align: left; font-size: 11px; color: #64748b; overflow-x: auto; font-family: monospace; line-height: 1.5;">${code.trim()}</pre>
-                     </details>
+                     <img src="${pngBase64}" alt="Mermaid Diagram" style="max-width: 100%; height: auto; margin: 0 auto; display: block; border: 1px solid #e2e8f0; border-radius: 8px;" />
                   </div>`;
         } catch (e) {
           console.error("Mermaid Render Error", e);
-          htmlBlock = `
-                  <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 20px; margin: 24px 0; text-align: center;">
-                     <div style="font-weight: bold; color: #475569; margin-bottom: 8px;">📊 다이어그램 (Mermaid)</div>
-                     <div style="font-size: 14px; color: #64748b; margin-bottom: 12px; line-height: 1.5;">(이미지 생성 실패 - 아래 코드를 확인하세요)</div>
-                     <pre style="background: #e2e8f0; padding: 16px; border-radius: 6px; text-align: left; font-size: 13px; color: #334155; overflow-x: auto; font-family: monospace; line-height: 1.5; font-weight: 500;">${code.trim()}</pre>
-                  </div>`;
+          htmlBlock = `<pre style="background: #f1f5f9; padding: 12px;">${code.trim()}</pre>`;
         }
       } else {
         htmlBlock = `<pre style="background: #f1f5f9; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: monospace; margin: 20px 0;"><code>${code.trim()}</code></pre>`;
@@ -144,19 +149,24 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
       mermaidReplacements.push({ placeholder, html: htmlBlock });
     }
 
-    // 2. Markdown to HTML Conversion
-    const s = PLATFORM_STYLES[type];
+    // 3. Markdown to HTML Conversion
+    // Improved List Handling: Convert "- item" to <li>item</li> and wrap neighbors in <ul> if possible.
+    // However, regex-only wrapping is hard. 
+    // Simplified approach: Just convert line start "- " to a bullet char or formatted styled div for simplicity if regex is too complex for 'ul' wrapping without a parser.
+    // Better approach for Clipboard: Use simple replacements but try to be semantic where possible.
+
     let html = content
       .replace(/^### (.*$)/gim, `<h3 style="${s.h3}">$1</h3>`)
       .replace(/^## (.*$)/gim, `<h2 style="${s.h2}">$1</h2>`)
       .replace(/^# (.*$)/gim, `<h1 style="${s.h1}">$1</h1>`)
       .replace(/\*\*(.*?)\*\*/gim, `<strong style="${s.bold}">$1</strong>`)
       .replace(/^\> (.*$)/gim, `<blockquote style="${s.blockquote}">$1</blockquote>`)
-      .replace(/^- (.*$)/gim, '<li>$1</li>')
+      // .replace(/^- (.*$)/gim, '<li>$1</li>') // Simple replacement, might rely on WYSIWYG to auto-list
+      .replace(/^- (.*$)/gim, `<ul><li>$1</li></ul>`) // Dirty but often works in WYSIWYG to trigger list mode
       .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, `<a href="$2" target="_blank" style="${s.link}">$1</a>`)
       .replace(/\n/gim, '<br />');
 
-    // 3. Restore Code Blocks
+    // 4. Restore Code Blocks
     mermaidReplacements.forEach(({ placeholder, html: blockHtml }) => {
       html = html.replace(placeholder, blockHtml);
     });
@@ -165,7 +175,8 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
       ? `<h1 style="${s.h1}">${post.title}</h1>`
       : `<h1 style="${s.h1}">${post.title}</h1><hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />`;
 
-    return `<div style="${s.container}">${titleHtml}${html}</div>`;
+    // Inject Header Image at the top
+    return `<div style="${s.container}">${headerImageHtml}${titleHtml}${html}</div>`;
   };
 
   const copyToHtmlClipboard = async (platform: 'NAVER' | 'TISTORY' | 'MEDIUM' | 'WORDPRESS' | 'SUBSTACK') => {

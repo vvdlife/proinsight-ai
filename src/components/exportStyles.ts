@@ -37,7 +37,15 @@ export const PLATFORM_STYLES: Record<string, any> = {
         bold: 'font-weight: 700;'
     },
     WORDPRESS: {
-        container: "", h1: "", h2: "", h3: "", p: "", blockquote: "", link: "", bold: ""
+        container: "color: #1a1a1a;",
+        h1: 'font-size: 2.5em; font-weight: bold; margin-bottom: 20px; color: #111;',
+        h2: 'font-size: 2em; font-weight: bold; margin-top: 40px; margin-bottom: 15px; color: #333;',
+        h3: 'font-size: 1.5em; font-weight: bold; margin-top: 30px; margin-bottom: 10px; color: #333;',
+        p: 'font-size: 16px; line-height: 1.8; margin-bottom: 20px; color: #333;',
+        blockquote: 'margin: 30px 0; padding-left: 20px; border-left: 4px solid #ddd; font-style: italic; color: #555;',
+        link: 'color: #007cba; text-decoration: underline;',
+        bold: 'font-weight: bold;',
+        img: 'max-width: 100%; height: auto; border-radius: 4px; margin: 20px 0; display: block;'
     },
     SUBSTACK: {
         container: "font-family: sans-serif; color: #363636;",

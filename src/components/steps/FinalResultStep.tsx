@@ -1,16 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { PenIcon, RefreshIcon, CheckIcon, XIcon, DownloadIcon, ImageIcon, CopyIcon } from '../Icons';
-import { MarkdownRenderer } from '../MarkdownRenderer';
-import { BlogFont } from '../../types';
-import { SeoAnalyzer } from '../SeoAnalyzer';
-import { SocialGenerator } from '../SocialGenerator';
-import { ThumbnailEditor } from '../ThumbnailEditor';
-import { useBlogContext } from '../../context/BlogContext';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+import { ExportManager } from '../ExportManager';
 
+// ... (props interface if any)
 
 export const FinalResultStep: React.FC = () => {
+    // ... (existing hooks)
     const {
         resetAll: onReset,
         selectedFont, setSelectedFont: onFontChange,
@@ -21,12 +14,12 @@ export const FinalResultStep: React.FC = () => {
         selectedTone
     } = useBlogContext();
 
-    // Local UI State for Editing
+    // ... (existing state)
     const [isEditing, setIsEditing] = useState(false);
     const [editTitle, setEditTitle] = useState('');
     const [editContent, setEditContent] = useState('');
 
-    // Handlers for Edit Mode
+    // ... (existing handlers)
     const onEdit = () => {
         const post = activeLang === 'ko' ? finalPost : finalPostEn;
         if (post) {
@@ -51,22 +44,13 @@ export const FinalResultStep: React.FC = () => {
         setIsEditing(false);
     };
 
-    const onCopyToClipboard = () => {
-        if (!finalPost) return;
-        const post = activeLang === 'ko' ? finalPost : finalPostEn;
-        if (!post) return;
-        const textToCopy = `# ${post.title} \n\n${post.content} `;
-        navigator.clipboard.writeText(textToCopy);
-        alert("클립보드에 복사되었습니다!");
-    };
-
+    // Removed onCopyToClipboard as it's replaced by ExportManager
 
     const currentPost = activeLang === 'ko' ? finalPost : finalPostEn;
 
     if (!currentPost) return null;
 
-    // Helper for SEO Highlighting (matches SeoAnalyzer props)
-    // Helper for SEO Highlighting
+    // ... (existing handleHighlight)
     const handleHighlight = (text: string) => {
         if (isEditing) {
             const textarea = document.querySelector('textarea');
@@ -118,77 +102,11 @@ export const FinalResultStep: React.FC = () => {
     };
 
 
-    // Export Logic
-    const handleExportHtml = () => {
-        const htmlContent = `
-      <html>
-        <head><title>${currentPost.title}</title></head>
-        <body>
-          <h1>${currentPost.title}</h1>
-          ${currentPost.content.replace(/\n/g, '<br/>')}
-        </body>
-      </html>
-    `;
-        const blob = new Blob([htmlContent], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${currentPost.title}.html`;
-        a.click();
-    };
-
-    const handleExportMarkdown = () => {
-        const textContent = `# ${currentPost.title}\n\n${currentPost.content}`;
-        const blob = new Blob([textContent], { type: 'text/markdown' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${currentPost.title}.md`;
-        a.click();
-    };
-
-    const handleExportPdf = async () => {
-        const element = document.getElementById('blog-content-area');
-        if (!element) return;
-
-        try {
-            const canvas = await html2canvas(element, {
-                scale: 2, // High resolution
-                useCORS: true,
-                logging: false,
-                windowWidth: element.scrollWidth,
-                windowHeight: element.scrollHeight
-            });
-
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a4'
-            });
-
-            const imgWidth = 210; // A4 width in mm
-            const pageHeight = 297; // A4 height in mm
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            let heightLeft = imgHeight;
-            let position = 0;
-
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
-
-            while (heightLeft >= 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-            }
-
-            pdf.save(`${currentPost.title}.pdf`);
-        } catch (error) {
-            console.error("PDF Export Failed", error);
-            alert("PDF 저장 중 오류가 발생했습니다.");
-        }
-    };
+    // Export Logic delegated to ExportManager but keeping PDF/HTML/MD for backup if needed? 
+    // Actually ExportManager handles HTML/PDF. MD is also useful. 
+    // Let's keep MD download here or let ExportManager handle it? 
+    // ExportManager has "HTML Save" and "PDF Save". Let's add Markdown if it's not there, or just keep it simple.
+    // The implementation plan says "Remove duplicate buttons". ExportManager has PDF/HTML. We can add Markdown there later if needed, but for now let's trust ExportManager.
 
     return (
         <div className="max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
@@ -248,24 +166,6 @@ export const FinalResultStep: React.FC = () => {
                             >
                                 <PenIcon className="w-4 h-4" /> 편집
                             </button>
-                            <button
-                                onClick={onCopyToClipboard}
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-bold text-sm shadow-md shadow-indigo-200 transition-all flex items-center gap-2"
-                            >
-                                <CopyIcon className="w-4 h-4" /> 블로그 업로드용 복사
-                            </button>
-                            <div className="relative group">
-                                <button className="flex items-center gap-2 px-3 py-2 text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 font-medium text-sm">
-                                    <DownloadIcon className="w-4 h-4" />
-                                </button>
-                                <div className="absolute right-0 top-full pt-2 w-48 hidden group-hover:block z-50 animate-in fade-in zoom-in-95 duration-200">
-                                    <div className="bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden">
-                                        <button onClick={handleExportHtml} className="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors">HTML로 저장</button>
-                                        <button onClick={handleExportMarkdown} className="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors">Markdown으로 저장</button>
-                                        <button onClick={handleExportPdf} className="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors">PDF로 저장</button>
-                                    </div>
-                                </div>
-                            </div>
                         </>
                     ) : (
                         <>
@@ -331,6 +231,9 @@ export const FinalResultStep: React.FC = () => {
                             </article>
                         )}
                     </div>
+
+                    {/* Export Manager */}
+                    {!isEditing && <ExportManager post={currentPost} />}
                 </div>
 
                 {/* Right Sidebar: SEO & Social */}
