@@ -9,7 +9,7 @@ import { FIXED_TEMPLATES } from '../constants/templates';
 // Constants
 const MODEL_IDS = {
   TEXT: "gemini-3-flash-preview", // Default text model
-  IMAGE: "gemini-2.5-flash-image", // "Nano Banana" - Dedicated image generation model as per documentation
+  IMAGE: "gemini-3-pro-image-preview", // "Nano Banana Pro" - The absolute latest SOTA image model
 } as const;
 
 // Helper to get client securely
