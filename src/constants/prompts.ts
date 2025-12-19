@@ -181,7 +181,24 @@ export const PROMPTS = {
     3. **Twitter**: Thread Hook.
     
     Use placeholder [Link] for the URL.
-    Output JSON.
+    Output JSON format (Strict Array of Objects):
+    [
+      {
+        "platform": "Instagram",
+        "content": "Engaging caption with emojis",
+        "hashtags": ["tag1", "tag2"]
+      },
+      {
+        "platform": "LinkedIn",
+        "content": "Professional insight and summary",
+        "hashtags": ["tag1", "tag2"]
+      },
+      {
+        "platform": "Twitter",
+        "content": "Thread hook or short punchy tweet",
+        "hashtags": ["tag1", "tag2"]
+      }
+    ]
     IMPORTANT: All content must be in Korean.
   `,
 
