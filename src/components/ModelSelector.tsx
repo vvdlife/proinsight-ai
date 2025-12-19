@@ -19,30 +19,30 @@ interface ModelInfo {
 const MODELS: ModelInfo[] = [
     {
         id: ModelType.PRO_3_0,
-        name: 'Gemini 3.0 Pro',
-        description: '최고의 추론 능력과 전문적인 분석 (2025 SOTA)',
+        name: 'Gemini 3.0 Pro (Preview)',
+        description: '최신 3.0 엔진, 최고 성능 (Nov 2025)',
         speed: '보통',
-        quality: '압도적',
+        quality: 'SOTA',
         cost: '높음',
-        badge: '👑 SOTA'
+        badge: '👑 BEST'
     },
     {
         id: ModelType.FLASH_3_0,
-        name: 'Gemini 3.0 Flash',
-        description: '초고속 반응과 뛰어난 가성비',
+        name: 'Gemini 3.0 Flash (Preview)',
+        description: '3.0 기반 초고속 모델',
         speed: '매우 빠름',
         quality: '매우 높음',
         cost: '낮음',
         badge: '⚡ NEW'
     },
     {
-        id: ModelType.FLASH_2_5,
-        name: 'Gemini 2.5 Flash',
-        description: '안정성이 검증된 이전 버전',
+        id: ModelType.PRO_2_5,
+        name: 'Gemini 2.5 Pro',
+        description: '검증된 고성능 안정화 모델',
         speed: '빠름',
         quality: '높음',
         cost: '중간',
-        badge: '🛡️ 안정적'
+        badge: '🛡️ Stable'
     }
 ];
 
