@@ -129,7 +129,7 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
       if (isMermaid) {
         try {
           const mermaid = (await import('mermaid')).default;
-          mermaid.initialize({ startOnLoad: false, theme: 'default' });
+          mermaid.initialize({ startOnLoad: false, theme: 'default', htmlLabels: false });
 
           const id = `mermaid-export-${Math.random().toString(36).substr(2, 9)}`;
           const { svg } = await mermaid.render(id, code);
