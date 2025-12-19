@@ -17,11 +17,11 @@ export enum ImageStyle {
 }
 
 export enum BlogFont {
-  PRETENDARD = 'Pretendard (기본)',
-  NOTO_SERIF = 'Noto Serif (명조)',
-  NANUM_GOTHIC = '나눔고딕 (본문용)',
-  RIDIBATANG = '리디바탕 (이북스타일)',
-  NANUM_PEN = '나눔손글씨 (캐주얼)',
+  PRETENDARD = 'Pretendard (기본/Clean)',
+  WANTED_SANS = 'Wanted Sans (트렌디/Modern)',
+  NANUM_SQUARE_NEO = '나눔스퀘어 네오 (가독성/Bold)',
+  NOTO_SERIF = 'Noto Serif (명조/Classic)',
+  GMARKET_SANS = 'G마켓 산스 (임팩트/Title)',
 }
 
 export interface OutlineData {
