@@ -139,17 +139,20 @@ export const PROMPTS = {
     1. ** Core Concept **: Clear explanation.
           2. ** Visual / Interactive ** (Choose one that fits best):
              - ** Comparison Table **: Use a Markdown Table for data / pros - cons.
-             - ** Mermaid Diagram **: Use \`\`\`mermaid\`\`\` for flows/structures.
-               **MERMAID DIAGRAM RULES (CRITICAL)**:
-               • Use \`graph TD\`.
-               • **Do NOT use text on arrows/edges**. Just use simple arrows (-->).
-               • Format: \`NodeID["Label"]\`.
-               • **Labels must be quoted in double quotes**.
-               • **NO PARENTHESES () in Label**.
-               • Example:
-                 graph TD
-                   A["AI Market"] --> B["Growth"]
-                   A --> C["Decline"]
+             - ** High-End Mermaid Chart **: Use \`\`\`mermaid\`\`\` for flows/structures.
+               **MERMAID RULES (ARCHITECT LEVEL)**:
+               • **Top-Down Flow**: Use \`graph TD\`.
+               • **Icons**: Use FontAwesome icons inside labels (e.g., \`A["fa:fa-robot AI Model"]\`).
+               • **Styling**: Define a custom class for important nodes.
+                 - Example:
+                   \`\`\`mermaid
+                   graph TD
+                     A["fa:fa-database Data Input"] --> B["fa:fa-cogs Processing"]
+                     B --> C["fa:fa-chart-line Result"]
+                     classDef highlight fill:#EEF2FF,stroke:#4F46E5,stroke-width:2px,color:#000,font-weight:bold;
+                     class A,C highlight
+                   \`\`\`
+               • **NO Text on Arrows**. Keep connections clean.
              - **Checklist**: Use Emojis (e.g., "- ✅ Item").
              - **Bulleted List**: Use emojis for key points.
           3. **Key Insight**: Bold summary.
