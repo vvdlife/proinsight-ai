@@ -13,10 +13,10 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = React.memo(({ c
   const fontClass = useMemo(() => {
     switch (font) {
       case BlogFont.PRETENDARD: return 'font-pretendard';
-      case BlogFont.WANTED_SANS: return 'font-wanted';
-      case BlogFont.NANUM_SQUARE_NEO: return 'font-nanum-square-neo';
       case BlogFont.NOTO_SERIF: return 'font-noto-serif';
-      case BlogFont.GMARKET_SANS: return 'font-gmarket';
+      case BlogFont.NANUM_GOTHIC: return 'font-nanum-gothic';
+      case BlogFont.RIDIBATANG: return 'font-ridibatang';
+      case BlogFont.NANUM_PEN: return 'font-nanum-pen';
       default: return 'font-pretendard';
     }
   }, [font]);

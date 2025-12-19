@@ -232,11 +232,11 @@ export const FinalResultStep: React.FC = () => {
                             onChange={(e) => onFontChange(e.target.value as BlogFont)}
                             className="bg-transparent text-xs font-bold text-slate-700 outline-none"
                         >
-                            <option value={BlogFont.PRETENDARD}>Pretendard (기본/Clean)</option>
-                            <option value={BlogFont.WANTED_SANS}>Wanted Sans (트렌디/Modern)</option>
-                            <option value={BlogFont.NANUM_SQUARE_NEO}>나눔스퀘어 네오 (가독성/Bold)</option>
-                            <option value={BlogFont.NOTO_SERIF}>Noto Serif (명조/Classic)</option>
-                            <option value={BlogFont.GMARKET_SANS}>G마켓 산스 (임팩트/Title)</option>
+                            <option value={BlogFont.PRETENDARD}>Pretendard (기본)</option>
+                            <option value={BlogFont.NOTO_SERIF}>Noto Serif (명조)</option>
+                            <option value={BlogFont.NANUM_GOTHIC}>나눔고딕 (본문용)</option>
+                            <option value={BlogFont.RIDIBATANG}>리디바탕 (이북스타일)</option>
+                            <option value={BlogFont.NANUM_PEN}>나눔손글씨 (캐주얼)</option>
                         </select>
                     </div>
 

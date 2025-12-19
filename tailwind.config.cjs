@@ -30,12 +30,6 @@ module.exports = {
                 sans: ['Pretendard', 'sans-serif'],
                 serif: ['Noto Serif KR', 'serif'],
                 mono: ['JetBrains Mono', 'monospace'],
-                // Specialized Blog Fonts
-                'pretendard': ['Pretendard', 'sans-serif'],
-                'wanted': ['"Wanted Sans"', 'Pretendard', 'sans-serif'],
-                'nanum-square-neo': ['"NanumSquare Neo"', 'Pretendard', 'sans-serif'],
-                'noto-serif': ['"Noto Serif KR"', 'serif'],
-                'gmarket': ['"GmarketSans"', 'Pretendard', 'sans-serif'],
             },
         },
     },
