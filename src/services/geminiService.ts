@@ -8,10 +8,8 @@ import { FIXED_TEMPLATES } from '../constants/templates';
 
 // Constants
 const MODEL_IDS = {
-  TEXT: "gemini-3-flash-preview",
-  IMAGE: "gemini-2.5-pro", // Using 2.5-pro or flash for image if 3.0 doesn't support it yet. 
-  // Wait, user didn't give image model. I'll use 2.5-pro as fallback or Keep 3-flash if multimodal.
-  // Safest is to use the fast one for generic internal calls if any.
+  TEXT: "gemini-3-flash-preview", // Default text model
+  IMAGE: "gemini-1.5-flash", // Dedicated image generation model (3.0/2.5 Pro do not support image output yet)
 } as const;
 
 // Helper to get client securely
