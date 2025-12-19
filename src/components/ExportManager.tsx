@@ -131,8 +131,11 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
           const mermaid = (await import('mermaid')).default;
           mermaid.initialize({ startOnLoad: false, theme: 'default', htmlLabels: false });
 
+          // [Fix] Strip FontAwesome icons (fa:fa-xxx) to prevent canvas tainting from external resources
+          const cleanCode = code.replace(/fa:fa-[\w-]+/g, '');
+
           const id = `mermaid-export-${Math.random().toString(36).substr(2, 9)}`;
-          const { svg } = await mermaid.render(id, code);
+          const { svg } = await mermaid.render(id, cleanCode);
           const pngBase64 = await svgToBase64Image(svg);
 
           htmlBlock = `
