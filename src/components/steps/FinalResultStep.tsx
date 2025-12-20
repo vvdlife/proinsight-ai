@@ -236,6 +236,31 @@ export const FinalResultStep: React.FC = () => {
                             <article className="prose prose-slate prose-lg max-w-none p-8 sm:p-12">
                                 <h1 className="text-4xl font-extrabold text-slate-900 mb-8 leading-tight">{currentPost.title}</h1>
                                 <MarkdownRenderer content={currentPost.content} font={selectedFont} />
+
+                                {currentPost.hashtags && currentPost.hashtags.length > 0 && (
+                                    <div className="mt-12 pt-8 border-t border-slate-100">
+                                        <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                            🏷️ 추천 해시태그 (Hashtags)
+                                            <button
+                                                onClick={() => {
+                                                    const tagText = currentPost.hashtags?.map(t => `#${t}`).join(' ');
+                                                    if (tagText) navigator.clipboard.writeText(tagText);
+                                                    alert('해시태그가 복사되었습니다!');
+                                                }}
+                                                className="ml-auto text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-full transition-colors font-medium flex items-center gap-1"
+                                            >
+                                                <CopyIcon className="w-3 h-3" /> 전체 복사
+                                            </button>
+                                        </h3>
+                                        <div className="flex flex-wrap gap-2">
+                                            {currentPost.hashtags.map((tag, idx) => (
+                                                <span key={idx} className="bg-slate-50 text-slate-600 px-3 py-1 text-sm rounded-full border border-slate-100 hover:border-indigo-200 hover:text-indigo-600 transition-colors cursor-pointer select-all">
+                                                    #{tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </article>
                         )}
                     </div>

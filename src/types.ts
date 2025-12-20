@@ -41,6 +41,7 @@ export interface BlogPost {
   content: string; // Markdown formatted string
   images: string[];
   socialPosts?: SocialPost[];
+  hashtags?: string[]; // Generated hashtags
 }
 
 export interface UploadedFile {

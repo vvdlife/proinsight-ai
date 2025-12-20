@@ -150,6 +150,30 @@ const generateKeyFacts = async (topic: string, ai: GoogleGenAI): Promise<string>
 };
 
 /**
+ * Generates viral hashtags based on title.
+ */
+const generateHashtags = async (title: string, language: 'ko' | 'en', ai: GoogleGenAI): Promise<string[]> => {
+  const prompt = PROMPTS.HASHTAGS(title, language);
+  try {
+    const response = await ai.models.generateContent({
+      model: MODEL_IDS.TEXT,
+      contents: prompt,
+      config: { responseMimeType: "application/json" }
+    });
+
+    const text = response.text || "[]";
+    const tags = safeJsonParse<string[]>(text);
+    // Ensure they start with # if not present, or better yet, just return clean strings for UI to handle?
+    // Let's return clean strings as requested in prompt.
+    // Validate array
+    return Array.isArray(tags) ? tags : [];
+  } catch (e) {
+    console.warn("Hashtag generation failed", e);
+    return [];
+  }
+};
+
+/**
  * Helper to generate text with files
  */
 const generateText = async (ai: GoogleGenAI, prompt: string, files: UploadedFile[], systemInstruction: string = "You are a helpful assistant.", modelId: string = MODEL_IDS.TEXT): Promise<string> => {
@@ -203,7 +227,7 @@ export const generateBlogPostContent = async (
   language: string = 'Korean',
   topic: string, // [NEW] Add topic for SEO keyword optimization
   modelId: string = MODEL_IDS.TEXT // [NEW] Accept modelId
-): Promise<{ content: string; title: string }> => {
+): Promise<{ content: string; title: string; hashtags: string[] }> => {
   const ai = getGenAI();
   const isEnglish = language === 'English';
 
@@ -262,14 +286,16 @@ export const generateBlogPostContent = async (
   const conclusionPrompt = PROMPTS.CONCLUSION(baseContext, outline.sections);
 
   // Execute all requests in parallel
-  const [introRaw, ...bodyAndConclusion] = await Promise.all([
+  const results = await Promise.all([
     generateText(ai, introPrompt, files, "You are a professional blog writer. Write an engaging intro.", modelId),
     ...sectionPromises,
-    generateText(ai, conclusionPrompt, files, "You are a professional editor. Summarize perfectly.", modelId)
+    generateText(ai, conclusionPrompt, files, "You are a professional editor. Summarize perfectly.", modelId),
+    generateHashtags(outline.title, isEnglish ? 'en' : 'ko', ai) // [NEW] Generate Hashtags parallel
   ]);
 
-  const conclusion = bodyAndConclusion.pop() || ""; // Last one is conclusion
-  const bodySections = bodyAndConclusion; // Remaining are body sections
+  const hashtags = (results.pop() as string[]) || []; // Last is hashtags
+  const conclusion = (results.pop() as string) || ""; // Second to last is conclusion
+  const [introRaw, ...bodySections] = results as string[]; // Remaining are intro + body sections
 
   // Parse Title and Intro
   let finalTitle = outline.title; // Default to original
@@ -310,7 +336,7 @@ export const generateBlogPostContent = async (
 
   fullPost += `${conclusion.replace(/---/g, '').trim()}`;
 
-  return { content: fullPost, title: finalTitle };
+  return { content: fullPost, title: finalTitle, hashtags }; // [NEW] Return hashtags
 };
 
 /**

@@ -250,6 +250,20 @@ export const PROMPTS = {
     
     Content to analyze:
     "${content.substring(0, 3000)}..." 
+  `,
+
+  HASHTAGS: (title: string, language: 'ko' | 'en') => `
+    Task: Generate 15 highly effective, viral, and SEO-optimized hashtags for a blog post titled: "${title}".
+    Language context: ${language === 'en' ? 'English' : 'Korean'}.
+    
+    Instructions:
+    1. Mix broad keywords (high traffic) and specific long-tail keywords (high conversion).
+    2. Include relevant industry terms.
+    3. Output STRICTLY a JSON Array of strings.
+    4. Do not add '#' in the values, just the text.
+    
+    Example Output:
+    ["Marketing", "SEO", "GrowthHacking", "DigitalNomad"]
   `
 };
 
