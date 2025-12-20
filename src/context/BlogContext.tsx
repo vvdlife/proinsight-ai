@@ -205,7 +205,8 @@ export const BlogProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 title: mainTitle,
                 content: finalContent,
                 images: postData.images,
-                socialPosts
+                socialPosts,
+                hashtags: postData.hashtags // [FIX] Include hashtags
             });
 
             if (isDualMode && postDataEn) {
