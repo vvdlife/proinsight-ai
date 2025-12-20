@@ -149,19 +149,24 @@ export const PROMPTS = {
           2. ** Visual / Interactive ** (Choose one that fits best):
              - ** Comparison Table **: Use a Markdown Table for data / pros - cons.
              - ** High - End Mermaid Chart **: Use \`\`\`mermaid\`\`\` for flows/structures.
-               **MERMAID RULES (ARCHITECT LEVEL)**:
+               **MERMAID RULES (STRICT SYNTAX)**:
                • **Top-Down Flow**: Use \`graph TD\`.
-               • **Icons**: Use FontAwesome icons inside labels (e.g., \`A["fa:fa-robot AI Model"]\`).
+               • **Node Labels**: **MUST BE ENCLOSED IN DOUBLE QUOTES**.
+                 - ✅ Correct: \`A["fa:fa-robot AI Model (v1.0)"]\`
+                 - ❌ Wrong: \`A[AI Model]\` (No quotes)
+                 - ❌ Wrong: \`A(AI Model)\` (Parentheses without quotes break syntax)
+               • **Escape Characters**: Do NOT use parentheses \`()\` or brackets \`[]\` inside the label UNLESS inside double quotes.
+               • **Icons**: Use FontAwesome icons inside the quoted label.
                • **Styling**: Define a custom class for important nodes.
                  - Example:
                    \`\`\`mermaid
                    graph TD
-                     A["fa:fa-database Data Input"] --> B["fa:fa-cogs Processing"]
+                     A["fa:fa-database Data Input"] --> B["fa:fa-cogs Processing (CPU)"]
                      B --> C["fa:fa-chart-line Result"]
                      classDef highlight fill:#EEF2FF,stroke:#4F46E5,stroke-width:2px,color:#000,font-weight:bold;
                      class A,C highlight
                    \`\`\`
-               • **NO Text on Arrows**. Keep connections clean.
+               • **NO Text on Arrows**. Keep connections simple.
              - **Checklist**: Use Emojis (e.g., "- ✅ Item").
              - **Bulleted List**: Use emojis for key points.
           3. **Key Insight**: Bold summary.
