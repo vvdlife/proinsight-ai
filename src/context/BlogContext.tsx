@@ -166,7 +166,10 @@ export const BlogProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Validation
         const key = sessionStorage.getItem('proinsight_api_key') || localStorage.getItem('proinsight_api_key') || (import.meta as any).env.VITE_API_KEY;
         if (!key) { alert("⚠️ API Key가 설정되지 않았습니다."); return; }
-        if (!outline) return;
+        if (!outline) {
+            alert("⚠️ 개요 데이터가 없습니다. 개요를 먼저 생성해주세요.");
+            return;
+        }
 
         try {
             // 1. Korean

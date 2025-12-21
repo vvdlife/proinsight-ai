@@ -12,7 +12,8 @@ export const OutlineReviewStep: React.FC = () => {
         resetAll: onReset,
         isDualMode, setIsDualMode,
         onGenerateFullPost,
-        selectedFont
+        selectedFont,
+        loading // [NEW] Import loading state
     } = useBlogContext();
 
     const onUpdateSection = (index: number, value: string) => {
@@ -142,9 +143,22 @@ export const OutlineReviewStep: React.FC = () => {
 
                             <button
                                 onClick={onGenerateFullPost}
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold text-lg shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all flex items-center gap-3 ml-auto w-full justify-center"
+                                disabled={loading.isLoading}
+                                className={`px-8 py-3 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-3 ml-auto w-full transition-all ${loading.isLoading
+                                    ? 'bg-indigo-400 cursor-not-allowed shadow-none text-indigo-100'
+                                    : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200 hover:shadow-indigo-300'
+                                    }`}
                             >
-                                글 생성하기 <ChevronRightIcon className="w-5 h-5" />
+                                {loading.isLoading ? (
+                                    <>
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        <span>생성 중...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        글 생성하기 <ChevronRightIcon className="w-5 h-5" />
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>
