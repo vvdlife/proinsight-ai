@@ -25,7 +25,7 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
   };
 
   const shareToPlatform = (post: SocialPost) => {
-    if (post.platform === 'Twitter') {
+    if (post.platform === 'Twitter' || post.platform === 'X (Twitter)') {
       const text = encodeURIComponent(`${post.content}\n\n${(post.hashtags || []).join(' ')}`);
       window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
     } else if (post.platform === 'LinkedIn') {

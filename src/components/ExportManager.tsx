@@ -142,7 +142,7 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
 
           htmlBlock = `
                   <div style="margin: 30px 0; text-align: center;">
-                     <img src="${pngBase64}" alt="Mermaid Diagram" style="max-width: 100%; height: auto; margin: 0 auto; display: block; border: 1px solid #e2e8f0; border-radius: 8px;" />
+                     <img src="${pngBase64}" alt="Mermaid Diagram" style="max-width: 600px; width: 100%; height: auto; margin: 0 auto; display: block; border: 1px solid #e2e8f0; border-radius: 8px;" />
                   </div>`;
         } catch (e) {
           console.error("Mermaid Render Error", e);

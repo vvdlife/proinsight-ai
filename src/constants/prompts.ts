@@ -195,7 +195,7 @@ export const PROMPTS = {
     Generate 3 posts:
     1. **Instagram**: Engaging Caption. Use emojis. Do NOT use "(Slide 1)" markers.
     2. **LinkedIn**: Professional Insight.
-    3. **Twitter**: Thread Hook.
+    3. **X (Twitter)**: Thread Hook.
     
     Use placeholder [Link] for the URL.
     Output JSON format (Strict Array of Objects):
@@ -211,7 +211,7 @@ export const PROMPTS = {
         "hashtags": ["tag1", "tag2"]
       },
       {
-        "platform": "Twitter",
+        "platform": "X (Twitter)",
         "content": "Thread hook or short punchy tweet",
         "hashtags": ["tag1", "tag2"]
       }

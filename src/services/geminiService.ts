@@ -357,7 +357,7 @@ export const generateSocialPosts = async (title: string, summary: string, imageS
         items: {
           type: Type.OBJECT,
           properties: {
-            platform: { type: Type.STRING, enum: ["Instagram", "LinkedIn", "Twitter"] },
+            platform: { type: Type.STRING, enum: ["Instagram", "LinkedIn", "X (Twitter)"] },
             content: { type: Type.STRING },
             hashtags: { type: Type.ARRAY, items: { type: Type.STRING } }
           },

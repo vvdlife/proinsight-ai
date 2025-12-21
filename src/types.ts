@@ -30,7 +30,7 @@ export interface OutlineData {
 }
 
 export interface SocialPost {
-  platform: 'Instagram' | 'LinkedIn' | 'Twitter';
+  platform: 'Instagram' | 'LinkedIn' | 'Twitter' | 'X (Twitter)';
   content: string;
   hashtags: string[];
   imageUrl?: string; // Added for Instagram image support
