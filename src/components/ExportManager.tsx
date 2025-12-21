@@ -32,12 +32,12 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
       img.onload = () => {
         try {
           const canvas = document.createElement('canvas');
-          // Double resolution for retina/high quality
-          canvas.width = img.width * 2;
-          canvas.height = img.height * 2;
+          // High resolution (3x) for crisp text
+          canvas.width = img.width * 3;
+          canvas.height = img.height * 3;
           const ctx = canvas.getContext('2d');
           if (ctx) {
-            ctx.scale(2, 2);
+            ctx.scale(3, 3);
             ctx.drawImage(img, 0, 0);
             try {
               resolve(canvas.toDataURL('image/png'));

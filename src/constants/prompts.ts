@@ -149,20 +149,20 @@ export const PROMPTS = {
           2. ** Visual / Interactive ** (Choose one that fits best):
              - ** Comparison Table **: Use a Markdown Table for data / pros - cons.
              - ** High - End Mermaid Chart **: Use \`\`\`mermaid\`\`\` for flows/structures.
-               **MERMAID RULES (STRICT SYNTAX)**:
+               **MERMAID RULES (STRICT SYNTAX & EMOJIS)**:
                • **Top-Down Flow**: Use \`graph TD\`.
                • **Node Labels**: **MUST BE ENCLOSED IN DOUBLE QUOTES**.
-                 - ✅ Correct: \`A["fa:fa-robot AI Model (v1.0)"]\`
+                 - ✅ Correct: \`A["🤖 AI Model (v1.0)"]\`
                  - ❌ Wrong: \`A[AI Model]\` (No quotes)
-                 - ❌ Wrong: \`A(AI Model)\` (Parentheses without quotes break syntax)
+               • **Icons**: **USE UNICODE EMOJIS** strictly. Do NOT use FontAwesome (\`fa:fa-\`).
+                 - Emojis render perfectly in all exports.
                • **Escape Characters**: Do NOT use parentheses \`()\` or brackets \`[]\` inside the label UNLESS inside double quotes.
-               • **Icons**: Use FontAwesome icons inside the quoted label.
                • **Styling**: Define a custom class for important nodes.
                  - Example:
                    \`\`\`mermaid
                    graph TD
-                     A["fa:fa-database Data Input"] --> B["fa:fa-cogs Processing (CPU)"]
-                     B --> C["fa:fa-chart-line Result"]
+                     A["💾 Data Input"] --> B["⚙️ Processing (CPU)"]
+                     B --> C["📈 Result Analysis"]
                      classDef highlight fill:#EEF2FF,stroke:#4F46E5,stroke-width:2px,color:#000,font-weight:bold;
                      class A,C highlight
                    \`\`\`
