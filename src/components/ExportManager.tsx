@@ -42,7 +42,9 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
             try {
               resolve(canvas.toDataURL('image/png'));
             } catch (e) {
-              console.warn('Canvas export tainted, falling back to SVG', e);
+              // Known issue with some browsers tainting canvas with SVGs
+              // Fallback to SVG Data URI is safe
+              console.debug('SVG -> Canvas Taint (Falling back to safe SVG)', e);
               resolve(svgDataUri);
             }
           } else {
