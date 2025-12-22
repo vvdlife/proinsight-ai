@@ -129,7 +129,8 @@ export const PROMPTS = {
 
     Instructions:
       ${isEnglish ? '- **TRANSLATION TASK**: Start your response with the English translation of the Blog Title on the first line, prefixed with "TITLE: ". Remove any labels like "(Preview)" or "(미리보기)".' : ''}
-      - ** SEO Hook **: ** Start the very first sentence with the exact keyword: "${title}".**
+      - ** SEO Hook (First Sentence Rule)**: ** Start the very first sentence with the exact keyword: "${title}" AND a compelling question or stat.**
+      - ** Scannability **: Keep paragraphs short (max 3 lines). Use **Bold** for emphasis.
       - ** Value **: Briefly state what the reader will gain.
       - ** Conciseness **: Write about 300 - 400 characters(or 80 - 100 words).
       - Do NOT write any section headers(like ## Introduction).
@@ -144,8 +145,17 @@ export const PROMPTS = {
 
     Instructions:
         ${isEnglish ? `- **HEADER TRANSLATION**: Start your response with the English translation of the section title "${section}" as a Level 2 Markdown Header (e.g. ## English Title).` : ''}
-        - ** Structure **:
-    1. ** Core Concept **: Clear explanation.
+        
+        **STRICT EXECUTION RULES (MUST FOLLOW)**:
+        1. **The Hook (First Sentence Rule)**: Start IMMEDIATELY with a provocative question, statistic, or bold claim. DO NOT start with "In this section..." or "Next, we will look at...".
+        2. **Scannability (No Walls of Text)**: 
+           - **MAX 3 LINES** per paragraph.
+           - Use **Bullet Points** (•) for distinct ideas.
+           - Highlight key phrases in **Bold**.
+        3. **Viral Trigger**: You MUST include one "Counter-intuitive Insight" or "Insider Perspective" (e.g., "Most people think X, but actually Y...").
+
+        ** Structure **:
+    1. ** Core Concept **: Clear explanation (following rules above).
           2. ** Visual / Interactive ** (Choose one that fits best):
              - ** Comparison Table **: Use a Markdown Table for data / pros - cons.
              - ** High - End Mermaid Chart **: Use \`\`\`mermaid\`\`\` for flows/structures.
@@ -172,7 +182,7 @@ export const PROMPTS = {
           3. **Key Insight**: Bold summary.
         
         - **Formatting**: ${isEnglish ? 'Use the translated header provided above.' : 'No subsections (###), no repeated headers, no horizontal rules.'}
-        - **Length**: Write comprehensively. Aim for 400-500 characters (Korean) or 150-200 words (English) per section to meet deep content standards.
+        - **Length**: Write comprehensively. Aim for 400-500 characters (Korean) or 150-200 words (English) per section.
   `,
 
   CONCLUSION: (baseContext: string, outlineSections: string[]) => `
