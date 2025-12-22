@@ -1,26 +1,27 @@
 
+
 export const PROMPTS = {
   OUTLINE: (currentDate: string, topic: string) => `
     Current Date: ${currentDate}
     
-    You are a professional content strategist specializing in high-traffic blogs.
-      Task: Create a blog post outline for the topic: "${topic}".
+    You are a professional content strategist specializing in high - traffic blogs.
+  Task: Create a blog post outline for the topic: "${topic}".
       
-      1. **Title**: Create a **Viral, Click-worthy, and SEO-optimized** title.
-         - **CRITICAL**: The Title MUST include the exact keyword: "${topic}".
-        - It must be provocative, benefit-driven, or a listicle (e.g., "Top 5...", "Why you are wrong about...", "The Ultimate Guide to...").
-        - Maximize curiosity and click-through rate (CTR).
+      1. ** Title **: Create a ** Viral, Click - worthy, and SEO - optimized ** title.
+         - ** CRITICAL **: The Title MUST include the exact keyword: "${topic}"(Do not modify or translate the keyword itself).
+        - It must be provocative, benefit - driven, or a listicle(e.g., "Top 5...", "Why you are wrong about...", "The Ultimate Guide to...").
+        - Maximize curiosity and click - through rate(CTR).
       
-      2. **Target Audience & Keywords**:
-        - Define the **Target Audience Persona** (e.g., Beginners, Experts).
-        - List 3-5 **Primary & LSI Keywords** for SEO.
+      2. ** Target Audience & Keywords **:
+- Define the ** Target Audience Persona ** (e.g., Beginners, Experts).
+        - List 3 - 5 ** Primary & LSI Keywords ** for SEO.
       
-      3. **Sections**: Create 5-7 logical sections.
+      3. ** Sections **: Create 5 - 7 logical sections.
       
-      **CRITICAL INSTRUCTION FOR SPECIFICITY**:
-      - If the topic refers to a specific industry or group (e.g., "Big Tech", "K-Pop", "EV Market"), you MUST identify 3-5 SPECIFIC real-world entities (companies, people, products) to focus on.
-      - Create sections that specifically analyze these entities. Do not just use generic headers like "Market Trends". Use headers like "Microsoft: Copilot's Expansion" or "Tesla: New Model Launch".
-      - **CRITICAL**: The \`sections\` array must contain ONLY STRINGS. Do NOT return objects (e.g., no { "title": ... }). Just simple strings.
+      ** CRITICAL INSTRUCTION FOR SPECIFICITY **:
+- If the topic refers to a specific industry or group(e.g., "Big Tech", "K-Pop", "EV Market"), you MUST identify 3 - 5 SPECIFIC real - world entities(companies, people, products) to focus on.
+      - Create sections that specifically analyze these entities.Do not just use generic headers like "Market Trends".Use headers like "Microsoft: Copilot's Expansion" or "Tesla: New Model Launch".
+      - ** CRITICAL **: The \`sections\` array must contain ONLY STRINGS. Do NOT return objects (e.g., no { "title": ... }). Just simple strings.
       
       The output must be in Korean.
       
@@ -121,7 +122,7 @@ export const PROMPTS = {
     return context;
   },
 
-  INTRO: (baseContext: string, outlineSections: string[], title: string, isEnglish: boolean) => `
+  INTRO: (baseContext: string, outlineSections: string[], title: string, isEnglish: boolean, keyword: string) => `
     ${baseContext}
 
     Task: Write an engaging ** Introduction ** for this blog post.
@@ -129,7 +130,7 @@ export const PROMPTS = {
 
     Instructions:
       ${isEnglish ? '- **TRANSLATION TASK**: Start your response with the English translation of the Blog Title on the first line, prefixed with "TITLE: ". Remove any labels like "(Preview)" or "(미리보기)".' : ''}
-      - ** SEO Hook (First Sentence Rule)**: ** Start the very first sentence with the exact keyword: "${title}" AND a compelling question or stat.**
+      - ** SEO Hook (First Sentence Rule)**: ** Start the very first sentence with the EXACT target keyword: "${keyword}" (Do not change it). Combine it with a compelling question or stat.**
       - ** Scannability **: Keep paragraphs short (max 3 lines). Use **Bold** for emphasis.
       - ** Value **: Briefly state what the reader will gain.
       - ** Conciseness **: Write about 300 - 400 characters(or 80 - 100 words).

@@ -273,7 +273,7 @@ export const generateBlogPostContent = async (
   }
 
   // 1. Intro Generation
-  const introPrompt = PROMPTS.INTRO(baseContext, outline.sections, outline.title, isEnglish);
+  const introPrompt = PROMPTS.INTRO(baseContext, outline.sections, outline.title, isEnglish, topic);
 
   // 2. Section Generation (Parallel)
   const sectionPromises = outline.sections.map(async (section, idx) => {
