@@ -9,6 +9,7 @@ export const PROMPTS = {
       
       1. ** Title **: Create a ** Viral, Click - worthy, and SEO - optimized ** title.
          - ** CRITICAL **: The Title MUST include the exact keyword: "${topic}"(Do not modify or translate the keyword itself).
+         - ** Length **: Keep strictly between ** 20 - 50 characters ** (Korean) or ** 40 - 60 characters ** (English).
         - It must be provocative, benefit - driven, or a listicle(e.g., "Top 5...", "Why you are wrong about...", "The Ultimate Guide to...").
         - Maximize curiosity and click - through rate(CTR).
       
@@ -81,6 +82,8 @@ export const PROMPTS = {
        - **Placement**: Ensure keywords appear in the *First Paragraph* and *Headers*.
     2. **Reader Analysis**: Write for the specific audience. Use "F-pattern" formatting (bolding, bullets).
     3. **Visuals**: Use emojis and formatting to break up text.
+       - **Image Placeholders**: When describing a complex concept, insert a placeholder image: 
+         \`![Description](https://via.placeholder.com/800x400?text=Description)\`
     4. **Visuals & Infographics(CRITICAL)**:
        - **Markdown Tables**: Use for comparing data, pros/cons, or features.
        - **Mermaid Diagrams**: Use for processes, hierarchies, or timelines.
@@ -92,10 +95,10 @@ export const PROMPTS = {
            - **CRITICAL**: Use the \`googleSearch\` tool to find SPECIFIC data points (numbers, dates, quotes).
            - Do not say "Many companies". Say "Apple and Nvidia".
            - Cite real recent events.
-    7. **References**: Provide external sources **ONLY if they are critical** for verification. 
-       - Limit to max 1 high-quality link per section.
+     7. **References (MANDATORY)**: 
+       - You **MUST** include at least 1 external link to a high-authority source (e.g., Wikipedia, Trusted News, Official Docs).
        - Format: \`[Source Name](https://...)\`. 
-       - If no specific URL is found, omit the link. Do NOT create fake deep-links.
+       - If no specific URL is found, use a relevant search query URL (e.g., \`[Google Search: Topic](https://www.google.com/search?q=Topic)\`).
     8. **NO DISCLAIMERS**: Do NOT add "This is a fictional post" or "For illustrative purposes". Write with authority.
     9. **Target Length**: Aim for ~300-350 characters (Korean) per section to keep the total length around 3,000 characters. Be concise and impactful.
     10. **NO TITLE REPETITION**: The H1 title is already rendered by the system. Do NOT include the Main Title or "Title: ..." at the beginning of your output. Start directly with the Introduction.
