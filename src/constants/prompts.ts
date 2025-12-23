@@ -179,7 +179,8 @@ export const PROMPTS = {
                  - ❌ Wrong: \`A[AI Model]\` (No quotes)
                • **Icons**: **USE UNICODE EMOJIS** strictly. Do NOT use FontAwesome (\`fa:fa-\`).
                  - Emojis render perfectly in all exports.
-               • **Escape Characters**: Do NOT use parentheses \`()\` or brackets \`[]\` inside the label UNLESS inside double quotes.
+               • **Escape Characters**: Do NOT use parentheses \`()\` or brackets \`[]\` *anywhere* unless strictly inside the double quotes of a Node Label. 
+                 - **Never use them on arrows**.
                • **Styling**: Define a custom class for important nodes.
                  - Example:
                    \`\`\`mermaid
@@ -189,7 +190,11 @@ export const PROMPTS = {
                      classDef highlight fill:#EEF2FF,stroke:#4F46E5,stroke-width:2px,color:#000,font-weight:bold;
                      class A,C highlight
                    \`\`\`
-               • **NO Text on Arrows**. Keep connections simple.
+               • **CRITICAL: NO LABELS ON ARROWS**: Do NOT use text on edges (e.g., \`-->|Text|\`). 
+                 - ✅ Correct: \`A --> B\`
+                 - ❌ Wrong: \`A -->|Reaction| B\`
+                 - ❌ Wrong: \`A -- Reaction --> B\`
+                 - **Reason**: Edge labels often cause syntax errors with special characters. Keep connections simple.
              - **Checklist**: Use Emojis (e.g., "- ✅ Item").
              - **Bulleted List**: Use emojis for key points.
           3. **Key Insight**: Bold summary.
