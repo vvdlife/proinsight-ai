@@ -38,12 +38,12 @@ export const PROMPTS = {
     Task: Use Google Search to find 5-7 CRITICAL FACTS needed to write a professional blog post about this topic.
     
     Output Format (Bulleted List):
-    - [Data/Number]: Specific Revenue, Stock Price, or Growth Rate (e.g., $100B, +15%).
-    - [Date]: Release dates or event dates.
-    - [Quote]: A short key quote from a CEO or Official.
-    - [Context]: Why this matters now.
+    - [Data/Number] (Source: URL): Specific Revenue, Stock Price, or Growth Rate (e.g., $100B, +15%).
+    - [Date] (Source: URL): Release dates or event dates.
+    - [Quote] (Source: URL): A short key quote from a CEO or Official.
+    - [Context] (Source: URL): Why this matters now.
     
-    Constraint: Only output the facts. Do not write an intro.
+    Constraint: Include the Source URL for every fact. verify that the URL operates.
   `,
 
   BASE_CONTEXT: (
@@ -93,10 +93,12 @@ export const PROMPTS = {
            - **CRITICAL**: Use the \`googleSearch\` tool to find SPECIFIC data points (numbers, dates, quotes).
            - Do not say "Many companies". Say "Apple and Nvidia".
            - Cite real recent events.
-     7. **References (MANDATORY)**: 
-       - You **MUST** include at least 1 external link to a high-authority source (e.g., Wikipedia, Trusted News, Official Docs).
-       - Format: \`[Source Name](https://...)\`. 
-       - If no specific URL is found, use a relevant search query URL (e.g., \`[Google Search: Topic](https://www.google.com/search?q=Topic)\`).
+     7. **References (MANDATORY & STRICT)**: 
+       - You **MUST** include at least 1 external link.
+       - **CRITICAL**: Use ONLY the URLs provided in the **KEY FACTS** section or the **SOURCE URLs** list.
+       - **DO NOT HALLUCINATE**: If you do not have a specific URL, you **MUST** use a Google Search Query URL:
+         - Format: \`[Google Search: Topic](https://www.google.com/search?q=Topic)\`
+       - **NEVER** invent deep links (e.g., no 'nytimes.com/fake-article'). Use root domains or search links only.
     8. **NO DISCLAIMERS**: Do NOT add "This is a fictional post" or "For illustrative purposes". Write with authority.
     9. **Target Length**: Aim for ~300-350 characters (Korean) per section to keep the total length around 3,000 characters. Be concise and impactful.
     10. **NO TITLE REPETITION**: The H1 title is already rendered by the system. Do NOT include the Main Title or "Title: ..." at the beginning of your output. Start directly with the Introduction.
