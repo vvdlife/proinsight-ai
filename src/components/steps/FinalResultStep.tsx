@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { PenIcon, RefreshIcon, CheckIcon, XIcon, DownloadIcon, ImageIcon, CopyIcon } from '../Icons';
+import {
+  PenIcon,
+  RefreshIcon,
+  CheckIcon,
+  XIcon,
+  DownloadIcon,
+  ImageIcon,
+  CopyIcon,
+} from '../Icons';
 import { MarkdownRenderer } from '../MarkdownRenderer';
 import { BlogFont } from '../../types';
 import { SeoAnalyzer } from '../SeoAnalyzer';
@@ -11,284 +19,297 @@ import jsPDF from 'jspdf';
 import { ExportManager } from '../ExportManager'; // Kept the new one
 
 export const FinalResultStep: React.FC = () => {
-    // ... (existing hooks)
-    const {
-        resetAll: onReset,
-        selectedFont, setSelectedFont: onFontChange,
-        activeLang, setActiveLang: onLangChange,
-        finalPost, setFinalPost,
-        finalPostEn, setFinalPostEn,
-        topic,
-        selectedTone
-    } = useBlogContext();
+  // ... (existing hooks)
+  const {
+    resetAll: onReset,
+    selectedFont,
+    setSelectedFont: onFontChange,
+    activeLang,
+    setActiveLang: onLangChange,
+    finalPost,
+    setFinalPost,
+    finalPostEn,
+    setFinalPostEn,
+    topic,
+    selectedTone,
+  } = useBlogContext();
 
-    // ... (existing state)
-    const [isEditing, setIsEditing] = useState(false);
-    const [editTitle, setEditTitle] = useState('');
-    const [editContent, setEditContent] = useState('');
+  // ... (existing state)
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editContent, setEditContent] = useState('');
 
-    // ... (existing handlers)
-    const onEdit = () => {
-        const post = activeLang === 'ko' ? finalPost : finalPostEn;
-        if (post) {
-            setEditTitle(post.title);
-            setEditContent(post.content);
-            setIsEditing(true);
-        }
-    };
+  // ... (existing handlers)
+  const onEdit = () => {
+    const post = activeLang === 'ko' ? finalPost : finalPostEn;
+    if (post) {
+      setEditTitle(post.title);
+      setEditContent(post.content);
+      setIsEditing(true);
+    }
+  };
 
-    const onCancelEdit = () => {
-        setIsEditing(false);
-        setEditTitle('');
-        setEditContent('');
-    };
+  const onCancelEdit = () => {
+    setIsEditing(false);
+    setEditTitle('');
+    setEditContent('');
+  };
 
-    const onSaveEdit = () => {
-        if (activeLang === 'ko') {
-            setFinalPost(finalPost ? { ...finalPost, title: editTitle, content: editContent } : null);
+  const onSaveEdit = () => {
+    if (activeLang === 'ko') {
+      setFinalPost(finalPost ? { ...finalPost, title: editTitle, content: editContent } : null);
+    } else {
+      setFinalPostEn(
+        finalPostEn ? { ...finalPostEn, title: editTitle, content: editContent } : null,
+      );
+    }
+    setIsEditing(false);
+  };
+
+  // Removed onCopyToClipboard as it's replaced by ExportManager
+
+  const currentPost = activeLang === 'ko' ? finalPost : finalPostEn;
+
+  if (!currentPost) return null;
+
+  // ... (existing handleHighlight)
+  const handleHighlight = (text: string) => {
+    if (isEditing) {
+      const textarea = document.querySelector('textarea');
+      if (textarea) {
+        const index = editContent.indexOf(text);
+        if (index !== -1) {
+          textarea.focus();
+          textarea.setSelectionRange(index, index + text.length);
+          // Scroll to selection
+          const lineHeight = 24; // approx
+          const lines = editContent.substring(0, index).split('\n').length;
+          textarea.scrollTop = lines * lineHeight - textarea.clientHeight / 2;
         } else {
-            setFinalPostEn(finalPostEn ? { ...finalPostEn, title: editTitle, content: editContent } : null);
+          alert('편집기에서 해당 문구를 찾을 수 없습니다. (내용이 수정되었을 수 있습니다)');
         }
-        setIsEditing(false);
-    };
-
-    // Removed onCopyToClipboard as it's replaced by ExportManager
-
-    const currentPost = activeLang === 'ko' ? finalPost : finalPostEn;
-
-    if (!currentPost) return null;
-
-    // ... (existing handleHighlight)
-    const handleHighlight = (text: string) => {
-        if (isEditing) {
+      }
+    } else {
+      // View Mode
+      // Try to find the text in the rendered view
+      // Since markdown rendering might change the text (e.g. # Header vs Header), this is inexact.
+      // Simple approach: Use window.find() if available, or just alert user to switch to edit mode.
+      if ((window as any).find && (window as any).find(text)) {
+        // Found and highlighted by browser
+      } else {
+        // If not found (e.g. markdown syntax vs rendered), ask to edit
+        const confirmEdit = window.confirm(
+          `뷰어에서 정확한 위치를 찾기 어렵습니다.\n'편집 모드'로 전환하여 해당 위치를 찾으시겠습니까?\n\n찾을 내용: "${text.substring(0, 20)}..."`,
+        );
+        if (confirmEdit) {
+          onEdit();
+          // We need to wait for state update and render.
+          // Use setTimeout to allow render cycle to complete
+          setTimeout(() => {
+            // Re-run highlighting in edit mode
             const textarea = document.querySelector('textarea');
             if (textarea) {
-                const index = editContent.indexOf(text);
-                if (index !== -1) {
-                    textarea.focus();
-                    textarea.setSelectionRange(index, index + text.length);
-                    // Scroll to selection
-                    const lineHeight = 24; // approx
-                    const lines = editContent.substring(0, index).split('\n').length;
-                    textarea.scrollTop = lines * lineHeight - textarea.clientHeight / 2;
-                } else {
-                    alert("편집기에서 해당 문구를 찾을 수 없습니다. (내용이 수정되었을 수 있습니다)");
-                }
+              // Re-query
+              const index = currentPost.content.indexOf(text); // Use currentPost.content as editContent might not be set yet inside this closure scope fully if strictly React, but we set it in onEdit.
+              // Wait, onEdit sets state. editContent will be set.
+              // But we need to use the value.
+              if (index !== -1) {
+                textarea.focus();
+                textarea.setSelectionRange(index, index + text.length);
+                const lines = currentPost.content.substring(0, index).split('\n').length;
+                textarea.scrollTop = lines * 24 - textarea.clientHeight / 2;
+              }
             }
-        } else {
-            // View Mode
-            // Try to find the text in the rendered view
-            // Since markdown rendering might change the text (e.g. # Header vs Header), this is inexact.
-            // Simple approach: Use window.find() if available, or just alert user to switch to edit mode.
-            if ((window as any).find && (window as any).find(text)) {
-                // Found and highlighted by browser
-            } else {
-                // If not found (e.g. markdown syntax vs rendered), ask to edit
-                const confirmEdit = window.confirm(`뷰어에서 정확한 위치를 찾기 어렵습니다.\n'편집 모드'로 전환하여 해당 위치를 찾으시겠습니까?\n\n찾을 내용: "${text.substring(0, 20)}..."`);
-                if (confirmEdit) {
-                    onEdit();
-                    // We need to wait for state update and render. 
-                    // Use setTimeout to allow render cycle to complete
-                    setTimeout(() => {
-                        // Re-run highlighting in edit mode
-                        const textarea = document.querySelector('textarea');
-                        if (textarea) { // Re-query
-                            const index = currentPost.content.indexOf(text); // Use currentPost.content as editContent might not be set yet inside this closure scope fully if strictly React, but we set it in onEdit. 
-                            // Wait, onEdit sets state. editContent will be set.
-                            // But we need to use the value.
-                            if (index !== -1) {
-                                textarea.focus();
-                                textarea.setSelectionRange(index, index + text.length);
-                                const lines = currentPost.content.substring(0, index).split('\n').length;
-                                textarea.scrollTop = lines * 24 - textarea.clientHeight / 2;
-                            }
-                        }
-                    }, 100);
-                }
-            }
+          }, 100);
         }
-    };
+      }
+    }
+  };
 
+  // Export Logic delegated to ExportManager but keeping PDF/HTML/MD for backup if needed?
+  // Actually ExportManager handles HTML/PDF. MD is also useful.
+  // Let's keep MD download here or let ExportManager handle it?
+  // ExportManager has "HTML Save" and "PDF Save". Let's add Markdown if it's not there, or just keep it simple.
+  // The implementation plan says "Remove duplicate buttons". ExportManager has PDF/HTML. We can add Markdown there later if needed, but for now let's trust ExportManager.
 
-    // Export Logic delegated to ExportManager but keeping PDF/HTML/MD for backup if needed? 
-    // Actually ExportManager handles HTML/PDF. MD is also useful. 
-    // Let's keep MD download here or let ExportManager handle it? 
-    // ExportManager has "HTML Save" and "PDF Save". Let's add Markdown if it's not there, or just keep it simple.
-    // The implementation plan says "Remove duplicate buttons". ExportManager has PDF/HTML. We can add Markdown there later if needed, but for now let's trust ExportManager.
+  return (
+    <div className="max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+      {/* Top Toolbar */}
+      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200 sticky top-20 z-30">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onReset}
+            className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 font-medium px-4 py-2 hover:bg-slate-50 rounded-lg transition-colors"
+          >
+            <RefreshIcon className="w-4 h-4" />새 글 쓰기
+          </button>
 
-    return (
-        <div className="max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
-
-            {/* Top Toolbar */}
-            <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200 sticky top-20 z-30">
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={onReset}
-                        className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 font-medium px-4 py-2 hover:bg-slate-50 rounded-lg transition-colors"
-                    >
-                        <RefreshIcon className="w-4 h-4" />
-                        새 글 쓰기
-                    </button>
-
-                    {/* Language Tabs */}
-                    {finalPostEn && (
-                        <div className="flex bg-slate-100 rounded-lg p-1 ml-4">
-                            <button
-                                onClick={() => onLangChange('ko')}
-                                className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${activeLang === 'ko' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                            >
-                                한국어
-                            </button>
-                            <button
-                                onClick={() => onLangChange('en')}
-                                className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${activeLang === 'en' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                            >
-                                English
-                            </button>
-                        </div>
-                    )}
-                </div>
-
-                <div className="flex items-center gap-2">
-                    {/* Font Selector */}
-                    <div className="flex items-center gap-2 mr-4 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
-                        <span className="text-xs font-bold text-slate-400">폰트:</span>
-                        <select
-                            value={selectedFont}
-                            onChange={(e) => onFontChange(e.target.value as BlogFont)}
-                            className="bg-transparent text-xs font-bold text-slate-700 outline-none"
-                        >
-                            <option value={BlogFont.PRETENDARD}>Pretendard (기본)</option>
-                            <option value={BlogFont.NOTO_SERIF}>Noto Serif (명조)</option>
-                            <option value={BlogFont.NANUM_GOTHIC}>나눔고딕 (본문용)</option>
-                            <option value={BlogFont.RIDIBATANG}>리디바탕 (이북스타일)</option>
-                            <option value={BlogFont.NANUM_PEN}>나눔손글씨 (캐주얼)</option>
-                        </select>
-                    </div>
-
-                    {!isEditing ? (
-                        <>
-                            <button
-                                onClick={onEdit}
-                                className="flex items-center gap-2 px-4 py-2 text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-indigo-300 transition-all font-medium text-sm shadow-sm"
-                            >
-                                <PenIcon className="w-4 h-4" /> 편집
-                            </button>
-                        </>
-                    ) : (
-                        <>
-                            <button
-                                onClick={onSaveEdit}
-                                className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold text-sm shadow-md"
-                            >
-                                <CheckIcon className="w-4 h-4" /> 저장
-                            </button>
-                            <button
-                                onClick={onCancelEdit}
-                                className="flex items-center gap-2 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-lg font-bold text-sm"
-                            >
-                                <XIcon className="w-4 h-4" /> 취소
-                            </button>
-                            <div className="text-xs text-slate-400 ml-2 animate-pulse font-medium">편집 모드</div>
-                        </>
-                    )}
-                </div>
+          {/* Language Tabs */}
+          {finalPostEn && (
+            <div className="flex bg-slate-100 rounded-lg p-1 ml-4">
+              <button
+                onClick={() => onLangChange('ko')}
+                className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${activeLang === 'ko' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                한국어
+              </button>
+              <button
+                onClick={() => onLangChange('en')}
+                className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${activeLang === 'en' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                English
+              </button>
             </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Main Content Column */}
-                <div className="lg:col-span-2 space-y-8">
-
-                    {/* Thumbnail Section */}
-                    {currentPost.images && currentPost.images.length > 0 && (
-                        <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-200">
-                            <ThumbnailEditor
-                                originalImage={currentPost.images[0]}
-                                defaultText={currentPost.title}
-                            />
-                        </div>
-                    )}
-
-                    {/* Blog Post Content */}
-                    <div id="blog-content-area" className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden min-h-[600px]">
-                        {isEditing ? (
-                            <div className="p-8 space-y-6">
-                                <input
-                                    type="text"
-                                    value={editTitle}
-                                    onChange={(e) => setEditTitle(e.target.value)}
-                                    className="w-full text-3xl font-bold p-2 border-b-2 border-slate-100 focus:border-indigo-500 outline-none"
-                                    placeholder="제목을 입력하세요"
-                                />
-                                <div className="relative">
-                                    <textarea
-                                        value={editContent}
-                                        onChange={(e) => setEditContent(e.target.value)}
-                                        className="w-full h-[600px] p-4 text-base leading-relaxed resize-none outline-none border border-slate-200 rounded-lg focus:border-indigo-500 font-mono text-slate-700"
-                                        placeholder="내용을 입력하세요..."
-                                    />
-                                    <div className="absolute right-4 bottom-4 text-xs text-slate-400 bg-white/80 px-2 rounded">
-                                        Markdown 문법이 지원됩니다
-                                    </div>
-                                </div>
-                            </div>
-                        ) : (
-                            <article className="prose prose-slate prose-lg max-w-none p-8 sm:p-12">
-                                <h1 className="text-4xl font-extrabold text-slate-900 mb-8 leading-tight">{currentPost.title}</h1>
-                                <MarkdownRenderer content={currentPost.content} font={selectedFont} />
-
-                                {currentPost.hashtags && currentPost.hashtags.length > 0 && (
-                                    <div className="mt-12 pt-8 border-t border-slate-100">
-                                        <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                                            🏷️ 추천 해시태그 (Hashtags)
-                                            <button
-                                                onClick={() => {
-                                                    const tagText = currentPost.hashtags?.map(t => `#${t}`).join(' ');
-                                                    if (tagText) navigator.clipboard.writeText(tagText);
-                                                    alert('해시태그가 복사되었습니다!');
-                                                }}
-                                                className="ml-auto text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-full transition-colors font-medium flex items-center gap-1"
-                                            >
-                                                <CopyIcon className="w-3 h-3" /> 전체 복사
-                                            </button>
-                                        </h3>
-                                        <div className="flex flex-wrap gap-2">
-                                            {currentPost.hashtags.map((tag, idx) => (
-                                                <span key={idx} className="bg-slate-50 text-slate-600 px-3 py-1 text-sm rounded-full border border-slate-100 hover:border-indigo-200 hover:text-indigo-600 transition-colors cursor-pointer select-all">
-                                                    #{tag}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </article>
-                        )}
-                    </div>
-
-                    {/* Export Manager */}
-                    {!isEditing && <ExportManager post={currentPost} />}
-                </div>
-
-                {/* Right Sidebar: SEO & Social */}
-                <div className="space-y-6 lg:sticky lg:top-24 lg:h-[calc(100vh-120px)] lg:overflow-y-auto lg:pr-2 custom-scrollbar">
-                    {/* SEO Analyzer */}
-                    <div className="space-y-6">
-                        <SeoAnalyzer
-                            title={currentPost.title}
-                            content={currentPost.content}
-                            keyword={topic}
-                            language={activeLang}
-                            tone={selectedTone}
-                            onHighlight={handleHighlight}
-                        />
-
-                        {/* Social Media Posts */}
-                        {currentPost.socialPosts && currentPost.socialPosts.length > 0 && (
-                            <SocialGenerator posts={currentPost.socialPosts} />
-                        )}
-                    </div>
-                </div>
-            </div>
+          )}
         </div>
-    );
+
+        <div className="flex items-center gap-2">
+          {/* Font Selector */}
+          <div className="flex items-center gap-2 mr-4 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+            <span className="text-xs font-bold text-slate-400">폰트:</span>
+            <select
+              value={selectedFont}
+              onChange={(e) => onFontChange(e.target.value as BlogFont)}
+              className="bg-transparent text-xs font-bold text-slate-700 outline-none"
+            >
+              <option value={BlogFont.PRETENDARD}>Pretendard (기본)</option>
+              <option value={BlogFont.NOTO_SERIF}>Noto Serif (명조)</option>
+              <option value={BlogFont.NANUM_GOTHIC}>나눔고딕 (본문용)</option>
+              <option value={BlogFont.RIDIBATANG}>리디바탕 (이북스타일)</option>
+              <option value={BlogFont.NANUM_PEN}>나눔손글씨 (캐주얼)</option>
+            </select>
+          </div>
+
+          {!isEditing ? (
+            <>
+              <button
+                onClick={onEdit}
+                className="flex items-center gap-2 px-4 py-2 text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-indigo-300 transition-all font-medium text-sm shadow-sm"
+              >
+                <PenIcon className="w-4 h-4" /> 편집
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={onSaveEdit}
+                className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold text-sm shadow-md"
+              >
+                <CheckIcon className="w-4 h-4" /> 저장
+              </button>
+              <button
+                onClick={onCancelEdit}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-lg font-bold text-sm"
+              >
+                <XIcon className="w-4 h-4" /> 취소
+              </button>
+              <div className="text-xs text-slate-400 ml-2 animate-pulse font-medium">편집 모드</div>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Content Column */}
+        <div className="lg:col-span-2 space-y-8">
+          {/* Thumbnail Section */}
+          {currentPost.images && currentPost.images.length > 0 && (
+            <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-200">
+              <ThumbnailEditor
+                originalImage={currentPost.images[0]}
+                defaultText={currentPost.title}
+              />
+            </div>
+          )}
+
+          {/* Blog Post Content */}
+          <div
+            id="blog-content-area"
+            className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden min-h-[600px]"
+          >
+            {isEditing ? (
+              <div className="p-8 space-y-6">
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full text-3xl font-bold p-2 border-b-2 border-slate-100 focus:border-indigo-500 outline-none"
+                  placeholder="제목을 입력하세요"
+                />
+                <div className="relative">
+                  <textarea
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                    className="w-full h-[600px] p-4 text-base leading-relaxed resize-none outline-none border border-slate-200 rounded-lg focus:border-indigo-500 font-mono text-slate-700"
+                    placeholder="내용을 입력하세요..."
+                  />
+                  <div className="absolute right-4 bottom-4 text-xs text-slate-400 bg-white/80 px-2 rounded">
+                    Markdown 문법이 지원됩니다
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <article className="prose prose-slate prose-lg max-w-none p-8 sm:p-12">
+                <h1 className="text-4xl font-extrabold text-slate-900 mb-8 leading-tight">
+                  {currentPost.title}
+                </h1>
+                <MarkdownRenderer content={currentPost.content} font={selectedFont} />
+
+                {currentPost.hashtags && currentPost.hashtags.length > 0 && (
+                  <div className="mt-12 pt-8 border-t border-slate-100">
+                    <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                      🏷️ 추천 해시태그 (Hashtags)
+                      <button
+                        onClick={() => {
+                          const tagText = currentPost.hashtags?.map((t) => `#${t}`).join(' ');
+                          if (tagText) navigator.clipboard.writeText(tagText);
+                          alert('해시태그가 복사되었습니다!');
+                        }}
+                        className="ml-auto text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-full transition-colors font-medium flex items-center gap-1"
+                      >
+                        <CopyIcon className="w-3 h-3" /> 전체 복사
+                      </button>
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {currentPost.hashtags.map((tag, idx) => (
+                        <span
+                          key={idx}
+                          className="bg-slate-50 text-slate-600 px-3 py-1 text-sm rounded-full border border-slate-100 hover:border-indigo-200 hover:text-indigo-600 transition-colors cursor-pointer select-all"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </article>
+            )}
+          </div>
+
+          {/* Export Manager */}
+          {!isEditing && <ExportManager post={currentPost} />}
+        </div>
+
+        {/* Right Sidebar: SEO & Social */}
+        <div className="space-y-6 lg:sticky lg:top-24 lg:h-[calc(100vh-120px)] lg:overflow-y-auto lg:pr-2 custom-scrollbar">
+          {/* SEO Analyzer */}
+          <div className="space-y-6">
+            <SeoAnalyzer
+              title={currentPost.title}
+              content={currentPost.content}
+              keyword={topic}
+              language={activeLang}
+              tone={selectedTone}
+              onHighlight={handleHighlight}
+            />
+
+            {/* Social Media Posts */}
+            {currentPost.socialPosts && currentPost.socialPosts.length > 0 && (
+              <SocialGenerator posts={currentPost.socialPosts} />
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };

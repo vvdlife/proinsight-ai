@@ -1,6 +1,12 @@
-
-import { GoogleGenAI, Type } from "@google/genai";
-import { BlogTone, OutlineData, SocialPost, ImageStyle, UploadedFile, SeoDiagnosis } from "../types";
+import { GoogleGenAI, Type } from '@google/genai';
+import {
+  BlogTone,
+  OutlineData,
+  SocialPost,
+  ImageStyle,
+  UploadedFile,
+  SeoDiagnosis,
+} from '../types';
 import { trackApiCall, estimateTokens } from './apiUsageTracker';
 import { safeJsonParse } from './utils';
 import { PROMPTS, PERSONA_INSTRUCTIONS } from '../constants/prompts';
@@ -8,16 +14,19 @@ import { FIXED_TEMPLATES } from '../constants/templates';
 
 // Constants
 const MODEL_IDS = {
-  TEXT: "gemini-3-flash-preview", // Default text model
-  IMAGE: "gemini-3-pro-image-preview", // "Nano Banana Pro" - The absolute latest SOTA image model
+  TEXT: 'gemini-3-flash-preview', // Default text model
+  IMAGE: 'gemini-3-pro-image-preview', // "Nano Banana Pro" - The absolute latest SOTA image model
 } as const;
 
 // Helper to get client securely
 const getGenAI = () => {
-  const key = sessionStorage.getItem('proinsight_api_key') || localStorage.getItem('proinsight_api_key') || (import.meta as any).env.VITE_API_KEY;
+  const key =
+    sessionStorage.getItem('proinsight_api_key') ||
+    localStorage.getItem('proinsight_api_key') ||
+    (import.meta as any).env.VITE_API_KEY;
 
   if (!key) {
-    throw new Error("API Key가 없습니다. 설정에서 키를 등록해주세요.");
+    throw new Error('API Key가 없습니다. 설정에서 키를 등록해주세요.');
   }
   return new GoogleGenAI({ apiKey: key });
 };
@@ -26,18 +35,21 @@ const getGenAI = () => {
 const fetchMarketDataContext = async (): Promise<string> => {
   try {
     const res = await fetch('/api/market_data');
-    if (!res.ok) return "";
+    if (!res.ok) return '';
     const json = await res.json();
-    if (json.status !== 'success' || !json.data) return "";
+    if (json.status !== 'success' || !json.data) return '';
 
-    const lines = json.data.map((item: any) =>
-      `- ${item.name} (${item.symbol}): ${item.currency === 'KRW' ? item.price.toLocaleString() : item.price} ${item.currency} (${item.change >= 0 ? '+' : ''}${item.changePercent.toFixed(2)}%)`
-    ).join('\n');
+    const lines = json.data
+      .map(
+        (item: any) =>
+          `- ${item.name} (${item.symbol}): ${item.currency === 'KRW' ? item.price.toLocaleString() : item.price} ${item.currency} (${item.change >= 0 ? '+' : ''}${item.changePercent.toFixed(2)}%)`,
+      )
+      .join('\n');
 
     return `\n\n[REAL-TIME MARKET CONTEXT (${new Date().toLocaleDateString()})]:\n${lines}\n(Use this data to ground your content if relevant to the topic.)`;
   } catch (e) {
-    console.warn("Failed to fetch market context", e);
-    return "";
+    console.warn('Failed to fetch market context', e);
+    return '';
   }
 };
 
@@ -49,12 +61,17 @@ export const generateOutline = async (
   files: UploadedFile[],
   urls: string[],
   memo: string,
-  modelId: string = MODEL_IDS.TEXT // [NEW] Accept modelId
+  modelId: string = MODEL_IDS.TEXT, // [NEW] Accept modelId
 ): Promise<OutlineData> => {
   const ai = getGenAI();
 
   // Get current date for context
-  const currentDate = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+  const currentDate = new Date().toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long',
+  });
 
   // [NEW] Inject Market Context
   const marketContext = await fetchMarketDataContext();
@@ -66,7 +83,7 @@ export const generateOutline = async (
     const template = FIXED_TEMPLATES[topic];
     return {
       title: template.title, // You might want to append date here dynamically
-      sections: template.sections
+      sections: template.sections,
     };
   }
 
@@ -86,12 +103,12 @@ export const generateOutline = async (
 
   const parts: any[] = [{ text: promptText }];
 
-  files.forEach(file => {
+  files.forEach((file) => {
     parts.push({
       inlineData: {
         mimeType: file.mimeType,
-        data: file.data
-      }
+        data: file.data,
+      },
     });
   });
 
@@ -100,12 +117,12 @@ export const generateOutline = async (
     contents: { role: 'user', parts },
     config: {
       tools: [{ googleSearch: {} }],
-      systemInstruction: "You are an expert content strategist. Output valid JSON only.",
+      systemInstruction: 'You are an expert content strategist. Output valid JSON only.',
     },
   });
 
-  const text = response.text || "";
-  if (!text) throw new Error("No outline generated.");
+  const text = response.text || '';
+  if (!text) throw new Error('No outline generated.');
 
   // Track API usage with actual token counts from response
   const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(promptText);
@@ -128,7 +145,6 @@ export const generateOutline = async (
   return outline;
 };
 
-
 /**
  * 주제에 대한 핵심 팩트(수치, 날짜 등)를 먼저 검색하여 추출하는 함수
  */
@@ -138,37 +154,41 @@ const generateKeyFacts = async (topic: string, ai: GoogleGenAI): Promise<string>
   try {
     // 검색 도구(googleSearch)를 사용하여 팩트 수집
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: 'gemini-2.5-flash',
       contents: prompt,
       config: { tools: [{ googleSearch: {} }] },
     });
-    return response.text || "";
+    return response.text || '';
   } catch (e) {
-    console.error("Fact generation failed", e);
-    return ""; // 실패해도 글쓰기는 진행되도록 빈 문자열 반환
+    console.error('Fact generation failed', e);
+    return ''; // 실패해도 글쓰기는 진행되도록 빈 문자열 반환
   }
 };
 
 /**
  * Generates viral hashtags based on title.
  */
-const generateHashtags = async (title: string, language: 'ko' | 'en', ai: GoogleGenAI): Promise<string[]> => {
+const generateHashtags = async (
+  title: string,
+  language: 'ko' | 'en',
+  ai: GoogleGenAI,
+): Promise<string[]> => {
   const prompt = PROMPTS.HASHTAGS(title, language);
   try {
     const response = await ai.models.generateContent({
       model: MODEL_IDS.TEXT,
       contents: prompt,
-      config: { responseMimeType: "application/json" }
+      config: { responseMimeType: 'application/json' },
     });
 
-    const text = response.text || "[]";
+    const text = response.text || '[]';
     const tags = safeJsonParse<string[]>(text);
     // Ensure they start with # if not present, or better yet, just return clean strings for UI to handle?
     // Let's return clean strings as requested in prompt.
     // Validate array
     return Array.isArray(tags) ? tags : [];
   } catch (e) {
-    console.warn("Hashtag generation failed", e);
+    console.warn('Hashtag generation failed', e);
     return [];
   }
 };
@@ -176,15 +196,21 @@ const generateHashtags = async (title: string, language: 'ko' | 'en', ai: Google
 /**
  * Helper to generate text with files
  */
-const generateText = async (ai: GoogleGenAI, prompt: string, files: UploadedFile[], systemInstruction: string = "You are a helpful assistant.", modelId: string = MODEL_IDS.TEXT): Promise<string> => {
+const generateText = async (
+  ai: GoogleGenAI,
+  prompt: string,
+  files: UploadedFile[],
+  systemInstruction: string = 'You are a helpful assistant.',
+  modelId: string = MODEL_IDS.TEXT,
+): Promise<string> => {
   const parts: any[] = [{ text: prompt }];
 
-  files.forEach(file => {
+  files.forEach((file) => {
     parts.push({
       inlineData: {
         mimeType: file.mimeType,
-        data: file.data
-      }
+        data: file.data,
+      },
     });
   });
 
@@ -198,10 +224,10 @@ const generateText = async (ai: GoogleGenAI, prompt: string, files: UploadedFile
       },
     });
 
-    let result = response.text || "";
+    let result = response.text || '';
 
     // Cleanup Google Search grounding artifacts (citations) like (cite: 1, 2)
-    result = result.replace(/\s*\(cite:[\s\d,]+\)/gi, "");
+    result = result.replace(/\s*\(cite:[\s\d,]+\)/gi, '');
 
     // Track API usage with actual token counts from response
     const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
@@ -210,8 +236,8 @@ const generateText = async (ai: GoogleGenAI, prompt: string, files: UploadedFile
 
     return result;
   } catch (error) {
-    console.error("Section generation failed:", error);
-    return "\n(이 섹션을 생성하는 중 오류가 발생했습니다.)\n";
+    console.error('Section generation failed:', error);
+    return '\n(이 섹션을 생성하는 중 오류가 발생했습니다.)\n';
   }
 };
 
@@ -226,7 +252,7 @@ export const generateBlogPostContent = async (
   memo: string,
   language: string = 'Korean',
   topic: string, // [NEW] Add topic for SEO keyword optimization
-  modelId: string = MODEL_IDS.TEXT // [NEW] Accept modelId
+  modelId: string = MODEL_IDS.TEXT, // [NEW] Accept modelId
 ): Promise<{ content: string; title: string; hashtags: string[] }> => {
   const ai = getGenAI();
   const isEnglish = language === 'English';
@@ -252,7 +278,7 @@ export const generateBlogPostContent = async (
     topic,
     memo,
     urls,
-    files.length > 0
+    files.length > 0,
   );
 
   // [NEW] Enforce "Briefing Report Style" for Fixed Topics
@@ -279,7 +305,13 @@ export const generateBlogPostContent = async (
   const sectionPromises = outline.sections.map(async (section, idx) => {
     const sectionPrompt = PROMPTS.SECTION(baseContext, section, outline.sections, isEnglish);
 
-    return generateText(ai, sectionPrompt, files, "You are an expert content writer. Use Tables and Emojis.", modelId);
+    return generateText(
+      ai,
+      sectionPrompt,
+      files,
+      'You are an expert content writer. Use Tables and Emojis.',
+      modelId,
+    );
   });
 
   // 3. Conclusion Generation
@@ -287,14 +319,26 @@ export const generateBlogPostContent = async (
 
   // Execute all requests in parallel
   const results = await Promise.all([
-    generateText(ai, introPrompt, files, "You are a professional blog writer. Write an engaging intro.", modelId),
+    generateText(
+      ai,
+      introPrompt,
+      files,
+      'You are a professional blog writer. Write an engaging intro.',
+      modelId,
+    ),
     ...sectionPromises,
-    generateText(ai, conclusionPrompt, files, "You are a professional editor. Summarize perfectly.", modelId),
-    generateHashtags(outline.title, isEnglish ? 'en' : 'ko', ai) // [NEW] Generate Hashtags parallel
+    generateText(
+      ai,
+      conclusionPrompt,
+      files,
+      'You are a professional editor. Summarize perfectly.',
+      modelId,
+    ),
+    generateHashtags(outline.title, isEnglish ? 'en' : 'ko', ai), // [NEW] Generate Hashtags parallel
   ]);
 
   const hashtags = (results.pop() as string[]) || []; // Last is hashtags
-  const conclusion = (results.pop() as string) || ""; // Second to last is conclusion
+  const conclusion = (results.pop() as string) || ''; // Second to last is conclusion
   const [introRaw, ...bodySections] = results as string[]; // Remaining are intro + body sections
 
   // Parse Title and Intro
@@ -312,7 +356,7 @@ export const generateBlogPostContent = async (
   }
 
   // Assemble
-  const cleanBodySections = bodySections.map(section => {
+  const cleanBodySections = bodySections.map((section) => {
     let content = section.replace(/---/g, '').trim();
     if (!isEnglish) {
       // Korean mode: remove AI generated headers if any, we use loop headers
@@ -342,7 +386,11 @@ export const generateBlogPostContent = async (
 /**
  * Generates social media posts and Instagram image.
  */
-export const generateSocialPosts = async (title: string, summary: string, imageStyle: ImageStyle): Promise<SocialPost[]> => {
+export const generateSocialPosts = async (
+  title: string,
+  summary: string,
+  imageStyle: ImageStyle,
+): Promise<SocialPost[]> => {
   const ai = getGenAI();
 
   const prompt = PROMPTS.SOCIAL(title, summary);
@@ -351,23 +399,23 @@ export const generateSocialPosts = async (title: string, summary: string, imageS
     model: MODEL_IDS.TEXT,
     contents: prompt,
     config: {
-      responseMimeType: "application/json",
+      responseMimeType: 'application/json',
       responseSchema: {
         type: Type.ARRAY,
         items: {
           type: Type.OBJECT,
           properties: {
-            platform: { type: Type.STRING, enum: ["Instagram", "LinkedIn", "X (Twitter)"] },
+            platform: { type: Type.STRING, enum: ['Instagram', 'LinkedIn', 'X (Twitter)'] },
             content: { type: Type.STRING },
-            hashtags: { type: Type.ARRAY, items: { type: Type.STRING } }
+            hashtags: { type: Type.ARRAY, items: { type: Type.STRING } },
           },
-          required: ["platform", "content", "hashtags"]
-        }
-      }
-    }
+          required: ['platform', 'content', 'hashtags'],
+        },
+      },
+    },
   });
 
-  let text = response.text || "";
+  const text = response.text || '';
   if (!text) return [];
 
   // Track API usage with actual token counts from response
@@ -379,35 +427,40 @@ export const generateSocialPosts = async (title: string, summary: string, imageS
   try {
     posts = safeJsonParse<SocialPost[]>(text);
   } catch (e) {
-    console.error("Failed to parse social posts JSON", e);
+    console.error('Failed to parse social posts JSON', e);
     return [];
   }
 
   // 1. Link Replacement Logic
   try {
     const userUrls = JSON.parse(localStorage.getItem('proinsight_blog_urls') || '{}');
-    const targetUrl = userUrls.NAVER || userUrls.TISTORY || userUrls.MEDIUM || userUrls.WORDPRESS || userUrls.SUBSTACK;
+    const targetUrl =
+      userUrls.NAVER ||
+      userUrls.TISTORY ||
+      userUrls.MEDIUM ||
+      userUrls.WORDPRESS ||
+      userUrls.SUBSTACK;
 
     if (targetUrl) {
-      posts = posts.map(post => ({
+      posts = posts.map((post) => ({
         ...post,
-        content: post.content.replace(/\[Link\]|\[Blog Link\]|\[블로그 링크\]/gi, targetUrl)
+        content: post.content.replace(/\[Link\]|\[Blog Link\]|\[블로그 링크\]/gi, targetUrl),
       }));
     }
   } catch (e) {
-    console.error("Link replacement error", e);
+    console.error('Link replacement error', e);
   }
 
   // 2. Generate Instagram Image (1:1 Ratio)
-  const instaIndex = posts.findIndex(p => p.platform.toLowerCase().includes('instagram'));
+  const instaIndex = posts.findIndex((p) => p.platform.toLowerCase().includes('instagram'));
   if (instaIndex !== -1) {
     try {
-      const instaImage = await generateBlogImage(title, imageStyle, "1:1");
+      const instaImage = await generateBlogImage(title, imageStyle, '1:1');
       if (instaImage) {
         posts[instaIndex].imageUrl = instaImage;
       }
     } catch (e) {
-      console.error("Failed to generate Instagram image", e);
+      console.error('Failed to generate Instagram image', e);
     }
   }
 
@@ -417,20 +470,25 @@ export const generateSocialPosts = async (title: string, summary: string, imageS
 /**
  * Generates blog image with style and ratio.
  */
-export const generateBlogImage = async (title: string, style: ImageStyle, ratio: string = "16:9"): Promise<string | undefined> => {
+export const generateBlogImage = async (
+  title: string,
+  style: ImageStyle,
+  ratio: string = '16:9',
+): Promise<string | undefined> => {
   const ai = getGenAI();
 
   let stylePrompt = `STYLE: ${style}`;
   // Map specific styles to better prompts if needed (simplified here for brevity)
-  if (style === ImageStyle.PHOTOREALISTIC) stylePrompt = "STYLE: Cinematic, Photorealistic, 4k, Award-winning composition, High detail.";
+  if (style === ImageStyle.PHOTOREALISTIC)
+    stylePrompt = 'STYLE: Cinematic, Photorealistic, 4k, Award-winning composition, High detail.';
 
   try {
     const response = await ai.models.generateContent({
       model: MODEL_IDS.IMAGE,
       contents: PROMPTS.IMAGE(title, stylePrompt, ratio),
       config: {
-        imageConfig: { aspectRatio: ratio }
-      }
+        imageConfig: { aspectRatio: ratio },
+      },
     });
 
     if (response.candidates?.[0]?.content?.parts) {
@@ -446,14 +504,19 @@ export const generateBlogImage = async (title: string, style: ImageStyle, ratio:
     }
     return undefined;
   } catch (error) {
-    console.error("Image generation failed:", error);
+    console.error('Image generation failed:', error);
   }
 };
 
 /**
  * Performs deep SEO diagnosis on the content with Viral/Persona awareness.
  */
-export const analyzeSeoDetails = async (content: string, keyword: string, language: 'ko' | 'en' = 'ko', tone: string = 'polite'): Promise<SeoDiagnosis[]> => {
+export const analyzeSeoDetails = async (
+  content: string,
+  keyword: string,
+  language: 'ko' | 'en' = 'ko',
+  tone: string = 'polite',
+): Promise<SeoDiagnosis[]> => {
   const ai = getGenAI();
   const isEnglish = language === 'en';
 
@@ -474,25 +537,28 @@ export const analyzeSeoDetails = async (content: string, keyword: string, langua
       model: MODEL_IDS.TEXT,
       contents: prompt,
       config: {
-        responseMimeType: "application/json",
-      }
+        responseMimeType: 'application/json',
+      },
     });
 
     // [FIX] Use response.text instead of response.response.text()
-    const text = response.text || "";
+    const text = response.text || '';
 
     // Clean potential markdown formatting
-    const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    const jsonStr = text
+      .replace(/```json/g, '')
+      .replace(/```/g, '')
+      .trim();
 
     // Track API usage
     const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
-    const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(jsonStr);
+    const completionTokens =
+      response.usageMetadata?.candidatesTokenCount || estimateTokens(jsonStr);
     trackApiCall(MODEL_IDS.TEXT, promptTokens, completionTokens, 'seo_analysis');
 
     return JSON.parse(jsonStr);
-
   } catch (error) {
-    console.error("SEO Analysis failed:", error);
+    console.error('SEO Analysis failed:', error);
     return [];
   }
 };

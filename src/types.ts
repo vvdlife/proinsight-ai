@@ -1,4 +1,3 @@
-
 export enum BlogTone {
   PROFESSIONAL = '전문적인',
   CASUAL = '편안한/일상적인',
@@ -85,7 +84,8 @@ export interface ApiUsageStats {
   lastUpdated: number; // timestamp
   callHistory: ApiCallRecord[]; // last 100 calls
   monthlyUsage: {
-    [yearMonth: string]: { // format: "2025-12"
+    [yearMonth: string]: {
+      // format: "2025-12"
       calls: number;
       tokens: number;
       cost: number;
@@ -117,4 +117,3 @@ export interface TrendAnalysis {
   relatedKeywords: string[];
   prediction: string;
 }
-

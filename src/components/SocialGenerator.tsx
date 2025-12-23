@@ -1,7 +1,15 @@
-
 import React, { useState, useEffect } from 'react';
 import { SocialPost } from '../types';
-import { CopyIcon, CheckIcon, HeartIcon, ChatBubbleIcon, RepeatIcon, ShareIcon, ImageIcon, SparklesIcon } from './Icons';
+import {
+  CopyIcon,
+  CheckIcon,
+  HeartIcon,
+  ChatBubbleIcon,
+  RepeatIcon,
+  ShareIcon,
+  ImageIcon,
+  SparklesIcon,
+} from './Icons';
 
 interface SocialGeneratorProps {
   posts: SocialPost[];
@@ -43,14 +51,17 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
 
   const handleHashtagsChange = (index: number, val: string) => {
     const updated = [...editablePosts];
-    updated[index].hashtags = val.split(' ').filter(t => t.trim());
+    updated[index].hashtags = val.split(' ').filter((t) => t.trim());
     setEditablePosts(updated);
   };
 
   const renderMockup = (post: SocialPost, index: number) => {
     if (post.platform === 'Instagram') {
       return (
-        <div key={index} className="flex flex-col bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm max-w-sm mx-auto w-full">
+        <div
+          key={index}
+          className="flex flex-col bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm max-w-sm mx-auto w-full"
+        >
           {/* Header */}
           <div className="px-4 py-3 flex items-center gap-2 border-b border-slate-100">
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-yellow-400 to-purple-600 p-[2px]">
@@ -65,7 +76,11 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
           <div className="aspect-square bg-slate-100 flex items-center justify-center text-slate-300 relative group overflow-hidden">
             {post.imageUrl ? (
               <>
-                <img src={post.imageUrl} alt="Instagram Post" className="w-full h-full object-cover" />
+                <img
+                  src={post.imageUrl}
+                  alt="Instagram Post"
+                  className="w-full h-full object-cover"
+                />
                 <div className="absolute top-2 right-2 bg-black/50 backdrop-blur text-white text-[10px] px-2 py-1 rounded-full flex items-center gap-1 opacity-70">
                   <SparklesIcon className="w-3 h-3 text-yellow-400" /> AI
                 </div>
@@ -127,7 +142,7 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
           rows={5}
         />
         <div className="text-blue-600 text-xs font-semibold">
-          {(post.hashtags || []).map(t => `#${t.replace('#', '')} `)}
+          {(post.hashtags || []).map((t) => `#${t.replace('#', '')} `)}
         </div>
       </div>
     );
@@ -151,11 +166,21 @@ export const SocialGenerator: React.FC<SocialGeneratorProps> = ({ posts }) => {
             {renderMockup(post, index)}
             <div className="grid grid-cols-2 gap-2">
               <button
-                onClick={() => copyToClipboard(`${post.content}\n\n${(post.hashtags || []).join(' ')}`, index)}
-                className={`py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-sm ${copiedIndex === index ? 'bg-green-600 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:border-indigo-500 hover:text-indigo-600'
-                  }`}
+                onClick={() =>
+                  copyToClipboard(`${post.content}\n\n${(post.hashtags || []).join(' ')}`, index)
+                }
+                className={`py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-sm ${
+                  copiedIndex === index
+                    ? 'bg-green-600 text-white'
+                    : 'bg-white border border-slate-200 text-slate-600 hover:border-indigo-500 hover:text-indigo-600'
+                }`}
               >
-                {copiedIndex === index ? <CheckIcon className="w-4 h-4" /> : <CopyIcon className="w-4 h-4" />} 복사
+                {copiedIndex === index ? (
+                  <CheckIcon className="w-4 h-4" />
+                ) : (
+                  <CopyIcon className="w-4 h-4" />
+                )}{' '}
+                복사
               </button>
               <button
                 onClick={() => shareToPlatform(post)}

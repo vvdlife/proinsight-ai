@@ -6,7 +6,7 @@ import { BlogProvider } from './context/BlogContext';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
+  throw new Error('Could not find root element to mount to');
 }
 
 const root = ReactDOM.createRoot(rootElement);
@@ -15,5 +15,5 @@ root.render(
     <BlogProvider>
       <App />
     </BlogProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

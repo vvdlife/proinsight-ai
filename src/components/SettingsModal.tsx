@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { NaverIcon, TistoryIcon, MediumIcon, WordPressIcon, SubstackIcon } from './Icons';
 
@@ -19,7 +18,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   useEffect(() => {
     if (isOpen) {
       // API Key 로드
-      const key = localStorage.getItem('proinsight_api_key') || sessionStorage.getItem('proinsight_api_key') || '';
+      const key =
+        localStorage.getItem('proinsight_api_key') ||
+        sessionStorage.getItem('proinsight_api_key') ||
+        '';
       setApiKey(key);
 
       // 커스텀 페르소나 로드
@@ -46,7 +48,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   };
 
   const handleUrlChange = (platform: string, value: string) => {
-    setLocalBlogUrls(prev => ({ ...prev, [platform]: value }));
+    setLocalBlogUrls((prev) => ({ ...prev, [platform]: value }));
   };
 
   const handleLogout = () => {
@@ -60,7 +62,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     { id: 'NAVER', name: '네이버 블로그', icon: <NaverIcon className="w-5 h-5 text-[#03C75A]" /> },
     { id: 'TISTORY', name: '티스토리', icon: <TistoryIcon className="w-5 h-5 text-[#F44F05]" /> },
     { id: 'MEDIUM', name: 'Medium', icon: <MediumIcon className="w-5 h-5" /> },
-    { id: 'WORDPRESS', name: 'WordPress', icon: <WordPressIcon className="w-5 h-5 text-[#21759B]" /> },
+    {
+      id: 'WORDPRESS',
+      name: 'WordPress',
+      icon: <WordPressIcon className="w-5 h-5 text-[#21759B]" />,
+    },
     { id: 'SUBSTACK', name: 'Substack', icon: <SubstackIcon className="w-5 h-5 text-[#FF6719]" /> },
   ];
 
@@ -72,7 +78,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         <div className="p-6 border-b border-slate-100 flex justify-between items-center shrink-0">
           <h2 className="text-xl font-bold text-slate-900">설정</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
           </button>
         </div>
 
@@ -94,7 +113,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
           {/* [NEW] Custom Persona Section */}
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">나만의 AI 페르소나 (선택)</label>
+            <label className="block text-sm font-bold text-slate-700 mb-2">
+              나만의 AI 페르소나 (선택)
+            </label>
             <textarea
               value={customPersona}
               onChange={(e) => setCustomPersona(e.target.value)}
@@ -108,13 +129,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
           {/* Blog URL Section */}
           <div className="space-y-4 pt-6 border-t border-slate-100">
-            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">블로그 주소 관리</h3>
+            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">
+              블로그 주소 관리
+            </h3>
             <p className="text-xs text-slate-500 mb-4">
               SNS 홍보글 생성 시, 아래 저장된 주소 중 하나가 자동으로 삽입됩니다.
             </p>
 
             <div className="space-y-3">
-              {platforms.map(platform => (
+              {platforms.map((platform) => (
                 <div key={platform.id}>
                   <label className="text-xs font-semibold text-slate-700 mb-1 flex items-center gap-2">
                     {platform.icon} {platform.name}

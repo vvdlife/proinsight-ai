@@ -7,13 +7,16 @@ interface LoadingOverlayProps {
   progress?: number;
 }
 
-export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({ isLoading, message, progress = 0 }) => {
+export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
+  isLoading,
+  message,
+  progress = 0,
+}) => {
   if (!isLoading) return null;
 
   return (
     <div className="fixed inset-0 bg-white/90 backdrop-blur-md flex items-center justify-center z-50 transition-all duration-500">
       <div className="bg-white p-8 rounded-2xl shadow-2xl border border-indigo-100 flex flex-col items-center max-w-sm w-full animate-in fade-in zoom-in duration-300">
-
         {/* Animated Icon */}
         <div className="relative mb-6">
           <div className="absolute inset-0 bg-indigo-500 blur-xl opacity-20 animate-pulse rounded-full"></div>
@@ -40,7 +43,6 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({ isLoading, messa
         <div className="w-full text-right">
           <span className="text-xs font-bold text-indigo-600">{Math.round(progress)}%</span>
         </div>
-
       </div>
     </div>
   );

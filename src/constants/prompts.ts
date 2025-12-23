@@ -1,5 +1,3 @@
-
-
 export const PROMPTS = {
   OUTLINE: (currentDate: string, topic: string) => `
     Current Date: ${currentDate}
@@ -58,7 +56,7 @@ export const PROMPTS = {
     topic: string,
     memo: string,
     urls: string[],
-    hasFiles: boolean
+    hasFiles: boolean,
   ) => {
     let context = `
     Blog Title: "${title}"
@@ -71,7 +69,7 @@ export const PROMPTS = {
     ${keyFacts}
     
     ** USER CUSTOM INSTRUCTION (HIGHEST PRIORITY) **:
-    ${customPersona ? customPersona : "No custom instructions."}
+    ${customPersona ? customPersona : 'No custom instructions.'}
 
     **CRITICAL LANGUAGE INSTRUCTION**:
     ${isEnglish ? '- **MUST WRITE IN ENGLISH**. Even if the outline or context is in Korean, you MUST translate and write the output in English.' : '- Write in natural, native Korean.'}
@@ -125,11 +123,17 @@ export const PROMPTS = {
     return context;
   },
 
-  INTRO: (baseContext: string, outlineSections: string[], title: string, isEnglish: boolean, keyword: string) => `
+  INTRO: (
+    baseContext: string,
+    outlineSections: string[],
+    title: string,
+    isEnglish: boolean,
+    keyword: string,
+  ) => `
     ${baseContext}
 
     Task: Write an engaging ** Introduction ** for this blog post.
-      Outline of the whole post: ${(outlineSections || []).join(", ")}
+      Outline of the whole post: ${(outlineSections || []).join(', ')}
 
     Instructions:
       ${isEnglish ? '- **TRANSLATION TASK**: Start your response with the English translation of the Blog Title on the first line, prefixed with "TITLE: ". Remove any labels like "(Preview)" or "(미리보기)".' : ''}
@@ -141,11 +145,16 @@ export const PROMPTS = {
       - Do NOT use horizontal rules(---).
   `,
 
-  SECTION: (baseContext: string, section: string, outlineSections: string[], isEnglish: boolean) => `
+  SECTION: (
+    baseContext: string,
+    section: string,
+    outlineSections: string[],
+    isEnglish: boolean,
+  ) => `
     ${baseContext}
 
     Task: Write the content for the section: "${section}".
-      Context(Full Outline): ${(outlineSections || []).join(", ")}
+      Context(Full Outline): ${(outlineSections || []).join(', ')}
 
     Instructions:
         ${isEnglish ? `- **HEADER TRANSLATION**: Start your response with the English translation of the section title "${section}" as a Level 2 Markdown Header (e.g. ## English Title).` : ''}
@@ -193,7 +202,7 @@ export const PROMPTS = {
     ${baseContext}
     
     Task: Write a **Conclusion** and **3-Line Summary**.
-    Outline of the whole post: ${(outlineSections || []).join(", ")}
+    Outline of the whole post: ${(outlineSections || []).join(', ')}
     
     Instructions:
     - Summarize the key takeaways.
@@ -233,13 +242,22 @@ export const PROMPTS = {
     IMPORTANT: All content must be in Korean.
   `,
 
-  IMAGE: (title: string, stylePrompt: string, ratio: string) => `Create a high-quality image for: "${title}". ${stylePrompt} Aspect Ratio: ${ratio}. 
+  IMAGE: (
+    title: string,
+    stylePrompt: string,
+    ratio: string,
+  ) => `Create a high-quality image for: "${title}". ${stylePrompt} Aspect Ratio: ${ratio}. 
     **CRITICAL INSTRUCTION: NO TEXT.** 
     - Do NOT include any text, letters, numbers, or characters in the image.
     - No signboards, no watermarks, no typography.
     - Pure visual representation only.`,
 
-  SEO_ANALYSIS: (personaInstruction: string, keyword: string, isEnglish: boolean, content: string) => `
+  SEO_ANALYSIS: (
+    personaInstruction: string,
+    keyword: string,
+    isEnglish: boolean,
+    content: string,
+  ) => `
     ${personaInstruction}
     
     Task: Analyze the following blog post and identify exactly 3 critical weaknesses that serve as barriers to viral growth or reader retention.
@@ -283,12 +301,15 @@ export const PROMPTS = {
     
     Example Output:
     ["Marketing", "SEO", "GrowthHacking", "DigitalNomad"]
-  `
+  `,
 };
 
 export const PERSONA_INSTRUCTIONS = {
-  WITTY: "Role: A Viral Content Editor who loves witty, punchy, and entertaining writing. Criticism should focus on 'boring' parts.",
-  PROFESSIONAL: "Role: A Senior Editor at a top-tier journal. Focus on Authority, Trustworthiness, and Clarity. Criticism should focus on 'vague' or 'unsupported' claims.",
-  EMOTIONAL: "Role: An Emotional Storyteller. Focus on Empathy, Connection, and Human Touch. Criticism should focus on 'robotic' or 'cold' writing.",
-  DEFAULT: "Role: A Best-Selling Copywriter. Focus on Persuasion, Clarity, and Reader Retention."
+  WITTY:
+    "Role: A Viral Content Editor who loves witty, punchy, and entertaining writing. Criticism should focus on 'boring' parts.",
+  PROFESSIONAL:
+    "Role: A Senior Editor at a top-tier journal. Focus on Authority, Trustworthiness, and Clarity. Criticism should focus on 'vague' or 'unsupported' claims.",
+  EMOTIONAL:
+    "Role: An Emotional Storyteller. Focus on Empathy, Connection, and Human Touch. Criticism should focus on 'robotic' or 'cold' writing.",
+  DEFAULT: 'Role: A Best-Selling Copywriter. Focus on Persuasion, Clarity, and Reader Retention.',
 };

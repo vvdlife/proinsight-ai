@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { BlogPost } from '../types';
-import { CopyIcon, NaverIcon, TistoryIcon, MediumIcon, WordPressIcon, SubstackIcon, CheckIcon, EyeIcon, XIcon, DownloadIcon, FileCodeIcon } from './Icons';
+import {
+  CopyIcon,
+  NaverIcon,
+  TistoryIcon,
+  MediumIcon,
+  WordPressIcon,
+  SubstackIcon,
+  CheckIcon,
+  EyeIcon,
+  XIcon,
+  DownloadIcon,
+  FileCodeIcon,
+} from './Icons';
 import { TABLE_STYLES, PLATFORM_STYLES } from './exportStyles';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -14,7 +26,9 @@ interface ExportManagerProps {
 
 export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
   const [copiedType, setCopiedType] = useState<string | null>(null);
-  const [previewType, setPreviewType] = useState<'NAVER' | 'TISTORY' | 'MEDIUM' | 'WORDPRESS' | 'SUBSTACK' | null>(null);
+  const [previewType, setPreviewType] = useState<
+    'NAVER' | 'TISTORY' | 'MEDIUM' | 'WORDPRESS' | 'SUBSTACK' | null
+  >(null);
   const [isExporting, setIsExporting] = useState(false);
   const [includeCover, setIncludeCover] = useState(true);
 
@@ -62,7 +76,7 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
         console.error('Image load failed for SVG conversion');
         resolve(svgDataUri);
         URL.revokeObjectURL(url);
-      }
+      };
 
       // Setting crossOrigin might help in some environments
       img.crossOrigin = 'Anonymous';
@@ -79,7 +93,9 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
     if (post.images && post.images.length > 0) {
       // Assuming post.images[0] is a base64 string or URL
       // For base64, usually safe to use directly in img src for clipboard
-      const imgStyle = s.img || 'max-width: 100%; height: auto; margin-bottom: 30px; border-radius: 8px; display: block;';
+      const imgStyle =
+        s.img ||
+        'max-width: 100%; height: auto; margin-bottom: 30px; border-radius: 8px; display: block;';
       headerImageHtml = `<img src="${post.images[0]}" alt="Representative Image" style="${imgStyle}" /><br /><br />`;
     }
 
@@ -90,32 +106,47 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
       return `<img src="${url}" alt="${alt}" style="${imgStyle}" /><br />`;
     });
 
-
     // 1. Table Conversion
-    content = content.replace(/\|(.+)\|\n\|([-:| ]+)\|\n((?:\|.*\|\n?)+)/g, (match, header, separator, body) => {
-      const headers = header.split('|').filter((h: string) => h.trim()).map((h: string) => h.trim());
-      const rows = body.trim().split('\n').map((row: string) => row.split('|').filter((c: string) => c.trim()).map((c: string) => c.trim()));
+    content = content.replace(
+      /\|(.+)\|\n\|([-:| ]+)\|\n((?:\|.*\|\n?)+)/g,
+      (match, header, separator, body) => {
+        const headers = header
+          .split('|')
+          .filter((h: string) => h.trim())
+          .map((h: string) => h.trim());
+        const rows = body
+          .trim()
+          .split('\n')
+          .map((row: string) =>
+            row
+              .split('|')
+              .filter((c: string) => c.trim())
+              .map((c: string) => c.trim()),
+          );
 
-      let tableHtml = `<table style="${TABLE_STYLES.table}"><thead><tr>`;
-      headers.forEach((h: string) => tableHtml += `<th style="${TABLE_STYLES.th}">${h}</th>`);
-      tableHtml += '</tr></thead><tbody>';
+        let tableHtml = `<table style="${TABLE_STYLES.table}"><thead><tr>`;
+        headers.forEach((h: string) => (tableHtml += `<th style="${TABLE_STYLES.th}">${h}</th>`));
+        tableHtml += '</tr></thead><tbody>';
 
-      rows.forEach((row: string[]) => {
-        tableHtml += '<tr>';
-        row.forEach((cell: string) => tableHtml += `<td style="${TABLE_STYLES.td}">${cell}</td>`);
-        tableHtml += '</tr>';
-      });
-      tableHtml += '</tbody></table>';
+        rows.forEach((row: string[]) => {
+          tableHtml += '<tr>';
+          row.forEach(
+            (cell: string) => (tableHtml += `<td style="${TABLE_STYLES.td}">${cell}</td>`),
+          );
+          tableHtml += '</tr>';
+        });
+        tableHtml += '</tbody></table>';
 
-      return tableHtml;
-    });
+        return tableHtml;
+      },
+    );
 
     // 2. Mermaid Rendering & Code Block Extraction
-    const mermaidReplacements: { placeholder: string, html: string }[] = [];
+    const mermaidReplacements: { placeholder: string; html: string }[] = [];
 
     // Extract code blocks
     let blockIndex = 0;
-    const mermaidMatches: { code: string, isMermaid: boolean, placeholder: string }[] = [];
+    const mermaidMatches: { code: string; isMermaid: boolean; placeholder: string }[] = [];
 
     content = content.replace(/```(mermaid)?\n?([\s\S]*?)```/g, (match, lang, code) => {
       const isMermaid = lang === 'mermaid' || lang === ' mermaid';
@@ -145,7 +176,7 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
                      <img src="${pngBase64}" alt="Mermaid Diagram" style="max-width: 600px; width: 100%; height: auto; margin: 0 auto; display: block; border: 1px solid #e2e8f0; border-radius: 8px;" />
                   </div>`;
         } catch (e) {
-          console.error("Mermaid Render Error", e);
+          console.error('Mermaid Render Error', e);
           htmlBlock = `<pre style="background: #f1f5f9; padding: 12px;">${code.trim()}</pre>`;
         }
       } else {
@@ -156,7 +187,7 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
 
     // 3. Markdown to HTML Conversion
     // Improved List Handling: Convert "- item" to <li>item</li> and wrap neighbors in <ul> if possible.
-    // However, regex-only wrapping is hard. 
+    // However, regex-only wrapping is hard.
     // Simplified approach: Just convert line start "- " to a bullet char or formatted styled div for simplicity if regex is too complex for 'ul' wrapping without a parser.
     // Better approach for Clipboard: Use simple replacements but try to be semantic where possible.
 
@@ -168,7 +199,10 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
       .replace(/^\> (.*$)/gim, `<blockquote style="${s.blockquote}">$1</blockquote>`)
       // .replace(/^- (.*$)/gim, '<li>$1</li>') // Simple replacement, might rely on WYSIWYG to auto-list
       .replace(/^- (.*$)/gim, `<ul><li>$1</li></ul>`) // Dirty but often works in WYSIWYG to trigger list mode
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, `<a href="$2" target="_blank" style="${s.link}">$1</a>`)
+      .replace(
+        /\[([^\]]+)\]\(([^)]+)\)/gim,
+        `<a href="$2" target="_blank" style="${s.link}">$1</a>`,
+      )
       .replace(/\n/gim, '<br />');
 
     // 4. Restore Code Blocks
@@ -176,25 +210,30 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
       html = html.replace(placeholder, blockHtml);
     });
 
-    const titleHtml = type === 'MEDIUM'
-      ? `<h1 style="${s.h1}">${post.title}</h1>`
-      : `<h1 style="${s.h1}">${post.title}</h1><hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />`;
+    const titleHtml =
+      type === 'MEDIUM'
+        ? `<h1 style="${s.h1}">${post.title}</h1>`
+        : `<h1 style="${s.h1}">${post.title}</h1><hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />`;
 
     // Inject Header Image at the top
     return `<div style="${s.container}">${headerImageHtml}${titleHtml}${html}</div>`;
   };
 
-  const copyToHtmlClipboard = async (platform: 'NAVER' | 'TISTORY' | 'MEDIUM' | 'WORDPRESS' | 'SUBSTACK') => {
+  const copyToHtmlClipboard = async (
+    platform: 'NAVER' | 'TISTORY' | 'MEDIUM' | 'WORDPRESS' | 'SUBSTACK',
+  ) => {
     try {
       const finalHtml = await generateHtml(platform);
 
       const blob = new Blob([finalHtml], { type: 'text/html' });
       const textBlob = new Blob([post.content], { type: 'text/plain' });
 
-      const data = [new ClipboardItem({
-        'text/html': blob,
-        'text/plain': textBlob
-      })];
+      const data = [
+        new ClipboardItem({
+          'text/html': blob,
+          'text/plain': textBlob,
+        }),
+      ];
 
       await navigator.clipboard.write(data);
 
@@ -237,13 +276,22 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
               <div className="z-10 text-center space-y-8">
                 <div className="w-32 h-32 bg-indigo-600 rounded-3xl flex items-center justify-center text-white mx-auto shadow-2xl mb-10">
                   {/* Simple SVG Logo for PDF */}
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-16 h-16">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    className="w-16 h-16"
+                  >
                     <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
                   </svg>
                 </div>
 
                 <div className="space-y-4">
-                  <h1 className="text-6xl font-extrabold text-slate-900 leading-tight max-w-4xl">{post.title}</h1>
+                  <h1 className="text-6xl font-extrabold text-slate-900 leading-tight max-w-4xl">
+                    {post.title}
+                  </h1>
                   <div className="w-24 h-2 bg-indigo-500 mx-auto rounded-full"></div>
                 </div>
 
@@ -256,12 +304,17 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
               <div className="absolute bottom-10 left-0 w-full text-center text-slate-400 text-sm">
                 Generated by ProInsight AI
               </div>
-            </div>
+            </div>,
           );
           setTimeout(resolve, 1000);
         });
 
-        const coverCanvas = await html2canvas(container, { scale: 2, useCORS: true, logging: false, windowWidth: 1200 });
+        const coverCanvas = await html2canvas(container, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          windowWidth: 1200,
+        });
         const coverImgData = coverCanvas.toDataURL('image/png');
         pdf.addImage(coverImgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
         pdf.addPage();
@@ -277,14 +330,23 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
       await new Promise<void>((resolve) => {
         contentRoot.render(
           <div className="p-[40px] bg-white min-h-screen">
-            {!includeCover && <h1 className="text-4xl font-extrabold text-slate-900 mb-8 leading-tight">{post.title}</h1>}
+            {!includeCover && (
+              <h1 className="text-4xl font-extrabold text-slate-900 mb-8 leading-tight">
+                {post.title}
+              </h1>
+            )}
             <MarkdownRenderer content={post.content} />
-          </div>
+          </div>,
         );
         setTimeout(resolve, 1500);
       });
 
-      const contentCanvas = await html2canvas(container, { scale: 2, useCORS: true, logging: false, windowWidth: 1200 });
+      const contentCanvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        windowWidth: 1200,
+      });
       const contentImgData = contentCanvas.toDataURL('image/png');
       const imgHeight = (contentCanvas.height * pdfWidth) / contentCanvas.width;
 
@@ -319,7 +381,7 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
       <div className="max-w-3xl mx-auto p-10 bg-white">
         <h1 className="text-4xl font-extrabold text-slate-900 mb-8 leading-tight">{post.title}</h1>
         <MarkdownRenderer content={post.content} />
-      </div>
+      </div>,
     );
 
     const htmlContent = `
@@ -363,11 +425,31 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
   };
 
   const platforms = [
-    { id: 'NAVER', name: '네이버 블로그', icon: <NaverIcon className="w-6 h-6" />, color: '#03C75A' },
-    { id: 'TISTORY', name: '티스토리', icon: <TistoryIcon className="w-6 h-6" />, color: '#F44F05' },
+    {
+      id: 'NAVER',
+      name: '네이버 블로그',
+      icon: <NaverIcon className="w-6 h-6" />,
+      color: '#03C75A',
+    },
+    {
+      id: 'TISTORY',
+      name: '티스토리',
+      icon: <TistoryIcon className="w-6 h-6" />,
+      color: '#F44F05',
+    },
     { id: 'MEDIUM', name: 'Medium', icon: <MediumIcon className="w-6 h-6" />, color: '#000000' },
-    { id: 'WORDPRESS', name: 'WordPress', icon: <WordPressIcon className="w-6 h-6" />, color: '#21759B' },
-    { id: 'SUBSTACK', name: 'Substack', icon: <SubstackIcon className="w-6 h-6" />, color: '#FF6719' },
+    {
+      id: 'WORDPRESS',
+      name: 'WordPress',
+      icon: <WordPressIcon className="w-6 h-6" />,
+      color: '#21759B',
+    },
+    {
+      id: 'SUBSTACK',
+      name: 'Substack',
+      icon: <SubstackIcon className="w-6 h-6" />,
+      color: '#FF6719',
+    },
   ] as const;
 
   return (
@@ -392,7 +474,13 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
               disabled={isExporting}
               className="text-xs font-medium bg-white px-3 py-1.5 rounded border border-slate-200 hover:border-indigo-500 hover:text-indigo-600 transition-colors flex items-center gap-1"
             >
-              {isExporting ? '변환 중...' : <><DownloadIcon className="w-3 h-3" /> PDF 저장</>}
+              {isExporting ? (
+                '변환 중...'
+              ) : (
+                <>
+                  <DownloadIcon className="w-3 h-3" /> PDF 저장
+                </>
+              )}
             </button>
             <button
               onClick={handleHtmlExport}
@@ -405,23 +493,39 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
 
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {platforms.map((p) => (
-            <div key={p.id} className="relative group flex items-center justify-between p-4 rounded-xl border-2 border-slate-100 hover:border-indigo-500 transition-all duration-200 cursor-pointer" onClick={() => setPreviewType(p.id)}>
+            <div
+              key={p.id}
+              className="relative group flex items-center justify-between p-4 rounded-xl border-2 border-slate-100 hover:border-indigo-500 transition-all duration-200 cursor-pointer"
+              onClick={() => setPreviewType(p.id)}
+            >
               <div className="flex items-center gap-3 flex-1 min-w-0 overflow-hidden">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white shrink-0" style={{ backgroundColor: p.color }}>
+                <div
+                  className="w-10 h-10 rounded-lg flex items-center justify-center text-white shrink-0"
+                  style={{ backgroundColor: p.color }}
+                >
                   {p.icon}
                 </div>
                 <div className="text-left truncate">
                   <div className="font-bold text-slate-800 truncate">{p.name}</div>
-                  <div className="text-[10px] text-slate-400 group-hover:text-indigo-500">클릭하여 미리보기</div>
+                  <div className="text-[10px] text-slate-400 group-hover:text-indigo-500">
+                    클릭하여 미리보기
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 <button
-                  onClick={(e) => { e.stopPropagation(); copyToHtmlClipboard(p.id); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    copyToHtmlClipboard(p.id);
+                  }}
                   className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                   title="복사하기"
                 >
-                  {copiedType === p.id ? <CheckIcon className="w-4 h-4 text-green-500" /> : <CopyIcon className="w-4 h-4" />}
+                  {copiedType === p.id ? (
+                    <CheckIcon className="w-4 h-4 text-green-500" />
+                  ) : (
+                    <CopyIcon className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </div>
@@ -451,7 +555,9 @@ const PreviewModal: React.FC<{
   onCopy: () => void;
   generateHtml: (type: any) => Promise<string>;
 }> = ({ type, onClose, onCopy, generateHtml }) => {
-  const [html, setHtml] = useState<string>('<div class="p-10 text-center text-slate-500">불러오는 중...</div>');
+  const [html, setHtml] = useState<string>(
+    '<div class="p-10 text-center text-slate-500">불러오는 중...</div>',
+  );
 
   useEffect(() => {
     generateHtml(type).then(setHtml);
@@ -464,16 +570,16 @@ const PreviewModal: React.FC<{
           <span className="font-bold text-slate-800 flex items-center gap-2">
             <EyeIcon className="w-5 h-5 text-indigo-500" /> {type} 스타일 미리보기
           </span>
-          <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-slate-200 rounded-full transition-colors"
+          >
             <XIcon className="w-6 h-6 text-slate-500" />
           </button>
         </div>
         <div className="flex-1 overflow-y-auto p-8 bg-slate-100">
           <div className="mx-auto bg-white p-12 shadow-lg min-h-full max-w-3xl rounded-xl border border-slate-200/60">
-            <div
-              className="prose max-w-none"
-              dangerouslySetInnerHTML={{ __html: html }}
-            />
+            <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: html }} />
           </div>
         </div>
         <div className="p-4 border-t border-slate-200 bg-white flex justify-end">

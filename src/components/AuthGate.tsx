@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { TrendIcon, ImageIcon, SparklesIcon, ChartIcon, CheckIcon } from './Icons';
 
@@ -27,7 +26,8 @@ export const AuthGate: React.FC<AuthGateProps> = ({ onAuthenticated }) => {
 
     const savedCode = localStorage.getItem('proinsight_access_code');
     const isCodeValid = savedCode === REQUIRED_ACCESS_CODE;
-    const savedKey = sessionStorage.getItem('proinsight_api_key') || localStorage.getItem('proinsight_api_key');
+    const savedKey =
+      sessionStorage.getItem('proinsight_api_key') || localStorage.getItem('proinsight_api_key');
     const isKeyValid = !!savedKey;
 
     if (isCodeValid && isKeyValid) {
@@ -66,27 +66,32 @@ export const AuthGate: React.FC<AuthGateProps> = ({ onAuthenticated }) => {
       <nav className="w-full bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/icon-192.png" alt="ProInsight AI Logo" className="w-8 h-8 rounded-lg shadow-sm object-cover" />
+            <img
+              src="/icon-192.png"
+              alt="ProInsight AI Logo"
+              className="w-8 h-8 rounded-lg shadow-sm object-cover"
+            />
             <span className="font-bold text-xl text-slate-900 tracking-tight">ProInsight AI</span>
           </div>
-          <div className="text-sm font-medium text-slate-500">
-            Professional Analytics Platform
-          </div>
+          <div className="text-sm font-medium text-slate-500">Professional Analytics Platform</div>
         </div>
       </nav>
 
       {/* Hero Section */}
       <main className="max-w-7xl mx-auto px-6 py-16 lg:py-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-
           {/* Left: Content */}
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
             <h1 className="text-5xl lg:text-6xl font-extrabold text-slate-900 leading-tight tracking-tight">
-              데이터가 <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">통찰력</span>이 되는 순간
+              데이터가{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">
+                통찰력
+              </span>
+              이 되는 순간
             </h1>
             <p className="text-xl text-slate-600 leading-relaxed">
-              Google Gemini 기반의 강력한 AI 엔진으로 복잡한 데이터를 심층 분석하고,
-              전문적인 블로그 포스트와 시각 자료를 단 1분 만에 생성하세요.
+              Google Gemini 기반의 강력한 AI 엔진으로 복잡한 데이터를 심층 분석하고, 전문적인 블로그
+              포스트와 시각 자료를 단 1분 만에 생성하세요.
             </p>
 
             <div className="space-y-4 pt-4">
@@ -94,7 +99,7 @@ export const AuthGate: React.FC<AuthGateProps> = ({ onAuthenticated }) => {
                 '최신 트렌드 실시간 분석 및 반영',
                 'SEO 최적화된 고품질 아티클 작성',
                 '데이터 시각화 및 4K 이미지 자동 생성',
-                '다국어(영문/국문) 동시 지원'
+                '다국어(영문/국문) 동시 지원',
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-3 text-slate-700 font-medium">
                   <div className="w-6 h-6 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
@@ -120,23 +125,29 @@ export const AuthGate: React.FC<AuthGateProps> = ({ onAuthenticated }) => {
                   {step === 0 ? '플랫폼 접속' : 'API Key 연동'}
                 </h2>
                 <p className="text-slate-500 mt-2 text-sm">
-                  {step === 0 ? '배포된 액세스 코드로 접속하세요.' : 'Google AI Studio 키를 입력하여 시작합니다.'}
+                  {step === 0
+                    ? '배포된 액세스 코드로 접속하세요.'
+                    : 'Google AI Studio 키를 입력하여 시작합니다.'}
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
                   <input
-                    type={step === 0 ? "password" : "text"}
+                    type={step === 0 ? 'password' : 'text'}
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    placeholder={step === 0 ? "Access Code 입력" : "AIza..."}
+                    placeholder={step === 0 ? 'Access Code 입력' : 'AIza...'}
                     className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-medium"
                     autoFocus
                   />
                 </div>
 
-                {error && <div className="text-red-500 text-sm font-medium bg-red-50 p-3 rounded-lg flex items-center gap-2">⚠️ {error}</div>}
+                {error && (
+                  <div className="text-red-500 text-sm font-medium bg-red-50 p-3 rounded-lg flex items-center gap-2">
+                    ⚠️ {error}
+                  </div>
+                )}
 
                 <button
                   type="submit"
@@ -148,13 +159,10 @@ export const AuthGate: React.FC<AuthGateProps> = ({ onAuthenticated }) => {
               </form>
 
               <div className="mt-6 text-center">
-                <p className="text-xs text-slate-400">
-                  Secure Access • End-to-End Encryption
-                </p>
+                <p className="text-xs text-slate-400">Secure Access • End-to-End Encryption</p>
               </div>
             </div>
           </div>
-
         </div>
 
         {/* Feature Grid (Footer area) */}
@@ -164,21 +172,27 @@ export const AuthGate: React.FC<AuthGateProps> = ({ onAuthenticated }) => {
               <TrendIcon className="w-6 h-6" />
             </div>
             <h3 className="font-bold text-lg text-slate-900 mb-2">Trend Analysis</h3>
-            <p className="text-slate-500 text-sm leading-relaxed">구글 및 소셜 미디어 트렌드를 실시간으로 분석하여 가장 핫한 주제를 제안합니다.</p>
+            <p className="text-slate-500 text-sm leading-relaxed">
+              구글 및 소셜 미디어 트렌드를 실시간으로 분석하여 가장 핫한 주제를 제안합니다.
+            </p>
           </div>
           <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
             <div className="w-12 h-12 bg-pink-50 text-pink-600 rounded-lg flex items-center justify-center mb-4">
               <ImageIcon className="w-6 h-6" />
             </div>
             <h3 className="font-bold text-lg text-slate-900 mb-2">Generative Visuals</h3>
-            <p className="text-slate-500 text-sm leading-relaxed">텍스트 내용에 가장 적합한 고해상도 이미지를 AI가 자동으로 생성합니다.</p>
+            <p className="text-slate-500 text-sm leading-relaxed">
+              텍스트 내용에 가장 적합한 고해상도 이미지를 AI가 자동으로 생성합니다.
+            </p>
           </div>
           <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
             <div className="w-12 h-12 bg-violet-50 text-violet-600 rounded-lg flex items-center justify-center mb-4">
               <ChartIcon className="w-6 h-6" />
             </div>
             <h3 className="font-bold text-lg text-slate-900 mb-2">Data Insight</h3>
-            <p className="text-slate-500 text-sm leading-relaxed">업로드된 PDF 및 문서 데이터를 심층 분석하여 전문가 수준의 인사이트를 도출합니다.</p>
+            <p className="text-slate-500 text-sm leading-relaxed">
+              업로드된 PDF 및 문서 데이터를 심층 분석하여 전문가 수준의 인사이트를 도출합니다.
+            </p>
           </div>
         </div>
 
