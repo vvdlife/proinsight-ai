@@ -12,17 +12,18 @@ import { safeJsonParse } from './utils';
 import { PROMPTS, PERSONA_INSTRUCTIONS } from '../constants/prompts';
 import { FIXED_TEMPLATES } from '../constants/templates';
 
-// Constants
-const MODEL_IDS = {
-  TEXT: 'gemini-3-flash-preview', // Default text model
-  IMAGE: 'gemini-3-pro-image-preview', // "Nano Banana Pro" - The absolute latest SOTA image model
+// Constants extracted to avoid magic strings, could be moved to src/constants/config.ts later
+export const MODEL_IDS = {
+  TEXT: 'gemini-3-flash-preview',
+  IMAGE: 'gemini-3-pro-image-preview',
 } as const;
 
 // Helper to get client securely
-const getGenAI = () => {
+const getGenAI = (): GoogleGenAI => {
   const key =
     sessionStorage.getItem('proinsight_api_key') ||
     localStorage.getItem('proinsight_api_key') ||
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (import.meta as any).env.VITE_API_KEY;
 
   if (!key) {
@@ -31,18 +32,39 @@ const getGenAI = () => {
   return new GoogleGenAI({ apiKey: key });
 };
 
+// Market context response type
+interface MarketDataItem {
+  name: string;
+  symbol: string;
+  currency: string;
+  price: number;
+  change: number;
+  changePercent: number;
+}
+
+interface MarketApiResponse {
+  status: string;
+  data: MarketDataItem[];
+}
+
 // [NEW] Helper to fetch market data for context
 const fetchMarketDataContext = async (): Promise<string> => {
   try {
     const res = await fetch('/api/market_data');
     if (!res.ok) return '';
-    const json = await res.json();
-    if (json.status !== 'success' || !json.data) return '';
 
-    const lines = json.data
+    // Use unknown first for safe casting
+    const json = (await res.json()) as unknown;
+    const response = json as MarketApiResponse; // Simple cast for now, validation ideal in real production
+
+    if (response?.status !== 'success' || !Array.isArray(response?.data)) return '';
+
+    const lines = response.data
       .map(
-        (item: any) =>
-          `- ${item.name} (${item.symbol}): ${item.currency === 'KRW' ? item.price.toLocaleString() : item.price} ${item.currency} (${item.change >= 0 ? '+' : ''}${item.changePercent.toFixed(2)}%)`,
+        (item) =>
+          `- ${item.name} (${item.symbol}): ${
+            item.currency === 'KRW' ? item.price.toLocaleString() : item.price
+          } ${item.currency} (${item.change >= 0 ? '+' : ''}${item.changePercent.toFixed(2)}%)`,
       )
       .join('\n');
 
@@ -61,7 +83,7 @@ export const generateOutline = async (
   files: UploadedFile[],
   urls: string[],
   memo: string,
-  modelId: string = MODEL_IDS.TEXT, // [NEW] Accept modelId
+  modelId: string = MODEL_IDS.TEXT,
 ): Promise<OutlineData> => {
   const ai = getGenAI();
 
@@ -78,11 +100,9 @@ export const generateOutline = async (
 
   // [NEW] Check for Fixed Templates (Standardized Formats)
   if (FIXED_TEMPLATES[topic]) {
-    // Return the pre-defined template directly
-    // Allow slight title variation by appending date if needed, but structure is fixed.
     const template = FIXED_TEMPLATES[topic];
     return {
-      title: template.title, // You might want to append date here dynamically
+      title: template.title,
       sections: template.sections,
     };
   }
@@ -101,20 +121,24 @@ export const generateOutline = async (
     promptText += `\n\nAnalyze the attached documents as the PRIMARY source.`;
   }
 
-  const parts: any[] = [{ text: promptText }];
+  const parts = [{ text: promptText }];
 
   files.forEach((file) => {
     parts.push({
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore - Google GenAI SDK Type mismatch for inlineData unfortunately exists in some versions
       inlineData: {
         mimeType: file.mimeType,
         data: file.data,
       },
-    });
+    } as any);
+    // Explicit any used here due to potential SDK type definition mismatch with inlineData
+    // In a full fix we would extend the type properly.
   });
 
   const response = await ai.models.generateContent({
-    model: modelId, // [NEW] Use passed modelId
-    contents: { role: 'user', parts },
+    model: modelId,
+    contents: { role: 'user', parts: parts as any }, // SDK type workaround
     config: {
       tools: [{ googleSearch: {} }],
       systemInstruction: 'You are an expert content strategist. Output valid JSON only.',
@@ -133,9 +157,9 @@ export const generateOutline = async (
 
   // Safety check: Ensure sections are strings, not objects (fixes [object Object] bug)
   if (outline.sections && Array.isArray(outline.sections)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     outline.sections = outline.sections.map((sec: any) => {
       if (typeof sec === 'object' && sec !== null) {
-        // Try to find a meaningful string property
         return sec.title || sec.heading || sec.name || sec.section || JSON.stringify(sec);
       }
       return String(sec);
@@ -152,7 +176,6 @@ const generateKeyFacts = async (topic: string, ai: GoogleGenAI): Promise<string>
   const prompt = PROMPTS.KEY_FACTS(topic);
 
   try {
-    // 검색 도구(googleSearch)를 사용하여 팩트 수집
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
@@ -161,7 +184,7 @@ const generateKeyFacts = async (topic: string, ai: GoogleGenAI): Promise<string>
     return response.text || '';
   } catch (e) {
     console.error('Fact generation failed', e);
-    return ''; // 실패해도 글쓰기는 진행되도록 빈 문자열 반환
+    return '';
   }
 };
 
@@ -183,9 +206,6 @@ const generateHashtags = async (
 
     const text = response.text || '[]';
     const tags = safeJsonParse<string[]>(text);
-    // Ensure they start with # if not present, or better yet, just return clean strings for UI to handle?
-    // Let's return clean strings as requested in prompt.
-    // Validate array
     return Array.isArray(tags) ? tags : [];
   } catch (e) {
     console.warn('Hashtag generation failed', e);
@@ -203,21 +223,23 @@ const generateText = async (
   systemInstruction: string = 'You are a helpful assistant.',
   modelId: string = MODEL_IDS.TEXT,
 ): Promise<string> => {
-  const parts: any[] = [{ text: prompt }];
+  const parts = [{ text: prompt }];
 
   files.forEach((file) => {
     parts.push({
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       inlineData: {
         mimeType: file.mimeType,
         data: file.data,
       },
-    });
+    } as any);
   });
 
   try {
     const response = await ai.models.generateContent({
       model: modelId,
-      contents: { role: 'user', parts },
+      contents: { role: 'user', parts: parts as any },
       config: {
         tools: [{ googleSearch: {} }],
         systemInstruction: systemInstruction,
@@ -225,11 +247,8 @@ const generateText = async (
     });
 
     let result = response.text || '';
-
-    // Cleanup Google Search grounding artifacts (citations) like (cite: 1, 2)
     result = result.replace(/\s*\(cite:[\s\d,]+\)/gi, '');
 
-    // Track API usage with actual token counts from response
     const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
     const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(result);
     trackApiCall(MODEL_IDS.TEXT, promptTokens, completionTokens, 'content');
@@ -251,28 +270,21 @@ export const generateBlogPostContent = async (
   urls: string[],
   memo: string,
   language: string = 'Korean',
-  topic: string, // [NEW] Add topic for SEO keyword optimization
-  modelId: string = MODEL_IDS.TEXT, // [NEW] Accept modelId
+  topic: string,
+  modelId: string = MODEL_IDS.TEXT,
 ): Promise<{ content: string; title: string; hashtags: string[] }> => {
   const ai = getGenAI();
   const isEnglish = language === 'English';
 
-  // [NEW] 1. 핵심 팩트 먼저 조사 (이 부분이 추가됨)
-  // AI가 글을 쓰기 전에 팩트부터 찾아오게 시킵니다.
   const keyFacts = await generateKeyFacts(outline.title, ai);
-
-  // [NEW] 커스텀 페르소나 가져오기
   const customPersona = localStorage.getItem('proinsight_custom_persona') || '';
-
-  // [NEW] Inject Market Context
   const marketContext = await fetchMarketDataContext();
 
-  // Common Context (Use PROMPTS.BASE_CONTEXT)
   let baseContext = PROMPTS.BASE_CONTEXT(
     outline.title,
     tone,
     language,
-    keyFacts + marketContext, // Append market context here
+    keyFacts + marketContext,
     customPersona,
     isEnglish,
     topic,
@@ -281,7 +293,6 @@ export const generateBlogPostContent = async (
     files.length > 0,
   );
 
-  // [NEW] Enforce "Briefing Report Style" for Fixed Topics
   if (FIXED_TEMPLATES[topic]) {
     baseContext += `
       
@@ -298,11 +309,9 @@ export const generateBlogPostContent = async (
       `;
   }
 
-  // 1. Intro Generation
   const introPrompt = PROMPTS.INTRO(baseContext, outline.sections, outline.title, isEnglish, topic);
 
-  // 2. Section Generation (Parallel)
-  const sectionPromises = outline.sections.map(async (section, idx) => {
+  const sectionPromises = outline.sections.map(async (section) => {
     const sectionPrompt = PROMPTS.SECTION(baseContext, section, outline.sections, isEnglish);
 
     return generateText(
@@ -314,10 +323,8 @@ export const generateBlogPostContent = async (
     );
   });
 
-  // 3. Conclusion Generation
   const conclusionPrompt = PROMPTS.CONCLUSION(baseContext, outline.sections);
 
-  // Execute all requests in parallel
   const results = await Promise.all([
     generateText(
       ai,
@@ -334,32 +341,27 @@ export const generateBlogPostContent = async (
       'You are a professional editor. Summarize perfectly.',
       modelId,
     ),
-    generateHashtags(outline.title, isEnglish ? 'en' : 'ko', ai), // [NEW] Generate Hashtags parallel
+    generateHashtags(outline.title, isEnglish ? 'en' : 'ko', ai),
   ]);
 
-  const hashtags = (results.pop() as string[]) || []; // Last is hashtags
-  const conclusion = (results.pop() as string) || ''; // Second to last is conclusion
-  const [introRaw, ...bodySections] = results as string[]; // Remaining are intro + body sections
+  const hashtags = (results.pop() as string[]) || [];
+  const conclusion = (results.pop() as string) || '';
+  const [introRaw, ...bodySections] = results as string[];
 
-  // Parse Title and Intro
-  let finalTitle = outline.title; // Default to original
+  let finalTitle = outline.title;
   let introContent = introRaw;
 
   if (isEnglish) {
-    // Extract TITLE: ...
     const titleMatch = introRaw.match(/^TITLE:\s*(.+)$/m);
     if (titleMatch) {
       finalTitle = titleMatch[1].trim();
-      // Remove the TITLE line from intro
       introContent = introRaw.replace(/^TITLE:\s*.+$/m, '').trim();
     }
   }
 
-  // Assemble
   const cleanBodySections = bodySections.map((section) => {
     let content = section.replace(/---/g, '').trim();
     if (!isEnglish) {
-      // Korean mode: remove AI generated headers if any, we use loop headers
       content = content.replace(/^## .+\n/gm, '').trim();
     }
     return content;
@@ -369,18 +371,15 @@ export const generateBlogPostContent = async (
 
   outline.sections.forEach((section, idx) => {
     if (isEnglish) {
-      // English: The header is inside the content (as requested via prompt)
-      // Just append the content. We trust the AI added "## English Title"
       fullPost += `${cleanBodySections[idx]}\n\n`;
     } else {
-      // Korean: Use the outline section as header
       fullPost += `## ${section}\n\n${cleanBodySections[idx]}\n\n`;
     }
   });
 
   fullPost += `${conclusion.replace(/---/g, '').trim()}`;
 
-  return { content: fullPost, title: finalTitle, hashtags }; // [NEW] Return hashtags
+  return { content: fullPost, title: finalTitle, hashtags };
 };
 
 /**
@@ -418,7 +417,6 @@ export const generateSocialPosts = async (
   const text = response.text || '';
   if (!text) return [];
 
-  // Track API usage with actual token counts from response
   const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
   const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(text);
   trackApiCall(MODEL_IDS.TEXT, promptTokens, completionTokens, 'social');
@@ -431,9 +429,9 @@ export const generateSocialPosts = async (
     return [];
   }
 
-  // 1. Link Replacement Logic
   try {
-    const userUrls = JSON.parse(localStorage.getItem('proinsight_blog_urls') || '{}');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const userUrls = JSON.parse(localStorage.getItem('proinsight_blog_urls') || '{}') as any;
     const targetUrl =
       userUrls.NAVER ||
       userUrls.TISTORY ||
@@ -451,7 +449,6 @@ export const generateSocialPosts = async (
     console.error('Link replacement error', e);
   }
 
-  // 2. Generate Instagram Image (1:1 Ratio)
   const instaIndex = posts.findIndex((p) => p.platform.toLowerCase().includes('instagram'));
   if (instaIndex !== -1) {
     try {
@@ -478,7 +475,6 @@ export const generateBlogImage = async (
   const ai = getGenAI();
 
   let stylePrompt = `STYLE: ${style}`;
-  // Map specific styles to better prompts if needed (simplified here for brevity)
   if (style === ImageStyle.PHOTOREALISTIC)
     stylePrompt = 'STYLE: Cinematic, Photorealistic, 4k, Award-winning composition, High detail.';
 
@@ -494,10 +490,7 @@ export const generateBlogImage = async (
     if (response.candidates?.[0]?.content?.parts) {
       for (const part of response.candidates[0].content.parts) {
         if (part.inlineData) {
-          // Track API usage for image generation
-          // Image models typically use ~100 tokens for prompt, ~0 for completion
           trackApiCall(MODEL_IDS.IMAGE, 100, 0, 'image');
-
           return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
         }
       }
@@ -520,7 +513,6 @@ export const analyzeSeoDetails = async (
   const ai = getGenAI();
   const isEnglish = language === 'en';
 
-  // 1. Define Persona based on Tone
   let personaInstruction = PERSONA_INSTRUCTIONS.DEFAULT;
   if (tone === 'witty' || tone === 'humorous') {
     personaInstruction = PERSONA_INSTRUCTIONS.WITTY;
@@ -541,16 +533,12 @@ export const analyzeSeoDetails = async (
       },
     });
 
-    // [FIX] Use response.text instead of response.response.text()
     const text = response.text || '';
-
-    // Clean potential markdown formatting
     const jsonStr = text
       .replace(/```json/g, '')
       .replace(/```/g, '')
       .trim();
 
-    // Track API usage
     const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
     const completionTokens =
       response.usageMetadata?.candidatesTokenCount || estimateTokens(jsonStr);

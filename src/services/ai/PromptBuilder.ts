@@ -104,8 +104,9 @@ export class PromptBuilder {
     outlineSections: string[],
     title: string,
     isEnglish: boolean,
+    keyword: string,
   ): string {
-    return PROMPTS.INTRO(baseContext, outlineSections, title, isEnglish);
+    return PROMPTS.INTRO(baseContext, outlineSections, title, isEnglish, keyword);
   }
 
   static buildSectionPrompt(

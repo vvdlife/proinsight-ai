@@ -10,6 +10,7 @@ import { TopicInputStep } from './components/steps/TopicInputStep';
 import { OutlineReviewStep } from './components/steps/OutlineReviewStep';
 import { FinalResultStep } from './components/steps/FinalResultStep';
 import { MarketWidget } from './components/MarketWidget';
+import { Toaster } from 'sonner';
 import { useBlogContext } from './context/BlogContext';
 
 const App: React.FC = () => {
@@ -30,7 +31,12 @@ const App: React.FC = () => {
 
   // If not authenticated, show Auth Gate
   if (!isAuthenticated) {
-    return <AuthGate onAuthenticated={() => setIsAuthenticated(true)} />;
+    return (
+      <>
+        <Toaster position="top-center" richColors closeButton theme="light" />
+        <AuthGate onAuthenticated={() => setIsAuthenticated(true)} />
+      </>
+    );
   }
 
   // Render Steps

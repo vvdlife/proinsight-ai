@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { BlogPost, OutlineData } from '../types';
+import { BlogPost, OutlineData, ModelType, BlogTone, ImageStyle } from '../types';
 
 export interface HistoryItem {
   id: string;
@@ -8,6 +8,11 @@ export interface HistoryItem {
   finalPost: BlogPost;
   finalPostEn?: BlogPost | null;
   outline: OutlineData;
+  options?: {
+    model: ModelType;
+    tone: BlogTone;
+    imageStyle: ImageStyle;
+  };
 }
 
 export const useHistory = (
@@ -41,6 +46,7 @@ export const useHistory = (
         finalPost,
         finalPostEn,
         outline,
+        options: undefined, // Options are preserved via manual save, not automatic effect save
       };
 
       setHistory((prev) => {
@@ -71,31 +77,31 @@ export const useHistory = (
             images: [],
             finalPost: item.finalPost
               ? {
-                  ...item.finalPost,
-                  images: [],
-                  socialPosts: item.finalPost.socialPosts?.map((p) => ({
-                    ...p,
-                    imageUrl: undefined,
-                  })), // [NEW] Strip social images
-                  content:
-                    item.finalPost.content.length > 30000
-                      ? item.finalPost.content.substring(0, 30000) + '... (truncated)'
-                      : item.finalPost.content,
-                }
+                ...item.finalPost,
+                images: [],
+                socialPosts: item.finalPost.socialPosts?.map((p) => ({
+                  ...p,
+                  imageUrl: undefined,
+                })), // [NEW] Strip social images
+                content:
+                  item.finalPost.content.length > 30000
+                    ? item.finalPost.content.substring(0, 30000) + '... (truncated)'
+                    : item.finalPost.content,
+              }
               : null,
             finalPostEn: item.finalPostEn
               ? {
-                  ...item.finalPostEn,
-                  images: [],
-                  socialPosts: item.finalPostEn.socialPosts?.map((p) => ({
-                    ...p,
-                    imageUrl: undefined,
-                  })), // [NEW] Strip social images
-                  content:
-                    item.finalPostEn.content.length > 30000
-                      ? item.finalPostEn.content.substring(0, 30000) + '... (truncated)'
-                      : item.finalPostEn.content,
-                }
+                ...item.finalPostEn,
+                images: [],
+                socialPosts: item.finalPostEn.socialPosts?.map((p) => ({
+                  ...p,
+                  imageUrl: undefined,
+                })), // [NEW] Strip social images
+                content:
+                  item.finalPostEn.content.length > 30000
+                    ? item.finalPostEn.content.substring(0, 30000) + '... (truncated)'
+                    : item.finalPostEn.content,
+              }
               : null,
           }));
           localStorage.setItem('proinsight_history', JSON.stringify(safeHistory));
@@ -118,9 +124,52 @@ export const useHistory = (
     }
   }, [finalPost, finalPostEn, outline, creationId]);
 
+  // Manual Save Function
+  const saveItem = useCallback((item: HistoryItem) => {
+    setHistory((prev) => {
+      // Check if this ID already exists
+      const index = prev.findIndex((p) => p.id === item.id);
+      let updated;
+      if (index !== -1) {
+        updated = [...prev];
+        updated[index] = item;
+        // Move to top
+        updated.splice(index, 1);
+        updated.unshift(item);
+      } else {
+        updated = [item, ...prev];
+      }
+
+      // Limit to 50 items (prevent storage overflow)
+      if (updated.length > 50) updated = updated.slice(0, 50);
+
+      try {
+        localStorage.setItem('proinsight_history', JSON.stringify(updated));
+      } catch (e) {
+        console.error('Failed to save history manually', e);
+        if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+          alert('저장 공간이 부족하여 히스토리를 저장할 수 없습니다. 오래된 항목을 삭제해주세요.');
+        }
+      }
+      return updated;
+    });
+  }, []);
+
+  // Delete Function
+  const deleteItem = useCallback((id: string) => {
+    setHistory((prev) => {
+      const updated = prev.filter((item) => item.id !== id);
+      localStorage.setItem('proinsight_history', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   return {
     history,
     isHistoryOpen,
     setIsHistoryOpen,
+    saveItem,
+    deleteItem,
+    loading: false, // Compatibility
   };
 };
