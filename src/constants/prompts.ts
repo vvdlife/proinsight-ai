@@ -80,8 +80,7 @@ export const PROMPTS = {
        - **Placement**: Ensure keywords appear in the *First Paragraph* and *Headers*.
     2. **Reader Analysis**: Write for the specific audience. Use "F-pattern" formatting (bolding, bullets).
     3. **Visuals**: Use emojis and formatting to break up text.
-       - **Image Placeholders**: When describing a complex concept, insert a placeholder image: 
-         \`![Description](https://placehold.co/800x400?text=Description)\`
+
     4. **Visuals & Infographics(CRITICAL)**:
        - **Markdown Tables**: Use for comparing data, pros/cons, or features.
        - **Mermaid Diagrams**: Use for processes, hierarchies, or timelines.

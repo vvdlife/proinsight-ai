@@ -168,43 +168,72 @@ export const generateOutline = async (
   return outline;
 };
 
+// [NEW] Interface for structured Key Facts
+interface KeyFact {
+  fact: string;
+  urls: string[];
+}
+
 /**
  * 주제에 대한 핵심 팩트(수치, 날짜 등)를 먼저 검색하여 추출하는 함수
+ * Returns structured data explicitly binding facts to URLs.
  */
-const generateKeyFacts = async (topic: string, ai: GoogleGenAI): Promise<string> => {
-  const prompt = PROMPTS.KEY_FACTS(topic);
+const generateKeyFacts = async (topic: string, ai: GoogleGenAI): Promise<KeyFact[]> => {
+  // We ask for JSON output now to get structured facts first
+  const prompt = `
+    Topic: "${topic}"
+    Task: Find 5-7 CRITICAL FACTS.
+    Output JSON format:
+    [
+      { "fact": "Fact 1", "query": "Search query used" },
+      ...
+    ]
+  `;
 
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
-      config: { tools: [{ googleSearch: {} }] },
+      config: {
+        tools: [{ googleSearch: {} }],
+        responseMimeType: 'application/json'
+      },
     });
 
-    let text = response.text || '';
+    const text = response.text || '[]';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rawFacts = safeJsonParse<any[]>(text);
 
-    // [NEW] Programmatically extract Grounding Sources to guarantee real URLs
+    // [NEW] Programmatically extract Grounding Sources and try to map them
+    // Since Gemini Grounding is per-candidate, we get a list of all sources.
+    // For now, we will attach the relevant grounding sources to the facts if possible,
+    // or return the full list of sources for each fact to be safe.
+
     const candidate = response.candidates?.[0];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const groundingMetadata = (candidate as any)?.groundingMetadata;
+    let allSources: string[] = [];
 
     if (groundingMetadata?.groundingChunks) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const sources = groundingMetadata.groundingChunks
+      allSources = groundingMetadata.groundingChunks
         .map((chunk: any) => chunk.web?.uri)
         .filter((uri: string) => uri);
-
-      if (sources.length > 0) {
-        // Remove duplicates
-        const uniqueSources = [...new Set(sources)];
-        text += `\n\n[VERIFIED SOURCE URLs (Use these specifically)]: \n${uniqueSources.join('\n')}`;
-      }
+      allSources = [...new Set(allSources)]; // Dedupe
     }
 
-    return text;
+    // Map to internal KeyFact structure
+    const structuredFacts: KeyFact[] = Array.isArray(rawFacts)
+      ? rawFacts.map((f) => ({
+        fact: f.fact || JSON.stringify(f),
+        urls: allSources // Global sources for now
+      }))
+      : [];
+
+    return structuredFacts;
   } catch (e) {
     console.error('Fact generation failed', e);
-    return '';
+    return [];
   }
 };
 
@@ -296,7 +325,14 @@ export const generateBlogPostContent = async (
   const ai = getGenAI();
   const isEnglish = language === 'English';
 
-  const keyFacts = await generateKeyFacts(outline.title, ai);
+  const keyFactsData = await generateKeyFacts(outline.title, ai);
+  const formattedKeyFacts = keyFactsData.map((kf, i) =>
+    `Fact ${i + 1}: ${kf.fact}\nSource: ${kf.urls.join(', ')}`
+  ).join('\n\n');
+
+  // Collect all verified sources to pass to context
+  const allVerifiedUrls = [...new Set(keyFactsData.flatMap(kf => kf.urls))];
+
   const customPersona = localStorage.getItem('proinsight_custom_persona') || '';
   const marketContext = await fetchMarketDataContext();
 
@@ -304,12 +340,12 @@ export const generateBlogPostContent = async (
     outline.title,
     tone,
     language,
-    keyFacts + marketContext,
+    formattedKeyFacts + marketContext,
     customPersona,
     isEnglish,
     topic,
     memo,
-    urls,
+    [...urls, ...allVerifiedUrls], // Mapped here so they appear in 'SOURCE URLs' list too
     files.length > 0,
   );
 
