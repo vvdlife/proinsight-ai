@@ -302,7 +302,9 @@ const generateText = async (
       .replace(/\s*\(cite:[\s\d,]+\)/gi, '') // Remove [1] style citations
       .replace(/\[\d+\]/g, '') // Remove [1] style markdown citations if any
       .replace(/\[([^\]]+)\]\(\s*\)/g, '$1') // [text]() -> text (Remove empty links)
-      .replace(/\[관련 자료 출처\]|\[관련 자료 출거\]/g, ''); // Remove specific hallucinations
+      .replace(/\[관련 자료 출처\]|\[관련 자료 출거\]/g, '')
+      .replace(/^\[(정보 )?출처:.*?\]$/gm, '') // Remove whole line [정보 출처: ...]
+      .replace(/^\[Source:.*?\]$/gm, ''); // Remove whole line [Source: ...]
 
     const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
     const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(result);
