@@ -296,7 +296,11 @@ const generateText = async (
     });
 
     let result = response.text || '';
-    result = result.replace(/\s*\(cite:[\s\d,]+\)/gi, '');
+    // [FIX] Cleanup Vertex AI Grounding Redirects and raw citations
+    result = result
+      .replace(/https:\/\/vertexaisearch\.cloud\.google\.com\/[^)\s]+/g, '') // Remove Vertex Redirects
+      .replace(/\s*\(cite:[\s\d,]+\)/gi, '') // Remove [1] style citations
+      .replace(/\[\d+\]/g, ''); // Remove [1] style markdown citations if any
 
     const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
     const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(result);
