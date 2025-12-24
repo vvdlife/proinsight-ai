@@ -32,8 +32,8 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
   const [isExporting, setIsExporting] = useState(false);
   const [includeCover, setIncludeCover] = useState(true);
 
-  // Helper: Convert SVG string to Base64 Image
-  const svgToBase64Image = (svg: string): Promise<string> => {
+  // Helper: Convert SVG string to Base64 Image with Dimensions
+  const svgToBase64Image = (svg: string): Promise<{ url: string; width: number; height: number }> => {
     return new Promise((resolve) => {
       const img = new Image();
       // Use standard btoa for SVGs to avoid encoding issues with unicode
@@ -45,28 +45,34 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
 
       img.onload = () => {
         try {
+          const originalWidth = img.width;
+          const originalHeight = img.height;
+
           const canvas = document.createElement('canvas');
           // High resolution (3x) for crisp text
-          canvas.width = img.width * 3;
-          canvas.height = img.height * 3;
+          canvas.width = originalWidth * 3;
+          canvas.height = originalHeight * 3;
           const ctx = canvas.getContext('2d');
           if (ctx) {
             ctx.scale(3, 3);
             ctx.drawImage(img, 0, 0);
             try {
-              resolve(canvas.toDataURL('image/png'));
+              resolve({
+                url: canvas.toDataURL('image/png'),
+                width: originalWidth,
+                height: originalHeight
+              });
             } catch (e) {
               // Known issue with some browsers tainting canvas with SVGs
-              // Fallback to SVG Data URI is safe
               console.debug('SVG -> Canvas Taint (Falling back to safe SVG)', e);
-              resolve(svgDataUri);
+              resolve({ url: svgDataUri, width: originalWidth, height: originalHeight });
             }
           } else {
-            resolve(svgDataUri);
+            resolve({ url: svgDataUri, width: originalWidth, height: originalHeight });
           }
         } catch (e) {
           console.warn('Canvas operations failed, falling back to SVG', e);
-          resolve(svgDataUri);
+          resolve({ url: svgDataUri, width: 0, height: 0 }); // Fallback
         } finally {
           URL.revokeObjectURL(url);
         }
@@ -74,7 +80,7 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
 
       img.onerror = () => {
         console.error('Image load failed for SVG conversion');
-        resolve(svgDataUri);
+        resolve({ url: svgDataUri, width: 0, height: 0 });
         URL.revokeObjectURL(url);
       };
 
@@ -171,11 +177,19 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
 
           const id = `mermaid-export-${Math.random().toString(36).substr(2, 9)}`;
           const { svg } = await mermaid.render(id, cleanCode);
-          const pngBase64 = await svgToBase64Image(svg);
+
+          // [Fix] Get result with original logical dimensions (unscaled)
+          const { url: pngBase64, width: originalWidth } = await svgToBase64Image(svg);
+
+          // [Fix] Use original logical width to prevent 3x giant scaling
+          // Use max-width for responsiveness, but explicit width for density correction.
+          const imgStyle = originalWidth > 0
+            ? `width: ${originalWidth}px; max-width: 100%; height: auto; margin: 0 auto; display: block; border: 1px solid #e2e8f0; border-radius: 8px;`
+            : `max-width: 600px; width: 100%; height: auto; margin: 0 auto; display: block; border: 1px solid #e2e8f0; border-radius: 8px;`;
 
           htmlBlock = `
                   <div style="margin: 30px 0; text-align: center;">
-                     <img src="${pngBase64}" alt="Mermaid Diagram" style="max-width: 600px; width: 100%; height: auto; margin: 0 auto; display: block; border: 1px solid #e2e8f0; border-radius: 8px;" />
+                     <img src="${pngBase64}" alt="Mermaid Diagram" style="${imgStyle}" />
                   </div>`;
         } catch (e) {
           console.error('Mermaid Render Error', e);
