@@ -109,8 +109,14 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
               resolve({ url: `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(patchedSvg)))}`, width: originalWidth, height: originalHeight });
             }
           } catch (e) {
-            console.warn('Canvas render failed', e);
-            resolve({ url: url, width: 0, height: 0 });
+            console.warn('Canvas render failed (Tainted?), falling back to SVG', e);
+            // [Fix] Fallback to Base64 SVG. 
+            // Do NOT return 'url' (Blob URL) because it gets revoked in 'finally' block!
+            resolve({
+              url: `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(patchedSvg)))}`,
+              width: originalWidth,
+              height: originalHeight
+            });
           } finally {
             URL.revokeObjectURL(url);
           }
