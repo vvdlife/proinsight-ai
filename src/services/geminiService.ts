@@ -62,8 +62,7 @@ const fetchMarketDataContext = async (): Promise<string> => {
     const lines = response.data
       .map(
         (item) =>
-          `- ${item.name} (${item.symbol}): ${
-            item.currency === 'KRW' ? item.price.toLocaleString() : item.price
+          `- ${item.name} (${item.symbol}): ${item.currency === 'KRW' ? item.price.toLocaleString() : item.price
           } ${item.currency} (${item.change >= 0 ? '+' : ''}${item.changePercent.toFixed(2)}%)`,
       )
       .join('\n');
@@ -181,7 +180,28 @@ const generateKeyFacts = async (topic: string, ai: GoogleGenAI): Promise<string>
       contents: prompt,
       config: { tools: [{ googleSearch: {} }] },
     });
-    return response.text || '';
+
+    let text = response.text || '';
+
+    // [NEW] Programmatically extract Grounding Sources to guarantee real URLs
+    const candidate = response.candidates?.[0];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const groundingMetadata = (candidate as any)?.groundingMetadata;
+
+    if (groundingMetadata?.groundingChunks) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sources = groundingMetadata.groundingChunks
+        .map((chunk: any) => chunk.web?.uri)
+        .filter((uri: string) => uri);
+
+      if (sources.length > 0) {
+        // Remove duplicates
+        const uniqueSources = [...new Set(sources)];
+        text += `\n\n[VERIFIED SOURCE URLs (Use these specifically)]: \n${uniqueSources.join('\n')}`;
+      }
+    }
+
+    return text;
   } catch (e) {
     console.error('Fact generation failed', e);
     return '';
