@@ -93,11 +93,11 @@ export const PROMPTS = {
            - Do not say "Many companies". Say "Apple and Nvidia".
            - Cite real recent events.
      7. **References (MANDATORY & STRICT)**: 
-       - You **MUST** include at least 1 external link.
+       - You **MUST** include at least 1 external link IF a verified URL is provided in the context.
        - **CRITICAL**: Use ONLY the URLs provided in the **KEY FACTS** section or the **SOURCE URLs** list.
-       - **DO NOT HALLUCINATE**: If you do not have a specific URL, you **MUST** use a Google Search Query URL:
-         - Format: \`[Google Search: Topic](https://www.google.com/search?q=Topic)\`
-       - **NEVER** invent deep links (e.g., no 'nytimes.com/fake-article'). Use root domains or search links only.
+       - **RESTRICTION**: **DO NOT** use generic "Google Search Query" links (e.g., no `google.com / search ? q =...`).
+       - If you do not have a specific verified URL, **DO NOT** include a link. It is better to have no link than a generic search link.
+       - **NEVER** invent deep links (e.g., no 'nytimes.com/fake-article'). Use root domains only.
     8. **NO DISCLAIMERS**: Do NOT add "This is a fictional post" or "For illustrative purposes". Write with authority.
     9. **Target Length**: Aim for ~300-350 characters (Korean) per section to keep the total length around 3,000 characters. Be concise and impactful.
     10. **NO TITLE REPETITION**: The H1 title is already rendered by the system. Do NOT include the Main Title or "Title: ..." at the beginning of your output. Start directly with the Introduction.
@@ -112,25 +112,25 @@ export const PROMPTS = {
     3. ** Viral Trigger **: Include at least one "Counter-intuitive Insight" or "Insider Perspective" in every section to establish Authority and drive shares.
   `;
 
-    if (memo && memo.trim()) {
-      context += `\n\n[USER MEMO]: \n"${memo}"\n(Prioritize this instruction.)`;
+  if(memo && memo.trim()) {
+    context += `\n\n[USER MEMO]: \n"${memo}"\n(Prioritize this instruction.)`;
     }
-    if (urls.length > 0) {
-      context += `\nSOURCE URLs(For reference only): \n${(urls || []).join('\n')} `;
-    }
-    if (hasFiles) {
-      context += `\n(Refer to attached documents)`;
-    }
-    return context;
+if (urls.length > 0) {
+  context += `\nSOURCE URLs(For reference only): \n${(urls || []).join('\n')} `;
+}
+if (hasFiles) {
+  context += `\n(Refer to attached documents)`;
+}
+return context;
   },
 
-  INTRO: (
-    baseContext: string,
-    outlineSections: string[],
-    title: string,
-    isEnglish: boolean,
-    keyword: string,
-  ) => `
+INTRO: (
+  baseContext: string,
+  outlineSections: string[],
+  title: string,
+  isEnglish: boolean,
+  keyword: string,
+) => `
     ${baseContext}
 
     Task: Write an engaging ** Introduction ** for this blog post.
@@ -204,7 +204,7 @@ export const PROMPTS = {
         - **Length**: Write comprehensively. Aim for 400-500 characters (Korean) or 150-200 words (English) per section.
   `,
 
-  CONCLUSION: (baseContext: string, outlineSections: string[]) => `
+    CONCLUSION: (baseContext: string, outlineSections: string[]) => `
     ${baseContext}
     
     Task: Write a **Conclusion** and **3-Line Summary**.
@@ -217,7 +217,7 @@ export const PROMPTS = {
     - Do NOT use horizontal rules (---).
   `,
 
-  SOCIAL: (title: string, summary: string) => `
+      SOCIAL: (title: string, summary: string) => `
     Create promotional social media posts for: "${title}".
     Summary: "${summary.substring(0, 300)}..."
     
@@ -248,22 +248,23 @@ export const PROMPTS = {
     IMPORTANT: All content must be in Korean.
   `,
 
-  IMAGE: (
-    title: string,
-    stylePrompt: string,
-    ratio: string,
-  ) => `Create a high-quality image for: "${title}". ${stylePrompt} Aspect Ratio: ${ratio}. 
-    **CRITICAL INSTRUCTION: NO TEXT.** 
+        IMAGE: (
+          title: string,
+          stylePrompt: string,
+          ratio: string,
+        ) => `Create a high-quality image for: "${title}". ${stylePrompt} Aspect Ratio: ${ratio}. 
+    **CRITICAL INSTRUCTION: NO TEXT & NO CLICHÉ STOCK ANIMALS.** 
     - Do NOT include any text, letters, numbers, or characters in the image.
+    - **NO BULLS OR BEARS**: Do not include bull statues, bear statues, or any animal mascots representing the stock market.
     - No signboards, no watermarks, no typography.
     - Pure visual representation only.`,
 
-  SEO_ANALYSIS: (
-    personaInstruction: string,
-    keyword: string,
-    isEnglish: boolean,
-    content: string,
-  ) => `
+          SEO_ANALYSIS: (
+            personaInstruction: string,
+            keyword: string,
+            isEnglish: boolean,
+            content: string,
+          ) => `
     ${personaInstruction}
     
     Task: Analyze the following blog post and identify exactly 3 critical weaknesses that serve as barriers to viral growth or reader retention.
@@ -295,7 +296,7 @@ export const PROMPTS = {
     "${content.substring(0, 3000)}..." 
   `,
 
-  HASHTAGS: (title: string, language: 'ko' | 'en') => `
+            HASHTAGS: (title: string, language: 'ko' | 'en') => `
     Task: Generate 15 highly effective, viral, and SEO-optimized hashtags for a blog post titled: "${title}".
     Language context: ${language === 'en' ? 'English' : 'Korean'}.
     
