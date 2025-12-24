@@ -191,6 +191,14 @@ export const PROMPTS = {
                      classDef highlight fill:#EEF2FF,stroke:#4F46E5,stroke-width:2px,color:#000,font-weight:bold;
                      class A,C highlight
                    \`\`\`
+                   \`\`\`
+               • **Detailed Rules**:
+                 - **ONE LINE PER STATEMENT**: Do NOT put multiple node definitions or styles on the same line.
+                   - ✅ Correct:
+                     \`A["Label 1"]\`
+                     \`B["Label 2"]\`
+                   - ❌ Wrong: \`A["Label 1"] B["Label 2"]\`
+                 - **No Edges on Node Lines**: Separate node definitions from connections if complex.
                • **CRITICAL: NO LABELS ON ARROWS**: Do NOT use text on edges (e.g., \`-->|Text|\`). 
                  - ✅ Correct: \`A --> B\`
                  - ❌ Wrong: \`A -->|Reaction| B\`

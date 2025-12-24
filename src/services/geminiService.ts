@@ -320,7 +320,15 @@ const generateText = async (
       .replace(/Google Cloud Search Results/gi, '')
       .replace(/\[관련 자료 출처\]|\[관련 자료 출거\]/g, '')
       .replace(/\[([^\]]+)\]\(\s*\)/g, '$1')
-      .replace(/^\s*[-•]\s*$/gm, '');
+      .replace(/^\s*[-•]\s*$/gm, '')
+      // [Fix] Specific cleanup for "Vertex AI Search Source: ..."
+      .replace(/^Vertex AI Search Source:.*?$/gm, '')
+      // [Fix] Safety patch for Mermaid Code Blocks (Force newlines for contiguous nodes)
+      // This helps prevent "Parse error on line X" when LLM outputs `A["..."] B["..."]` on one line.
+      // We look for `"] "` or `"]  "` and replace with `"]\n"` but only if it looks like a Mermaid node end.
+      // Note: This operates on the whole text, but `"] "` is rare in normal text unless referencing citations, which we want on newlines anyway or removed.
+      // A safer approach is to replace `"] "` with `"]\n"` generically as it improves readability regardless.
+      .replace(/"]\s+"/g, '"]\n"');
 
     const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
     const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(result);
