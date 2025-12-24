@@ -162,7 +162,9 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
       if (isMermaid) {
         try {
           const mermaid = (await import('mermaid')).default;
-          mermaid.initialize({ startOnLoad: false, theme: 'default', htmlLabels: false });
+          // [Fix] Sync style with preview (Hand-drawn theme)
+          const { MERMAID_CONFIG } = await import('../constants/mermaidConfig');
+          mermaid.initialize(MERMAID_CONFIG);
 
           // [Fix] Strip FontAwesome icons (fa:fa-xxx) to prevent canvas tainting from external resources
           const cleanCode = code.replace(/fa:fa-[\w-]+/g, '');
