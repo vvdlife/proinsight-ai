@@ -78,10 +78,11 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
         const url = URL.createObjectURL(svgBlob);
 
         img.onload = () => {
+          // Browser automatically calculates dimensions based on our patched 'width'/'height' attributes
+          const originalWidth = img.width;
+          const originalHeight = img.height;
+
           try {
-            // Browser automatically calculates dimensions based on our patched 'width'/'height' attributes
-            const originalWidth = img.width;
-            const originalHeight = img.height;
 
             const canvas = document.createElement('canvas');
             // 3x Resolution for Retina/Print quality
