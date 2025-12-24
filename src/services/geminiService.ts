@@ -300,7 +300,9 @@ const generateText = async (
     result = result
       .replace(/https:\/\/vertexaisearch\.cloud\.google\.com\/[^)\s]+/g, '') // Remove Vertex Redirects
       .replace(/\s*\(cite:[\s\d,]+\)/gi, '') // Remove [1] style citations
-      .replace(/\[\d+\]/g, ''); // Remove [1] style markdown citations if any
+      .replace(/\[\d+\]/g, '') // Remove [1] style markdown citations if any
+      .replace(/\[([^\]]+)\]\(\s*\)/g, '$1') // [text]() -> text (Remove empty links)
+      .replace(/\[관련 자료 출처\]|\[관련 자료 출거\]/g, ''); // Remove specific hallucinations
 
     const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
     const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(result);
