@@ -33,70 +33,104 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
   const [includeCover, setIncludeCover] = useState(true);
 
   // Helper: Convert SVG string to Base64 Image with Dimensions
-  const svgToBase64Image = (svg: string): Promise<{ url: string; width: number; height: number }> => {
+  const svgToBase64Image = (svgString: string): Promise<{ url: string; width: number; height: number }> => {
     return new Promise((resolve) => {
-      const img = new Image();
-      // Use standard btoa for SVGs to avoid encoding issues with unicode
-      const svgBase64 = btoa(unescape(encodeURIComponent(svg)));
-      const svgDataUri = `data:image/svg+xml;base64,${svgBase64}`;
+      try {
+        // [Stage 1] Parse and Patch SVG (The "Root Cause" Fix)
+        // We use DOMParser to surgically modify the SVG's internal viewport
+        // to prevent "Hand Drawn" strokes or Korean fonts from being clipped.
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(svgString, 'image/svg+xml');
+        const svgElement = doc.documentElement;
 
-      const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(svgBlob);
+        // 1. Get current viewBox
+        const viewBox = svgElement.getAttribute('viewBox');
+        if (viewBox) {
+          const [x, y, w, h] = viewBox.split(/\s+|,/).map(Number);
 
-      img.onload = () => {
-        try {
-          const originalWidth = img.width;
-          const originalHeight = img.height;
+          if (!isNaN(x) && !isNaN(y) && !isNaN(w) && !isNaN(h)) {
+            // 2. Apply "Origin Shift" & "Box Expansion"
+            // Start -20px left/up, Expand +40px width/height
+            // This adds uniform 20px padding to ALL 4 SIDES internally.
+            const padding = 20;
+            const newX = x - padding;
+            const newY = y - padding;
+            const newW = w + padding * 2;
+            const newH = h + padding * 2;
 
-          // [Fix] Add Padding to prevent edge clipping (common in Mermaid)
-          const padding = 20;
+            // 3. Update Attributes Synchronously (Prevents Distortion)
+            svgElement.setAttribute('viewBox', `${newX} ${newY} ${newW} ${newH}`);
+            svgElement.setAttribute('width', `${newW}px`);
+            svgElement.setAttribute('height', `${newH}px`);
 
-          const canvas = document.createElement('canvas');
-          // High resolution (3x) for crisp text + Padding
-          canvas.width = (originalWidth + padding * 2) * 3;
-          canvas.height = (originalHeight + padding * 2) * 3;
+            // 4. Remove 'style' to prevent CSS conflicts (e.g. max-width constraints)
+            svgElement.removeAttribute('style');
+          }
+        }
 
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            // [Fix] White Background for Dark Mode Compatibility
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Serialize back to string
+        const serializer = new XMLSerializer();
+        const patchedSvg = serializer.serializeToString(svgElement);
 
-            // Scale and Draw
-            ctx.scale(3, 3);
-            ctx.drawImage(img, padding, padding); // Draw with padding offset
+        // [Stage 2] Render to Canvas (High-Res 3x)
+        const img = new Image();
+        const svgBlob = new Blob([patchedSvg], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
 
-            try {
+        img.onload = () => {
+          try {
+            // Browser automatically calculates dimensions based on our patched 'width'/'height' attributes
+            const originalWidth = img.width;
+            const originalHeight = img.height;
+
+            const canvas = document.createElement('canvas');
+            // 3x Resolution for Retina/Print quality
+            const scale = 3;
+            canvas.width = originalWidth * scale;
+            canvas.height = originalHeight * scale;
+
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              // White Background for Dark Mode Safety
+              ctx.fillStyle = '#FFFFFF';
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+              // Draw at (0,0) - Padding is already baked into the SVG itself!
+              ctx.scale(scale, scale);
+              ctx.drawImage(img, 0, 0);
+
               resolve({
                 url: canvas.toDataURL('image/png'),
-                width: originalWidth + padding * 2, // Return logical width including padding
-                height: originalHeight + padding * 2
+                width: originalWidth,
+                height: originalHeight
               });
-            } catch (e) {
-              console.debug('SVG -> Canvas Taint (Falling back to safe SVG)', e);
-              // Fallback doesn't support white bg/padding effectively without canvas, sucks but safe.
-              resolve({ url: svgDataUri, width: originalWidth, height: originalHeight });
+            } else {
+              // Fallback (Rare context failure)
+              resolve({ url: `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(patchedSvg)))}`, width: originalWidth, height: originalHeight });
             }
-          } else {
-            resolve({ url: svgDataUri, width: originalWidth, height: originalHeight });
+          } catch (e) {
+            console.warn('Canvas render failed', e);
+            resolve({ url: url, width: 0, height: 0 });
+          } finally {
+            URL.revokeObjectURL(url);
           }
-        } catch (e) {
-          console.warn('Canvas operations failed, falling back to SVG', e);
-          resolve({ url: svgDataUri, width: 0, height: 0 }); // Fallback
-        } finally {
+        };
+
+        img.onerror = () => {
+          console.error('Image load failed');
+          resolve({ url: `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgString)))}`, width: 0, height: 0 });
           URL.revokeObjectURL(url);
-        }
-      };
+        };
 
-      img.onerror = () => {
-        console.error('Image load failed for SVG conversion');
-        resolve({ url: svgDataUri, width: 0, height: 0 });
-        URL.revokeObjectURL(url);
-      };
+        img.crossOrigin = 'Anonymous';
+        img.src = url;
 
-      // Setting crossOrigin might help in some environments
-      img.crossOrigin = 'Anonymous';
-      img.src = url;
+      } catch (parseError) {
+        console.error('SVG Parsing failed', parseError);
+        // Ultra-safe fallback: just return original
+        const fallbackUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgString)))}`;
+        resolve({ url: fallbackUrl, width: 0, height: 0 });
+      }
     });
   };
 
