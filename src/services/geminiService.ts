@@ -300,27 +300,27 @@ const generateText = async (
     result = result
       .replace(/https:\/\/vertexaisearch\.cloud\.google\.com\/[^)\s]+/g, '') // Remove Vertex Redirects
       // [Fix] Aggressive Cleanup for References/Sources/Citations
-      .replace(/^\[(정보 )?출처:.*?\]$/gm, '')
-      .replace(/^\[Source:.*?\]$/gm, '')
-      .replace(/^관련 정보 소스:.*?$/gm, '') // Remove "관련 정보 소스: ..."
-      .replace(/^참고 자료:.*?$/gm, '') // Remove "참고 자료: ..."
-      .replace(/^참고 문헌:.*?$/gm, '')
-      .replace(/^자료 출처:.*?$/gm, '')
-      .replace(/^\s*Sources?:.*?$/gmi, '') // Remove "Source:" or "Sources:" lines
-      .replace(/^\s*References?:.*?$/gmi, '') // Remove "Reference:" lines
-      .replace(/^참조 링크:.*?$/gm, '') // Remove "참조 링크: ..."
-      .replace(/\s*관련 데이터 확인\s*/g, '') // Remove "관련 데이터 확인" tail text
-      .replace(/\[Source \d+\]/gi, '') // Remove [Source 1]
-      .replace(/\[Source \d+(,\s*\d+)*\]/gi, '') // Remove [Source 1, 2]
-      .replace(/\[\d+(,\s*\d+)*\] Source:/gi, '') // Remove [1, 3, 7] Source:
-      .replace(/\[\d+\]/g, '') // Remove simple [1]
-      .replace(/\s*\(cite:[\s\d,]+\)/gi, '') // Remove (cite: 1)
-      .replace(/Google Finance & Vertex AI Search Results/gi, '') // Specific hallucination
-      .replace(/Google Cloud Search Results/gi, '') // Specific hallucination
+      .replace(/^[\W_]*\[?(정보 )?출처:?.*?\]?$/gm, '')
+      .replace(/^[\W_]*\[?Source:?.*?\]?$/gm, '')
+      .replace(/^[\W_]*관련 정보 소스:?.*?$/gm, '')
+      .replace(/^[\W_]*참고 자료:?.*?$/gm, '')
+      .replace(/^[\W_]*참고 문헌:?.*?$/gm, '')
+      .replace(/^[\W_]*자료 출처:?.*?$/gm, '')
+      .replace(/^[\W_]*Sources?\s*:?.*?$/gmi, '') // matches "Reference :" or "Reference:" with leading emojis
+      .replace(/^[\W_]*References?\s*:?.*?$/gmi, '') // matches "Reference :" or "Reference:" with leading emojis
+      .replace(/^[\W_]*참조 링크:?.*?$/gm, '')
+      .replace(/^[\W_]*관련 자료 출처:?.*?$/gm, '')
+      .replace(/\s*관련 데이터 확인\s*/g, '')
+      .replace(/\[Source \d+\]/gi, '')
+      .replace(/\[Source \d+(,\s*\d+)*\]/gi, '')
+      .replace(/\[\d+(,\s*\d+)*\] Source:/gi, '')
+      .replace(/\[\d+\]/g, '')
+      .replace(/\s*\(cite:[\s\d,]+\)/gi, '')
+      .replace(/Google Finance & Vertex AI Search Results/gi, '')
+      .replace(/Google Cloud Search Results/gi, '')
       .replace(/\[관련 자료 출처\]|\[관련 자료 출거\]/g, '')
-      .replace(/^관련 자료 출처:.*?$/gm, '') // Remove "관련 자료 출처: ..."
-      .replace(/\[([^\]]+)\]\(\s*\)/g, '$1') // [text]() -> text
-      .replace(/^\s*[-•]\s*$/gm, ''); // Remove empty bullet points left behind
+      .replace(/\[([^\]]+)\]\(\s*\)/g, '$1')
+      .replace(/^\s*[-•]\s*$/gm, '');
 
     const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
     const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(result);

@@ -192,15 +192,14 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
           const { url: pngBase64, width: originalWidth } = await svgToBase64Image(svg);
 
           // [Fix] FINAL SIZING STRATEGY (The "True Size" Rule)
-          // 1. We rely on 'originalWidth' (1x logical size).
-          // 2. width: ${originalWidth}px -> Forces browser to render at intended 1x size (crisp due to 3x source).
-          // 3. max-width: 100% -> Ensures it shrinks on mobile, but NEVER grows beyond 1x.
-          // 4. height: auto -> Maintains aspect ratio.
-          // This solves:
-          // - "Too Small": It renders exact pixel size intended by diagram (e.g. 800px wide).
-          // - "Too Big": It never stretches small charts (e.g. 200px stays 200px).
-          // - "Giant": It never blows up to column width unless the chart is actually that big.
-          const imgStyle = `width: ${originalWidth}px; max-width: 100%; height: auto; margin: 0 auto; display: block; border: 1px solid #e2e8f0; border-radius: 8px;`;
+          // 1. We generate at 3x resolution.
+          // 2. We allow the image to fill the container width (width: 100%).
+          // 3. We cap it at 600px (max-width: 600px) which matches our 3x quality buffer.
+          // This ensures:
+          // - Small charts (e.g. 200px) span the column (up to 600px) and look crisp (using 3x source).
+          // - Large charts shrink to fit.
+          // - No more "Tiny" charts.
+          const imgStyle = `width: 100%; max-width: 600px; height: auto; margin: 0 auto; display: block; border: 1px solid #e2e8f0; border-radius: 8px;`;
 
           htmlBlock = `
                   <div style="margin: 30px 0; text-align: center;">
