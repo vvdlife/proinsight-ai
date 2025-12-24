@@ -299,20 +299,30 @@ const generateText = async (
     // [FIX] Cleanup Vertex AI Grounding Redirects and raw citations
     result = result
       .replace(/https:\/\/vertexaisearch\.cloud\.google\.com\/[^)\s]+/g, '') // Remove Vertex Redirects
-      .replace(/\s*\(cite:[\s\d,]+\)/gi, '') // Remove [1] style citations
-      .replace(/\[\d+\]/g, '') // Remove [1] style markdown citations if any
-      .replace(/\[([^\]]+)\]\(\s*\)/g, '$1') // [text]() -> text (Remove empty links)
+      // [Fix] Aggressive Cleanup for References/Sources/Citations
+      .replace(/^\[(정보 )?출처:.*?\]$/gm, '')
+      .replace(/^\[Source:.*?\]$/gm, '')
+      .replace(/^관련 정보 소스:.*?$/gm, '') // Remove "관련 정보 소스: ..."
+      .replace(/^참고 자료:.*?$/gm, '') // Remove "참고 자료: ..."
+      .replace(/^참고 문헌:.*?$/gm, '')
+      .replace(/^자료 출처:.*?$/gm, '')
+      .replace(/^\s*Sources?:.*?$/gmi, '') // Remove "Source:" or "Sources:" lines
+      .replace(/^\s*References?:.*?$/gmi, '') // Remove "Reference:" lines
+      .replace(/\[Source \d+\]/gi, '') // Remove [Source 1]
+      .replace(/\[Source \d+(,\s*\d+)*\]/gi, '') // Remove [Source 1, 2]
+      .replace(/\[\d+(,\s*\d+)*\] Source:/gi, '') // Remove [1, 3, 7] Source:
+      .replace(/\[\d+\]/g, '') // Remove simple [1]
+      .replace(/\s*\(cite:[\s\d,]+\)/gi, '') // Remove (cite: 1)
+      .replace(/Google Finance & Vertex AI Search Results/gi, '') // Specific hallucination
       .replace(/\[관련 자료 출처\]|\[관련 자료 출거\]/g, '')
-      .replace(/^\[(정보 )?출처:.*?\]$/gm, '') // Remove whole line [정보 출처: ...]
-      .replace(/^\[Source:.*?\]$/gm, '') // Remove whole line [Source: ...]
-      .replace(/^(\*\*|#+)?\s*(Reference|Source|Information Source|자료 출처|참고 문헌|References|Sources)s?:?\s*(\*\*|#+)?$/gmi, '') // Remove Reference headers
-      .replace(/^[a-zA-Z\s]+News\s+-\s+Market Report$/gmi, ''); // Remove specific hallucinations like "CNBC News - Market Report"
+      .replace(/\[([^\]]+)\]\(\s*\)/g, '$1') // [text]() -> text
+      .replace(/^\s*[-•]\s*$/gm, ''); // Remove empty bullet points left behind
 
     const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
     const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(result);
     trackApiCall(MODEL_IDS.TEXT, promptTokens, completionTokens, 'content');
 
-    return result;
+    return result.trim();
   } catch (error) {
     console.error('Section generation failed:', error);
     return '\n(이 섹션을 생성하는 중 오류가 발생했습니다.)\n';
