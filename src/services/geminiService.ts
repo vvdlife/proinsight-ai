@@ -304,7 +304,9 @@ const generateText = async (
       .replace(/\[([^\]]+)\]\(\s*\)/g, '$1') // [text]() -> text (Remove empty links)
       .replace(/\[관련 자료 출처\]|\[관련 자료 출거\]/g, '')
       .replace(/^\[(정보 )?출처:.*?\]$/gm, '') // Remove whole line [정보 출처: ...]
-      .replace(/^\[Source:.*?\]$/gm, ''); // Remove whole line [Source: ...]
+      .replace(/^\[Source:.*?\]$/gm, '') // Remove whole line [Source: ...]
+      .replace(/^(\*\*|#+)?\s*(Reference|Source|Information Source|자료 출처|참고 문헌|References|Sources)s?:?\s*(\*\*|#+)?$/gmi, '') // Remove Reference headers
+      .replace(/^[a-zA-Z\s]+News\s+-\s+Market Report$/gmi, ''); // Remove specific hallucinations like "CNBC News - Market Report"
 
     const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
     const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(result);
