@@ -48,23 +48,33 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
           const originalWidth = img.width;
           const originalHeight = img.height;
 
+          // [Fix] Add Padding to prevent edge clipping (common in Mermaid)
+          const padding = 20;
+
           const canvas = document.createElement('canvas');
-          // High resolution (3x) for crisp text
-          canvas.width = originalWidth * 3;
-          canvas.height = originalHeight * 3;
+          // High resolution (3x) for crisp text + Padding
+          canvas.width = (originalWidth + padding * 2) * 3;
+          canvas.height = (originalHeight + padding * 2) * 3;
+
           const ctx = canvas.getContext('2d');
           if (ctx) {
+            // [Fix] White Background for Dark Mode Compatibility
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Scale and Draw
             ctx.scale(3, 3);
-            ctx.drawImage(img, 0, 0);
+            ctx.drawImage(img, padding, padding); // Draw with padding offset
+
             try {
               resolve({
                 url: canvas.toDataURL('image/png'),
-                width: originalWidth,
-                height: originalHeight
+                width: originalWidth + padding * 2, // Return logical width including padding
+                height: originalHeight + padding * 2
               });
             } catch (e) {
-              // Known issue with some browsers tainting canvas with SVGs
               console.debug('SVG -> Canvas Taint (Falling back to safe SVG)', e);
+              // Fallback doesn't support white bg/padding effectively without canvas, sucks but safe.
               resolve({ url: svgDataUri, width: originalWidth, height: originalHeight });
             }
           } else {
@@ -181,12 +191,16 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
           // [Fix] Get result with original logical dimensions (unscaled)
           const { url: pngBase64, width: originalWidth } = await svgToBase64Image(svg);
 
-          // [Fix] Use original logical width to prevent 3x giant scaling
-          // Use max-width for responsiveness, but explicit width for density correction.
-          // If originalWidth is very small (under 600), let it be auto up to 800px.
-          const imgStyle = originalWidth > 800
-            ? `width: 100%; max-width: 800px; height: auto; margin: 0 auto; display: block; border: 1px solid #e2e8f0; border-radius: 8px;`
-            : `width: auto; max-width: 100%; min-width: min(100%, ${Math.max(originalWidth, 500)}px); height: auto; margin: 0 auto; display: block; border: 1px solid #e2e8f0; border-radius: 8px;`;
+          // [Fix] FINAL SIZING STRATEGY (The "True Size" Rule)
+          // 1. We rely on 'originalWidth' (1x logical size).
+          // 2. width: ${originalWidth}px -> Forces browser to render at intended 1x size (crisp due to 3x source).
+          // 3. max-width: 100% -> Ensures it shrinks on mobile, but NEVER grows beyond 1x.
+          // 4. height: auto -> Maintains aspect ratio.
+          // This solves:
+          // - "Too Small": It renders exact pixel size intended by diagram (e.g. 800px wide).
+          // - "Too Big": It never stretches small charts (e.g. 200px stays 200px).
+          // - "Giant": It never blows up to column width unless the chart is actually that big.
+          const imgStyle = `width: ${originalWidth}px; max-width: 100%; height: auto; margin: 0 auto; display: block; border: 1px solid #e2e8f0; border-radius: 8px;`;
 
           htmlBlock = `
                   <div style="margin: 30px 0; text-align: center;">
