@@ -196,6 +196,7 @@ const parseInline = (text: string): React.ReactNode[] => {
   // Regex for:
   // 1. Line Breaks: <br>, <br/>, <br />
   // 2. Links: [text](url)
+  // 3. Spans: <span style='color:...'>text</span>
   const brRegex = /<br\s*\/?>/gi;
   const parts: React.ReactNode[] = [];
 
@@ -219,11 +220,9 @@ const parseLinks = (text: string): React.ReactNode[] => {
   let match;
 
   while ((match = linkRegex.exec(text)) !== null) {
-    // Add text before link
     if (match.index > lastIndex) {
-      parts.push(...parseBold(text.substring(lastIndex, match.index)));
+      parts.push(...parseSpans(text.substring(lastIndex, match.index)));
     }
-    // Add link
     parts.push(
       <a
         key={match.index}
@@ -237,7 +236,40 @@ const parseLinks = (text: string): React.ReactNode[] => {
     );
     lastIndex = linkRegex.lastIndex;
   }
-  // Add remaining text
+  if (lastIndex < text.length) {
+    parts.push(...parseSpans(text.substring(lastIndex)));
+  }
+
+  return parts;
+};
+
+const parseSpans = (text: string): React.ReactNode[] => {
+  // Regex to capture <span style='color:red'>...</span> or similar
+  const spanRegex = /<span\s+style=['"]color:\s*([a-zA-Z]+)['"]>(.*?)<\/span>/gi;
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = spanRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(...parseBold(text.substring(lastIndex, match.index)));
+    }
+
+    // Check color and apply class
+    const color = match[1].toLowerCase();
+    let className = 'text-slate-700';
+    if (color === 'red') className = 'text-red-600 font-medium';
+    if (color === 'blue') className = 'text-blue-600 font-medium';
+    if (color === 'green') className = 'text-green-600 font-medium';
+
+    parts.push(
+      <span key={`span-${match.index}`} className={className}>
+        {parseBold(match[2])}
+      </span>
+    );
+    lastIndex = spanRegex.lastIndex;
+  }
+
   if (lastIndex < text.length) {
     parts.push(...parseBold(text.substring(lastIndex)));
   }
@@ -248,8 +280,8 @@ const parseLinks = (text: string): React.ReactNode[] => {
 const parseBold = (text: string): React.ReactNode[] => {
   const parts = text.split(/(\*\*.*?\*\*)/g);
   return parts.map((part, i) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      // Highlighter effect for bold text
+    if (Array.isArray(part)) return part; // Should not happen with split logic but safety first
+    if (typeof part === 'string' && part.startsWith('**') && part.endsWith('**')) {
       return (
         <strong
           key={`b-${i}`}

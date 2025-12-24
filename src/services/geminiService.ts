@@ -196,7 +196,7 @@ const generateKeyFacts = async (topic: string, ai: GoogleGenAI): Promise<KeyFact
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }],
-        responseMimeType: 'application/json'
+        // responseMimeType: 'application/json' // [FIX] Unavailable when tools are active in some models
       },
     });
 

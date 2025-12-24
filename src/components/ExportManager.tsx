@@ -183,9 +183,10 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
 
           // [Fix] Use original logical width to prevent 3x giant scaling
           // Use max-width for responsiveness, but explicit width for density correction.
-          const imgStyle = originalWidth > 0
-            ? `width: ${originalWidth}px; max-width: 100%; height: auto; margin: 0 auto; display: block; border: 1px solid #e2e8f0; border-radius: 8px;`
-            : `max-width: 600px; width: 100%; height: auto; margin: 0 auto; display: block; border: 1px solid #e2e8f0; border-radius: 8px;`;
+          // If originalWidth is very small (under 600), let it be auto up to 800px.
+          const imgStyle = originalWidth > 800
+            ? `width: 100%; max-width: 800px; height: auto; margin: 0 auto; display: block; border: 1px solid #e2e8f0; border-radius: 8px;`
+            : `width: auto; max-width: 100%; min-width: min(100%, ${Math.max(originalWidth, 500)}px); height: auto; margin: 0 auto; display: block; border: 1px solid #e2e8f0; border-radius: 8px;`;
 
           htmlBlock = `
                   <div style="margin: 30px 0; text-align: center;">
