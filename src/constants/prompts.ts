@@ -167,9 +167,9 @@ export const PROMPTS = {
            - Use **Bullet Points** (•) for distinct ideas.
            - Highlight key phrases in **Bold**.
         3. **Viral Trigger**: You MUST include one "Counter-intuitive Insight" or "Insider Perspective".
-           - **STRICT FORMAT**: Use `💡 ** Insight **: [Your insight text here]`.
-           - **CRITICAL**: The text following the label must be **Normal Text** (not a Header). Do NOT use `#` or `##` inside this block.
-           - Example: `💡 ** Insight **: Most people think X, but the data shows Y because...`
+           - **STRICT FORMAT**: Use \`💡 **Insight**: [Your insight text here]\`.
+           - **CRITICAL**: The text following the label must be **Normal Text** (not a Header). Do NOT use \`#\` or \`##\` inside this block.
+           - Example: \`💡 **Insight**: Most people think X, but the data shows Y because...\`
 
         ** Structure **:
     1. ** Core Concept **: Clear explanation (following rules above).
@@ -228,7 +228,7 @@ export const PROMPTS = {
     - Do NOT use horizontal rules (---).
   `,
 
-    SOCIAL: (title: string, summary: string) => `
+  SOCIAL: (title: string, summary: string) => `
     Create promotional social media posts for: "${title}".
     Summary: "${summary.substring(0, 300)}..."
     
@@ -259,23 +259,23 @@ export const PROMPTS = {
     IMPORTANT: All content must be in Korean.
   `,
 
-      IMAGE: (
-        title: string,
-        stylePrompt: string,
-        ratio: string,
-      ) => `Create a high-quality image for: "${title}". ${stylePrompt} Aspect Ratio: ${ratio}. 
+  IMAGE: (
+    title: string,
+    stylePrompt: string,
+    ratio: string,
+  ) => `Create a high-quality image for: "${title}". ${stylePrompt} Aspect Ratio: ${ratio}. 
     **CRITICAL INSTRUCTION: NO TEXT & NO CLICHÉ STOCK ANIMALS.** 
     - Do NOT include any text, letters, numbers, or characters in the image.
     - **NO BULLS OR BEARS**: Do not include bull statues, bear statues, or any animal mascots representing the stock market.
     - No signboards, no watermarks, no typography.
     - Pure visual representation only.`,
 
-        SEO_ANALYSIS: (
-          personaInstruction: string,
-          keyword: string,
-          isEnglish: boolean,
-          content: string,
-        ) => `
+  SEO_ANALYSIS: (
+    personaInstruction: string,
+    keyword: string,
+    isEnglish: boolean,
+    content: string,
+  ) => `
     ${personaInstruction}
     
     Task: Analyze the following blog post and identify exactly 3 critical weaknesses that serve as barriers to viral growth or reader retention.
@@ -307,7 +307,7 @@ export const PROMPTS = {
     "${content.substring(0, 3000)}..." 
   `,
 
-          HASHTAGS: (title: string, language: 'ko' | 'en') => `
+  HASHTAGS: (title: string, language: 'ko' | 'en') => `
     Task: Generate 15 highly effective, viral, and SEO-optimized hashtags for a blog post titled: "${title}".
     Language context: ${language === 'en' ? 'English' : 'Korean'}.
     
