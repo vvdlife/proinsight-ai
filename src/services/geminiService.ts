@@ -321,6 +321,8 @@ const generateText = async (
       .replace(/Google Cloud Search Results/gi, '')
       .replace(/Vertex AI Search Result \d+/gi, '') // [Fix] Catch "Vertex AI Search Result 1", "2" etc.
       .replace(/Vertex AI Search Results?/gi, '') // [Fix] Catch general "Result" or "Results"
+      .replace(/[\s-]*Vertex AI Search/gi, '') // [Fix] Catch " - Vertex AI Search" suffix
+      .replace(/^[\W_]*관련 기사 원문 보기:?.*?$/gm, '') // [Fix] Catch "View original article" header
       .replace(/\[관련 자료 출처\]|\[관련 자료 출거\]/g, '')
       .replace(/\[([^\]]+)\]\(\s*\)/g, '$1')
       .replace(/^\s*[-•]\s*$/gm, '')
