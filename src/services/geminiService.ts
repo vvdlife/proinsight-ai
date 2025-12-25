@@ -309,6 +309,7 @@ const generateText = async (
       .replace(/^[\W_]*Sources?\s*:?.*?$/gmi, '') // matches "Reference :" or "Reference:" with leading emojis
       .replace(/^[\W_]*References?\s*:?.*?$/gmi, '') // matches "Reference :" or "Reference:" with leading emojis
       .replace(/^[\W_]*참조 링크:?.*?$/gm, '')
+      .replace(/^[\W_]*참고 링크:?.*?$/gm, '') // [Fix] Added "Chamgo Link" variant
       .replace(/^[\W_]*관련 자료 출처:?.*?$/gm, '')
       .replace(/\s*관련 데이터 확인\s*/g, '')
       .replace(/\[Source \d+\]/gi, '')
@@ -318,6 +319,8 @@ const generateText = async (
       .replace(/\s*\(cite:[\s\d,]+\)/gi, '')
       .replace(/Google Finance & Vertex AI Search Results/gi, '')
       .replace(/Google Cloud Search Results/gi, '')
+      .replace(/Vertex AI Search Result \d+/gi, '') // [Fix] Catch "Vertex AI Search Result 1", "2" etc.
+      .replace(/Vertex AI Search Results?/gi, '') // [Fix] Catch general "Result" or "Results"
       .replace(/\[관련 자료 출처\]|\[관련 자료 출거\]/g, '')
       .replace(/\[([^\]]+)\]\(\s*\)/g, '$1')
       .replace(/^\s*[-•]\s*$/gm, '')
