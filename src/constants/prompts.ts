@@ -95,7 +95,7 @@ export const PROMPTS = {
      7. **References (STRICT SINGLE FOOTER LINK)**: 
        - **NO INLINE LINKS**: Do **NOT** include any links, URLs, or citations within the body text or headers. The body must be clean text only.
        - **ONE FOOTER LINK ONLY**: At the very bottom of the post, provide **EXACTLY ONE** reliable source link.
-       - **Format**: `Reference: [Title](URL)`
+       - **Format**: \`Reference: [Title](URL)\`
        - **Selection Criteria**: Choose the single most authoritative source from the provided context. If no verified URL exists, do not add this section.
        - **Prohibition**: NEVER use "google.com/search" or unverified URLs.
     8. **NO DISCLAIMERS**: Do NOT add "This is a fictional post" or "For illustrative purposes". Write with authority.
