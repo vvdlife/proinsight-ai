@@ -322,12 +322,16 @@ const generateText = async (
       .replace(/Vertex AI Search Result \d+/gi, '') // [Fix] Catch "Vertex AI Search Result 1", "2" etc.
       .replace(/Vertex AI Search Results?/gi, '') // [Fix] Catch general "Result" or "Results"
       .replace(/[\s-]*Vertex AI Search/gi, '') // [Fix] Catch " - Vertex AI Search" suffix
-      .replace(/^[\W_]*관련 기사 원문 보기:?.*?$/gm, '') // [Fix] Catch "View original article" header
+      .replace(/\(Source: Verified Vertex Search Result\)/gi, '') // [Fix] Catch specific parenthesized source
+      .replace(/Verified Vertex Search Result/gi, '') // [Fix] Catch "Verified Vertex Search Result"
+      .replace(/Vertex Search Result/gi, '') // [Fix] Catch "Vertex Search Result" (No AI)
+      .replace(/^[\W_]*관련 기사.*?(보기|확인하기):?.*?$/gm, '') // [Fix] Catch "View/Check related article" headers
       .replace(/\[관련 자료 출처\]|\[관련 자료 출거\]/g, '')
       .replace(/\[([^\]]+)\]\(\s*\)/g, '$1')
       .replace(/^\s*[-•]\s*$/gm, '')
       // [Fix] Specific cleanup for "Vertex AI Search Source: ..."
       .replace(/^Vertex AI Search Source:.*?$/gm, '')
+      .replace(/^Samsung SDS Press Release.*?$/gm, '') // [Fix] Specific hallucinated title cleanup
       // [Fix] Safety patch for Mermaid Code Blocks (Force newlines for contiguous nodes)
       // This helps prevent "Parse error on line X" when LLM outputs `A["..."] B["..."]` on one line.
       // We look for `"] "` or `"]  "` and replace with `"]\n"` but only if it looks like a Mermaid node end.
