@@ -5,7 +5,8 @@ export const TABLE_STYLES = {
   td: 'border-bottom: 1px solid #f1f5f9; padding: 14px; color: #334155; line-height: 1.6;',
 };
 
-export const PLATFORM_STYLES: Record<string, any> = {
+export const PLATFORM_STYLES: Record<string, Record<string, string>> = {
+
   NAVER: {
     container: "font-family: 'Pretendard', 'Malgun Gothic', sans-serif; color: #374151;",
     h1: 'font-size: 34px; font-weight: 800; margin-bottom: 30px; color: #111; letter-spacing: -0.02em;',

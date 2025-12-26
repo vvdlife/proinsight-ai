@@ -29,14 +29,11 @@ export default tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
       ...react.configs.recommended.rules,
-      'react-refresh/only-export-components': [
-        'warn',
-        { allowConstantExport: true },
-      ],
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       'prettier/prettier': 'error', // Runs Prettier as an ESLint rule
       'react/react-in-jsx-scope': 'off', // Not needed in React 17+
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
     },
     settings: {
       react: {

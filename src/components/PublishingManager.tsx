@@ -105,8 +105,10 @@ export const PublishingManager: React.FC<PublishingManagerProps> = ({ post }) =>
       } else {
         throw new Error(data.error || 'Failed to publish');
       }
-    } catch (error: any) {
-      setPublishResult({ platform: 'Medium', success: false, error: error.message });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setPublishResult({ platform: 'Medium', success: false, error: errorMessage });
+
     } finally {
       setPublishing(null);
     }
@@ -142,8 +144,10 @@ export const PublishingManager: React.FC<PublishingManagerProps> = ({ post }) =>
       } else {
         throw new Error(data.error || 'Failed to publish');
       }
-    } catch (error: any) {
-      setPublishResult({ platform: 'WordPress', success: false, error: error.message });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setPublishResult({ platform: 'WordPress', success: false, error: errorMessage });
+
     } finally {
       setPublishing(null);
     }
@@ -186,8 +190,10 @@ export const PublishingManager: React.FC<PublishingManagerProps> = ({ post }) =>
       } else {
         throw new Error(data.error || 'Failed to publish');
       }
-    } catch (error: any) {
-      setPublishResult({ platform: 'Tistory', success: false, error: error.message });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setPublishResult({ platform: 'Tistory', success: false, error: errorMessage });
+
     } finally {
       setPublishing(null);
     }

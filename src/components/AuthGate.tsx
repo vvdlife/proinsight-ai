@@ -11,7 +11,7 @@ export const AuthGate: React.FC<AuthGateProps> = ({ onAuthenticated }) => {
   const [error, setError] = useState('');
 
   // Use import.meta.env for Vite environment variables
-  const REQUIRED_ACCESS_CODE = (import.meta as any).env.VITE_ACCESS_CODE;
+  const REQUIRED_ACCESS_CODE = import.meta.env.VITE_ACCESS_CODE;
 
   // Fix scroll position on mount
   useEffect(() => {

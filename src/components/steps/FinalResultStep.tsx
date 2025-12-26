@@ -9,7 +9,7 @@ import {
   CopyIcon,
 } from '../Icons';
 import { MarkdownRenderer } from '../MarkdownRenderer';
-import { BlogFont } from '../../types';
+import { BlogFont, BlogPost, OutlineData, WindowWithFind } from '../../types';
 import { SeoAnalyzer } from '../SeoAnalyzer';
 import { SocialGenerator } from '../SocialGenerator';
 import { ThumbnailEditor } from '../ThumbnailEditor';
@@ -94,7 +94,9 @@ export const FinalResultStep: React.FC = () => {
       // Try to find the text in the rendered view
       // Since markdown rendering might change the text (e.g. # Header vs Header), this is inexact.
       // Simple approach: Use window.find() if available, or just alert user to switch to edit mode.
-      if ((window as any).find && (window as any).find(text)) {
+      // Use the custom Extended Window interface
+      const found = (window as unknown as WindowWithFind).find(text, false, false, true, false, true, false);
+      if (found) {
         // Found and highlighted by browser
       } else {
         // If not found (e.g. markdown syntax vs rendered), ask to edit

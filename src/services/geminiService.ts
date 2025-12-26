@@ -1,4 +1,6 @@
 import { GoogleGenAI, Type } from '@google/genai';
+import { GeminiClient } from '../utils/aiClient';
+import { MODEL_IDS } from '../constants/models';
 import {
   BlogTone,
   OutlineData,
@@ -6,30 +8,16 @@ import {
   ImageStyle,
   UploadedFile,
   SeoDiagnosis,
+  RawOutlineData,
 } from '../types';
 import { trackApiCall, estimateTokens } from './apiUsageTracker';
-import { safeJsonParse } from './utils';
+import { safeJsonParse, cleanCitations, normalizeOutline } from './utils';
 import { PROMPTS, PERSONA_INSTRUCTIONS } from '../constants/prompts';
 import { FIXED_TEMPLATES } from '../constants/templates';
 
-// Constants extracted to avoid magic strings, could be moved to src/constants/config.ts later
-export const MODEL_IDS = {
-  TEXT: 'gemini-3-flash-preview',
-  IMAGE: 'gemini-3-pro-image-preview',
-} as const;
-
-// Helper to get client securely
+// Helper to get client securely via Singleton
 const getGenAI = (): GoogleGenAI => {
-  const key =
-    sessionStorage.getItem('proinsight_api_key') ||
-    localStorage.getItem('proinsight_api_key') ||
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (import.meta as any).env.VITE_API_KEY;
-
-  if (!key) {
-    throw new Error('API Key가 없습니다. 설정에서 키를 등록해주세요.');
-  }
-  return new GoogleGenAI({ apiKey: key });
+  return GeminiClient.getInstance().getClient();
 };
 
 // Market context response type
@@ -40,6 +28,15 @@ interface MarketDataItem {
   price: number;
   change: number;
   changePercent: number;
+}
+
+// Google GenAI SDK Part Type Definition (Partial)
+interface Part {
+  text?: string;
+  inlineData?: {
+    mimeType: string;
+    data: string;
+  };
 }
 
 interface MarketApiResponse {
@@ -62,7 +59,8 @@ const fetchMarketDataContext = async (): Promise<string> => {
     const lines = response.data
       .map(
         (item) =>
-          `- ${item.name} (${item.symbol}): ${item.currency === 'KRW' ? item.price.toLocaleString() : item.price
+          `- ${item.name} (${item.symbol}): ${
+            item.currency === 'KRW' ? item.price.toLocaleString() : item.price
           } ${item.currency} (${item.change >= 0 ? '+' : ''}${item.changePercent.toFixed(2)}%)`,
       )
       .join('\n');
@@ -120,24 +118,20 @@ export const generateOutline = async (
     promptText += `\n\nAnalyze the attached documents as the PRIMARY source.`;
   }
 
-  const parts = [{ text: promptText }];
+  const parts: Part[] = [{ text: promptText }];
 
   files.forEach((file) => {
     parts.push({
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore - Google GenAI SDK Type mismatch for inlineData unfortunately exists in some versions
       inlineData: {
         mimeType: file.mimeType,
         data: file.data,
       },
-    } as any);
-    // Explicit any used here due to potential SDK type definition mismatch with inlineData
-    // In a full fix we would extend the type properly.
+    });
   });
 
   const response = await ai.models.generateContent({
     model: modelId,
-    contents: { role: 'user', parts: parts as any }, // SDK type workaround
+    contents: { role: 'user', parts },
     config: {
       tools: [{ googleSearch: {} }],
       systemInstruction: 'You are an expert content strategist. Output valid JSON only.',
@@ -152,20 +146,8 @@ export const generateOutline = async (
   const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(text);
   trackApiCall(MODEL_IDS.TEXT, promptTokens, completionTokens, 'outline');
 
-  const outline = safeJsonParse<OutlineData>(text);
-
-  // Safety check: Ensure sections are strings, not objects (fixes [object Object] bug)
-  if (outline.sections && Array.isArray(outline.sections)) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    outline.sections = outline.sections.map((sec: any) => {
-      if (typeof sec === 'object' && sec !== null) {
-        return sec.title || sec.heading || sec.name || sec.section || JSON.stringify(sec);
-      }
-      return String(sec);
-    });
-  }
-
-  return outline;
+  const parsed = safeJsonParse<RawOutlineData>(text);
+  return normalizeOutline(parsed);
 };
 
 // [NEW] Interface for structured Key Facts
@@ -225,9 +207,9 @@ const generateKeyFacts = async (topic: string, ai: GoogleGenAI): Promise<KeyFact
     // Map to internal KeyFact structure
     const structuredFacts: KeyFact[] = Array.isArray(rawFacts)
       ? rawFacts.map((f) => ({
-        fact: f.fact || JSON.stringify(f),
-        urls: allSources // Global sources for now
-      }))
+          fact: f.fact || JSON.stringify(f),
+          urls: allSources, // Global sources for now
+        }))
       : [];
 
     return structuredFacts;
@@ -272,78 +254,37 @@ const generateText = async (
   systemInstruction: string = 'You are a helpful assistant.',
   modelId: string = MODEL_IDS.TEXT,
 ): Promise<string> => {
-  const parts = [{ text: prompt }];
+  const parts: Part[] = [{ text: prompt }];
 
   files.forEach((file) => {
     parts.push({
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       inlineData: {
         mimeType: file.mimeType,
         data: file.data,
       },
-    } as any);
+    });
   });
 
   try {
     const response = await ai.models.generateContent({
       model: modelId,
-      contents: { role: 'user', parts: parts as any },
+      contents: { role: 'user', parts },
       config: {
         tools: [{ googleSearch: {} }],
         systemInstruction: systemInstruction,
       },
     });
 
-    let result = response.text || '';
-    // [FIX] Cleanup Vertex AI Grounding Redirects and raw citations
-    result = result
-      .replace(/https:\/\/vertexaisearch\.cloud\.google\.com\/[^)\s]+/g, '') // Remove Vertex Redirects
-      // [Fix] Aggressive Cleanup for References/Sources/Citations
-      .replace(/^[\W_]*\[?(정보 )?출처:?.*?\]?$/gm, '')
-      .replace(/^[\W_]*\[?Source:?.*?\]?$/gm, '')
-      .replace(/^[\W_]*관련 정보 소스:?.*?$/gm, '')
-      .replace(/^[\W_]*참고 자료:?.*?$/gm, '')
-      .replace(/^[\W_]*참고 문헌:?.*?$/gm, '')
-      .replace(/^[\W_]*자료 출처:?.*?$/gm, '')
-      .replace(/^[\W_]*Sources?\s*:?.*?$/gmi, '') // matches "Reference :" or "Reference:" with leading emojis
-      .replace(/^[\W_]*References?\s*:?.*?$/gmi, '') // matches "Reference :" or "Reference:" with leading emojis
-      .replace(/^[\W_]*참조 링크:?.*?$/gm, '')
-      .replace(/^[\W_]*참고 링크:?.*?$/gm, '') // [Fix] Added "Chamgo Link" variant
-      .replace(/^[\W_]*관련 자료 출처:?.*?$/gm, '')
-      .replace(/\s*관련 데이터 확인\s*/g, '')
-      .replace(/\[Source \d+\]/gi, '')
-      .replace(/\[Source \d+(,\s*\d+)*\]/gi, '')
-      .replace(/\[\d+(,\s*\d+)*\] Source:/gi, '')
-      .replace(/\[\d+\]/g, '')
-      .replace(/\s*\(cite:[\s\d,]+\)/gi, '')
-      .replace(/Google Finance & Vertex AI Search Results/gi, '')
-      .replace(/Google Cloud Search Results/gi, '')
-      .replace(/Vertex AI Search Result \d+/gi, '') // [Fix] Catch "Vertex AI Search Result 1", "2" etc.
-      .replace(/Vertex AI Search Results?/gi, '') // [Fix] Catch general "Result" or "Results"
-      .replace(/[\s-]*Vertex AI Search/gi, '') // [Fix] Catch " - Vertex AI Search" suffix
-      .replace(/\(Source: Verified Vertex Search Result\)/gi, '') // [Fix] Catch specific parenthesized source
-      .replace(/Verified Vertex Search Result/gi, '') // [Fix] Catch "Verified Vertex Search Result"
-      .replace(/Vertex Search Result/gi, '') // [Fix] Catch "Vertex Search Result" (No AI)
-      .replace(/^[\W_]*관련 기사.*?(보기|확인하기):?.*?$/gm, '') // [Fix] Catch "View/Check related article" headers
-      .replace(/\[관련 자료 출처\]|\[관련 자료 출거\]/g, '')
-      .replace(/\[([^\]]+)\]\(\s*\)/g, '$1')
-      .replace(/^\s*[-•]\s*$/gm, '')
-      // [Fix] Specific cleanup for "Vertex AI Search Source: ..."
-      .replace(/^Vertex AI Search Source:.*?$/gm, '')
-      .replace(/^Samsung SDS Press Release.*?$/gm, '') // [Fix] Specific hallucinated title cleanup
-      // [Fix] Safety patch for Mermaid Code Blocks (Force newlines for contiguous nodes)
-      // This helps prevent "Parse error on line X" when LLM outputs `A["..."] B["..."]` on one line.
-      // We look for `"] "` or `"]  "` and replace with `"]\n"` but only if it looks like a Mermaid node end.
-      // Note: This operates on the whole text, but `"] "` is rare in normal text unless referencing citations, which we want on newlines anyway or removed.
-      // A safer approach is to replace `"] "` with `"]\n"` generically as it improves readability regardless.
-      .replace(/"]\s+"/g, '"]\n"');
+    const text = response.text || '';
+    // Use the robust utility function for citation cleanup
+    let cleanText = cleanCitations(text);
 
     const promptTokens = response.usageMetadata?.promptTokenCount || estimateTokens(prompt);
-    const completionTokens = response.usageMetadata?.candidatesTokenCount || estimateTokens(result);
+    const completionTokens =
+      response.usageMetadata?.candidatesTokenCount || estimateTokens(cleanText);
     trackApiCall(MODEL_IDS.TEXT, promptTokens, completionTokens, 'content');
 
-    return result.trim();
+    return cleanText.trim();
   } catch (error) {
     console.error('Section generation failed:', error);
     return '\n(이 섹션을 생성하는 중 오류가 발생했습니다.)\n';
@@ -367,12 +308,12 @@ export const generateBlogPostContent = async (
   const isEnglish = language === 'English';
 
   const keyFactsData = await generateKeyFacts(outline.title, ai);
-  const formattedKeyFacts = keyFactsData.map((kf, i) =>
-    `Fact ${i + 1}: ${kf.fact}\nSource: ${kf.urls.join(', ')}`
-  ).join('\n\n');
+  const formattedKeyFacts = keyFactsData
+    .map((kf, i) => `Fact ${i + 1}: ${kf.fact}\nSource: ${kf.urls.join(', ')}`)
+    .join('\n\n');
 
   // Collect all verified sources to pass to context
-  const allVerifiedUrls = [...new Set(keyFactsData.flatMap(kf => kf.urls))];
+  const allVerifiedUrls = [...new Set(keyFactsData.flatMap((kf) => kf.urls))];
 
   const customPersona = localStorage.getItem('proinsight_custom_persona') || '';
   const marketContext = await fetchMarketDataContext();

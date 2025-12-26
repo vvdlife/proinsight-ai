@@ -14,7 +14,8 @@ const mocks = vi.hoisted(() => ({
 vi.mock('@google/genai', () => {
   // Define class inside factory to avoid hoisting issues
   class MockGoogleGenAI {
-    constructor(public config: any) {}
+    constructor(public config: unknown) { }
+
 
     get models() {
       return {
@@ -113,18 +114,32 @@ describe('geminiService', () => {
       // Mock responses sequentially
       // 1. Key Facts
       mocks.generateContent.mockResolvedValueOnce({
-        text: 'Key Facts Summary',
+        text: JSON.stringify({ key_facts: ['Fact 1', 'Fact 2'] }),
         usageMetadata: { promptTokenCount: 5, candidatesTokenCount: 5 },
       });
+
       // 2. Intro, Sections, Conclusion (all parallel)
       // Since specific call order in Promise.all is not guaranteed to resolve in order of providing result,
       // but mocks are popped in call order.
       // The code calls generateText multiple times.
       // We will just provide a generic response for all subsequent calls.
-      mocks.generateContent.mockResolvedValue({
+      // 2. Content Generation (Intro, 2 Sections, Conclusion = 4 calls)
+      const contentResponse = {
         text: 'Generated Content Section',
         usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 10 },
+      };
+      mocks.generateContent
+        .mockResolvedValueOnce(contentResponse) // Intro
+        .mockResolvedValueOnce(contentResponse) // Section 1
+        .mockResolvedValueOnce(contentResponse) // Section 2
+        .mockResolvedValueOnce(contentResponse); // Conclusion
+
+      // 3. Hashtags (JSON)
+      mocks.generateContent.mockResolvedValueOnce({
+        text: JSON.stringify(['#AI', '#Tech']),
+        usageMetadata: { promptTokenCount: 5, candidatesTokenCount: 5 },
       });
+
 
       const outline = {
         title: 'Test Title',

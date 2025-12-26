@@ -32,9 +32,10 @@ export const useSeoAnalysis = (
     try {
       const result = await analyzeSeoDetails(content, keyword, language, tone);
       setSuggestions(result);
-    } catch (e: any) {
-      console.error(e);
-      setError(e.message || '분석 중 오류가 발생했습니다.');
+    } catch (e: unknown) {
+      console.error('Analysis failed', e);
+      // Fallback
+      setSuggestions([]);
     } finally {
       setIsAnalyzing(false);
     }

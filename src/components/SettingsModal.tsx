@@ -3,6 +3,7 @@ import { NaverIcon, TistoryIcon, MediumIcon, WordPressIcon, SubstackIcon } from 
 
 // Imports needing update? No, just usage.
 import { useBlogContext } from '../context/BlogContext';
+import { safeLocalStorage } from '../utils/safeStorage';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -19,13 +20,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     if (isOpen) {
       // API Key 로드
       const key =
-        localStorage.getItem('proinsight_api_key') ||
+        safeLocalStorage.getItem('proinsight_api_key', '') ||
         sessionStorage.getItem('proinsight_api_key') ||
         '';
       setApiKey(key);
 
       // 커스텀 페르소나 로드
-      const savedPersona = localStorage.getItem('proinsight_custom_persona') || '';
+      const savedPersona = safeLocalStorage.getItem('proinsight_custom_persona', '');
       setCustomPersona(savedPersona);
 
       // 블로그 URL 로드 (Context에서)
@@ -35,10 +36,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
   const handleSave = () => {
     if (apiKey) {
-      localStorage.setItem('proinsight_api_key', apiKey);
+      safeLocalStorage.setItem('proinsight_api_key', apiKey);
     }
     // 커스텀 페르소나 저장
-    localStorage.setItem('proinsight_custom_persona', customPersona);
+    safeLocalStorage.setItem('proinsight_custom_persona', customPersona);
 
     // Blog URLs 저장 (Context에 반영)
     setBlogUrls(localBlogUrls);

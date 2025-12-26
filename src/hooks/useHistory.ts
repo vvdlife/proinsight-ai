@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { BlogPost, OutlineData, ModelType, BlogTone, ImageStyle } from '../types';
+import { safeLocalStorage } from '../utils/safeStorage';
 
 export interface HistoryItem {
   id: string;
@@ -26,14 +27,8 @@ export const useHistory = (
 
   // Load History on Mount
   useEffect(() => {
-    const saved = localStorage.getItem('proinsight_history');
-    if (saved) {
-      try {
-        setHistory(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to parse history', e);
-      }
-    }
+    const saved = safeLocalStorage.getItem<HistoryItem[]>('proinsight_history', []);
+    setHistory(saved);
   }, []);
 
   // Save to History when content changes
@@ -70,55 +65,7 @@ export const useHistory = (
         // Limit to 1 item as per user request to prevent QuotaExceededError
         updated = updated.slice(0, 1);
 
-        try {
-          // Strip images and truncate extremely long content to prevent QuotaExceededError
-          const safeHistory = updated.map((item) => ({
-            ...item,
-            images: [],
-            finalPost: item.finalPost
-              ? {
-                ...item.finalPost,
-                images: [],
-                socialPosts: item.finalPost.socialPosts?.map((p) => ({
-                  ...p,
-                  imageUrl: undefined,
-                })), // [NEW] Strip social images
-                content:
-                  item.finalPost.content.length > 30000
-                    ? item.finalPost.content.substring(0, 30000) + '... (truncated)'
-                    : item.finalPost.content,
-              }
-              : null,
-            finalPostEn: item.finalPostEn
-              ? {
-                ...item.finalPostEn,
-                images: [],
-                socialPosts: item.finalPostEn.socialPosts?.map((p) => ({
-                  ...p,
-                  imageUrl: undefined,
-                })), // [NEW] Strip social images
-                content:
-                  item.finalPostEn.content.length > 30000
-                    ? item.finalPostEn.content.substring(0, 30000) + '... (truncated)'
-                    : item.finalPostEn.content,
-              }
-              : null,
-          }));
-          localStorage.setItem('proinsight_history', JSON.stringify(safeHistory));
-        } catch (e) {
-          console.error('Failed to save history:', e);
-          // If even that fails, try clearing old history or just stop saving
-          if (e instanceof DOMException && e.name === 'QuotaExceededError') {
-            // Clear oldest
-            const recover = updated.slice(0, 1); // Keep only current
-            try {
-              localStorage.setItem('proinsight_history', JSON.stringify(recover));
-            } catch (e2) {
-              console.error('Could not even save current item', e2);
-            }
-          }
-        }
-
+        safeLocalStorage.setItem('proinsight_history', updated);
         return updated;
       });
     }
@@ -143,14 +90,7 @@ export const useHistory = (
       // Limit to 50 items (prevent storage overflow)
       if (updated.length > 50) updated = updated.slice(0, 50);
 
-      try {
-        localStorage.setItem('proinsight_history', JSON.stringify(updated));
-      } catch (e) {
-        console.error('Failed to save history manually', e);
-        if (e instanceof DOMException && e.name === 'QuotaExceededError') {
-          alert('저장 공간이 부족하여 히스토리를 저장할 수 없습니다. 오래된 항목을 삭제해주세요.');
-        }
-      }
+      safeLocalStorage.setItem('proinsight_history', updated);
       return updated;
     });
   }, []);
@@ -159,7 +99,7 @@ export const useHistory = (
   const deleteItem = useCallback((id: string) => {
     setHistory((prev) => {
       const updated = prev.filter((item) => item.id !== id);
-      localStorage.setItem('proinsight_history', JSON.stringify(updated));
+      safeLocalStorage.setItem('proinsight_history', updated);
       return updated;
     });
   }, []);

@@ -7,29 +7,30 @@ const router = express.Router();
 // Endpoint: https://api.blog.naver.com/xmlrpc
 
 router.post('/publish', async (req, res) => {
-    const { naverId, apiKey, title, content, tags } = req.body;
+  const { naverId, apiKey, title, content, tags } = req.body;
 
-    if (!naverId || !apiKey) {
-        return res.status(400).json({ error: 'Naver ID and API Key are required' });
-    }
+  if (!naverId || !apiKey) {
+    return res.status(400).json({ error: 'Naver ID and API Key are required' });
+  }
 
-    try {
-        // 1. Escape HTML special characters for XML
-        const escapeXml = (str) => {
-            return str.replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&apos;');
-        };
+  try {
+    // 1. Escape HTML special characters for XML
+    const escapeXml = (str) => {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+    };
 
-        const escapedTitle = escapeXml(title);
-        // Naver content usually accepts HTML, but wrapped in CDATA is safer, 
-        // or just standard XML escaping. Let's try CDATA for content to preserve HTML formatting.
-        const escapedContent = `<![CDATA[${content}]]>`;
+    const escapedTitle = escapeXml(title);
+    // Naver content usually accepts HTML, but wrapped in CDATA is safer,
+    // or just standard XML escaping. Let's try CDATA for content to preserve HTML formatting.
+    const escapedContent = `<![CDATA[${content}]]>`;
 
-        // 2. Construct XML Payload (metaWeblog.newPost)
-        const xmlData = `<?xml version="1.0"?>
+    // 2. Construct XML Payload (metaWeblog.newPost)
+    const xmlData = `<?xml version="1.0"?>
         <methodCall>
             <methodName>metaWeblog.newPost</methodName>
             <params>
@@ -66,39 +67,38 @@ router.post('/publish', async (req, res) => {
             </params>
         </methodCall>`;
 
-        // 3. Send Request
-        const response = await axios.post('https://api.blog.naver.com/xmlrpc', xmlData, {
-            headers: {
-                'Content-Type': 'text/xml',
-                'User-Agent': 'ProInsightAI-Client'
-            }
-        });
+    // 3. Send Request
+    const response = await axios.post('https://api.blog.naver.com/xmlrpc', xmlData, {
+      headers: {
+        'Content-Type': 'text/xml',
+        'User-Agent': 'ProInsightAI-Client',
+      },
+    });
 
-        // 4. Parse Response (Simple Regex)
-        // Success response format:
-        // <methodResponse><params><param><value><string>POST_ID</string></value></param></params></methodResponse>
-        const responseText = response.data;
+    // 4. Parse Response (Simple Regex)
+    // Success response format:
+    // <methodResponse><params><param><value><string>POST_ID</string></value></param></params></methodResponse>
+    const responseText = response.data;
 
-        if (responseText.includes('faultCode')) {
-            throw new Error(`Naver API Fault: ${responseText}`);
-        }
-
-        // Extract Post ID (it returns string like "1234567890")
-        const match = responseText.match(/<string>(\d+)<\/string>/);
-        const postId = match ? match[1] : null;
-
-        if (postId) {
-            // Construct URL: https://blog.naver.com/{details.naverId}/{postId}
-            const postUrl = `https://blog.naver.com/${naverId}/${postId}`;
-            res.json({ success: true, url: postUrl });
-        } else {
-            throw new Error('Failed to parse Post ID from Naver response');
-        }
-
-    } catch (error) {
-        console.error('Naver Publish Error:', error.response?.data || error.message);
-        res.status(500).json({ error: 'Failed to publish to Naver Blog', details: error.message });
+    if (responseText.includes('faultCode')) {
+      throw new Error(`Naver API Fault: ${responseText}`);
     }
+
+    // Extract Post ID (it returns string like "1234567890")
+    const match = responseText.match(/<string>(\d+)<\/string>/);
+    const postId = match ? match[1] : null;
+
+    if (postId) {
+      // Construct URL: https://blog.naver.com/{details.naverId}/{postId}
+      const postUrl = `https://blog.naver.com/${naverId}/${postId}`;
+      res.json({ success: true, url: postUrl });
+    } else {
+      throw new Error('Failed to parse Post ID from Naver response');
+    }
+  } catch (error) {
+    console.error('Naver Publish Error:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Failed to publish to Naver Blog', details: error.message });
+  }
 });
 
 export default router;

@@ -23,9 +23,29 @@ export enum BlogFont {
   NANUM_PEN = '나눔손글씨 (캐주얼)',
 }
 
+// [NEW] Raw data structure from AI (before normalization)
+export interface RawOutlineData {
+  title: string;
+  sections: (string | { title: string;[key: string]: unknown })[]; // Handle mixed types from AI
+
+}
+
+// Global Window extension for find method
+export interface WindowWithFind extends Window {
+  find(
+    aString: string,
+    aCaseSensitive?: boolean,
+    aBackwards?: boolean,
+    aWrapAround?: boolean,
+    aWholeWord?: boolean,
+    aSearchInFrames?: boolean,
+    aShowDialog?: boolean,
+  ): boolean;
+}
+
 export interface OutlineData {
   title: string;
-  sections: string[];
+  sections: string[]; // Strict type for application use
 }
 
 export interface SocialPost {

@@ -35,6 +35,12 @@ export const calculateSeoMetrics = (
   let inFirstPara = false;
 
   if (keyword) {
+    // [Security] Prevent ReDoS by limiting keyword length
+    if (keyword.length > 100) {
+      console.warn('Keyword too long for regex analysis, truncating.');
+      keyword = keyword.substring(0, 100);
+    }
+
     // Escape regex special characters
     const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(escapedKeyword, 'gi');

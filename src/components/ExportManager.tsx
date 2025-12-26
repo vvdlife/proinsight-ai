@@ -33,7 +33,9 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
   const [includeCover, setIncludeCover] = useState(true);
 
   // Helper: Convert SVG string to Base64 Image with Dimensions
-  const svgToBase64Image = (svgString: string): Promise<{ url: string; width: number; height: number }> => {
+  const svgToBase64Image = (
+    svgString: string,
+  ): Promise<{ url: string; width: number; height: number }> => {
     return new Promise((resolve) => {
       try {
         // [Stage 1] Parse and Patch SVG (The "Root Cause" Fix)
@@ -83,7 +85,6 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
           const originalHeight = img.height;
 
           try {
-
             const canvas = document.createElement('canvas');
             // 3x Resolution for Retina/Print quality
             const scale = 3;
@@ -103,20 +104,24 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
               resolve({
                 url: canvas.toDataURL('image/png'),
                 width: originalWidth,
-                height: originalHeight
+                height: originalHeight,
               });
             } else {
               // Fallback (Rare context failure)
-              resolve({ url: `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(patchedSvg)))}`, width: originalWidth, height: originalHeight });
+              resolve({
+                url: `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(patchedSvg)))}`,
+                width: originalWidth,
+                height: originalHeight,
+              });
             }
           } catch (e) {
             console.warn('Canvas render failed (Tainted?), falling back to SVG', e);
-            // [Fix] Fallback to Base64 SVG. 
+            // [Fix] Fallback to Base64 SVG.
             // Do NOT return 'url' (Blob URL) because it gets revoked in 'finally' block!
             resolve({
               url: `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(patchedSvg)))}`,
               width: originalWidth,
-              height: originalHeight
+              height: originalHeight,
             });
           } finally {
             URL.revokeObjectURL(url);
@@ -125,13 +130,16 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
 
         img.onerror = () => {
           console.error('Image load failed');
-          resolve({ url: `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgString)))}`, width: 0, height: 0 });
+          resolve({
+            url: `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgString)))}`,
+            width: 0,
+            height: 0,
+          });
           URL.revokeObjectURL(url);
         };
 
         img.crossOrigin = 'Anonymous';
         img.src = url;
-
       } catch (parseError) {
         console.error('SVG Parsing failed', parseError);
         // Ultra-safe fallback: just return original
@@ -624,7 +632,9 @@ const PreviewModal: React.FC<{
   post: BlogPost;
   onClose: () => void;
   onCopy: () => void;
-  generateHtml: (type: any) => Promise<string>;
+  generateHtml: (type: 'NAVER' | 'TISTORY' | 'MEDIUM' | 'WORDPRESS' | 'SUBSTACK') => Promise<string>;
+
+
 }> = ({ type, onClose, onCopy, generateHtml }) => {
   const [html, setHtml] = useState<string>(
     '<div class="p-10 text-center text-slate-500">불러오는 중...</div>',

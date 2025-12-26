@@ -5,6 +5,7 @@ import mediumRoutes from './routes/medium.js';
 import tistoryRoutes from './routes/tistory.js';
 import wordpressRoutes from './routes/wordpress.js';
 import naverRoutes from './routes/naver.js';
+import marketRoutes from './routes/market.js'; // [NEW]
 
 dotenv.config();
 
@@ -17,11 +18,11 @@ app.use(express.json({ limit: '50mb' })); // Increased limit for large content
 
 // Routes
 app.get('/', (req, res) => {
-    res.send('ProInsight AI Server is running');
+  res.send('ProInsight AI Server is running');
 });
 
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', message: 'Server is healthy' });
+  res.json({ status: 'ok', message: 'Server is healthy' });
 });
 
 // API Routes
@@ -29,8 +30,9 @@ app.use('/api/medium', mediumRoutes);
 app.use('/api/tistory', tistoryRoutes);
 app.use('/api/wordpress', wordpressRoutes);
 app.use('/api/naver', naverRoutes);
+app.use('/api/market_data', marketRoutes); // [NEW]
 
 // Start Server
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on http://localhost:${PORT}`);
 });

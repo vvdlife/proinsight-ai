@@ -4,7 +4,8 @@ import yfinance as yf
 from datetime import datetime
 
 class handler(BaseHTTPRequestHandler):
-    def do_GET(self):
+    def do_GET(self) -> None:
+
         try:
             # 1. Define Tickers
             # Gold (GC=F), Copper (HG=F), Lithium (LIT - ETF Proxy)

@@ -37,7 +37,7 @@ export const MarketWidget: React.FC = () => {
       }
     } catch (e) {
       // Silently fail in production without backend, just use fallback
-      if ((import.meta as any).env.DEV) {
+      if (import.meta.env.DEV) {
         console.warn('Market data fetch failed (using fallback):', e);
       }
       setError(true);

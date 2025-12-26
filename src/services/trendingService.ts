@@ -1,24 +1,21 @@
 import { GoogleGenAI, Type } from '@google/genai';
+import { GeminiClient } from '../utils/aiClient';
+import { MODEL_IDS } from '../constants/models';
 import { TrendingTopic, TrendingCache, TrendAnalysis } from '../types';
 import { trackApiCall, estimateTokens } from './apiUsageTracker';
 import { safeJsonParse } from './utils';
 
 const CACHE_KEY = 'proinsight_trending_cache';
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
-const MODEL_ID = 'gemini-2.5-flash'; // Default (Working model from geminiService)
+// const MODEL_ID = 'gemini-2.5-flash'; // Replaced by MODEL_IDS.FLASH
 
-// Helper to get client securely
+// Helper to get client securely via Singleton
 const getGenAI = () => {
-  const key =
-    sessionStorage.getItem('proinsight_api_key') ||
-    localStorage.getItem('proinsight_api_key') ||
-    (import.meta as any).env.VITE_API_KEY;
-
-  if (!key) {
-    // Return null instead of throwing to avoid crashing background services
+  try {
+    return GeminiClient.getInstance().getClient();
+  } catch (e) {
     return null;
   }
-  return new GoogleGenAI({ apiKey: key });
 };
 
 // Fallback topics in case of error
@@ -35,7 +32,7 @@ const FALLBACK_TOPICS: TrendingTopic[] = [
 const generateTrendingTopics = async (/* specific model ignored for stability */): Promise<
   TrendingTopic[]
 > => {
-  const modelId = MODEL_ID; // Force use of verified model (gemini-2.5-flash)
+  const modelId = MODEL_IDS.FLASH; // Force use of verified model
   try {
     const ai = getGenAI();
     if (!ai) {
@@ -121,7 +118,7 @@ const generateTrendingTopics = async (/* specific model ignored for stability */
 export const analyzeTrend = async (
   topic: string /* specific model ignored */,
 ): Promise<TrendAnalysis> => {
-  const modelId = MODEL_ID; // Force use of verified model
+  const modelId = MODEL_IDS.FLASH; // Force use of verified model
   const ai = getGenAI();
 
   // Default fallback

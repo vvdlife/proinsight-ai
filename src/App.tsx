@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StepWizard } from './components/StepWizard';
 import { LoadingOverlay } from './components/LoadingOverlay';
 import { RefreshIcon, TrashIcon } from './components/Icons'; // TrashIcon was used as close button or maybe I should use XIcon
@@ -10,8 +10,9 @@ import { TopicInputStep } from './components/steps/TopicInputStep';
 import { OutlineReviewStep } from './components/steps/OutlineReviewStep';
 import { FinalResultStep } from './components/steps/FinalResultStep';
 import { MarketWidget } from './components/MarketWidget';
-import { Toaster } from 'sonner';
+import { Toaster, toast } from 'sonner';
 import { useBlogContext } from './context/BlogContext';
+import { GeminiClient } from './utils/aiClient'; // [NEW]
 
 const App: React.FC = () => {
   // Global Context
@@ -28,6 +29,15 @@ const App: React.FC = () => {
   // App-Shell State (Auth, Settings)
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // [NEW] Check for API Key on load
+  useEffect(() => {
+    if (!GeminiClient.getInstance().hasKey()) {
+      setIsSettingsOpen(true);
+      // Small delay to let Toaster mount
+      setTimeout(() => toast.warning('API Key 설정이 필요합니다.', { duration: 5000 }), 500);
+    }
+  }, []);
 
   // If not authenticated, show Auth Gate
   if (!isAuthenticated) {

@@ -223,17 +223,23 @@ const parseLinks = (text: string): React.ReactNode[] => {
     if (match.index > lastIndex) {
       parts.push(...parseSpans(text.substring(lastIndex, match.index)));
     }
-    parts.push(
-      <a
-        key={match.index}
-        href={match[2]}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-indigo-600 font-semibold border-b-2 border-indigo-100 hover:border-indigo-500 hover:bg-indigo-50 px-0.5 rounded-sm transition-all duration-200 no-underline"
-      >
-        {match[1]}
-      </a>,
-    );
+    const href = match[2].trim();
+    // [Security] Prevent XSS
+    if (href.toLowerCase().startsWith('javascript:')) {
+      parts.push(<span key={match.index}>{match[1]} (Blocked)</span>);
+    } else {
+      parts.push(
+        <a
+          key={`${match.index}-${match[1]}`}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-indigo-600 font-semibold border-b-2 border-indigo-100 hover:border-indigo-500 hover:bg-indigo-50 px-0.5 rounded-sm transition-all duration-200 no-underline"
+        >
+          {match[1]}
+        </a>,
+      );
+    }
     lastIndex = linkRegex.lastIndex;
   }
   if (lastIndex < text.length) {
@@ -265,7 +271,7 @@ const parseSpans = (text: string): React.ReactNode[] => {
     parts.push(
       <span key={`span-${match.index}`} className={className}>
         {parseBold(match[2])}
-      </span>
+      </span>,
     );
     lastIndex = spanRegex.lastIndex;
   }
