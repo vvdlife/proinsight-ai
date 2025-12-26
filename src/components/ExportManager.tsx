@@ -76,8 +76,9 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
 
         // [Stage 2] Render to Canvas (High-Res 3x)
         const img = new Image();
-        const svgBlob = new Blob([patchedSvg], { type: 'image/svg+xml;charset=utf-8' });
-        const url = URL.createObjectURL(svgBlob);
+        // Use Base64 Data URI instead of Blob URL to avoid potential Taint/Origin issues
+        const base64Svg = btoa(unescape(encodeURIComponent(patchedSvg)));
+        const url = `data:image/svg+xml;base64,${base64Svg}`;
 
         img.onload = () => {
           // Browser automatically calculates dimensions based on our patched 'width'/'height' attributes
@@ -109,7 +110,7 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
             } else {
               // Fallback (Rare context failure)
               resolve({
-                url: `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(patchedSvg)))}`,
+                url,
                 width: originalWidth,
                 height: originalHeight,
               });
@@ -117,14 +118,11 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
           } catch (e) {
             console.warn('Canvas render failed (Tainted?), falling back to SVG', e);
             // [Fix] Fallback to Base64 SVG.
-            // Do NOT return 'url' (Blob URL) because it gets revoked in 'finally' block!
             resolve({
-              url: `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(patchedSvg)))}`,
+              url,
               width: originalWidth,
               height: originalHeight,
             });
-          } finally {
-            URL.revokeObjectURL(url);
           }
         };
 
@@ -135,10 +133,9 @@ export const ExportManager: React.FC<ExportManagerProps> = ({ post }) => {
             width: 0,
             height: 0,
           });
-          URL.revokeObjectURL(url);
         };
 
-        img.crossOrigin = 'Anonymous';
+        // img.crossOrigin = 'Anonymous'; // Not needed for Data URI
         img.src = url;
       } catch (parseError) {
         console.error('SVG Parsing failed', parseError);
