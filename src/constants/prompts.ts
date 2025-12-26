@@ -92,14 +92,11 @@ export const PROMPTS = {
            - **CRITICAL**: Use the \`googleSearch\` tool to find SPECIFIC data points (numbers, dates, quotes).
            - Do not say "Many companies". Say "Apple and Nvidia".
            - Cite real recent events.
-     7. **References (STRICT VERIFIED LINKS ONLY)**: 
-       - **NO INLINE LINKS**: Do **NOT** include any links, URLs, or citations within the body text or headers. The body must be clean text only.
-       - **ONE FOOTER LINK ONLY**: At the very bottom of the post, you may provide **EXACTLY ONE** reliable source link.
-       - **Format**: \`Reference: [Title](URL)\`
-       - **Selection Criteria**: You must use a URL that is **explicitly provided** in the \`SOURCE URLs\` or \`KEY FACTS\` section of this context.
-
-       - **CRITICAL**: Do **NOT** invent, guess, or construct URLs. If no valid URL is found in the context, **OMIT THIS SECTION COMPLETELY**.
-       - **Prohibition**: NEVER use "google.com/search" or broken paths. Safety first.
+     7. **NO LINKS OR REFERENCES (STRICT)**: 
+       - Do **NOT** include any links, URLs, citations, or "Reference" sections anywhere in the post.
+       - Do **NOT** add a bibliography or "Source" list at the bottom.
+       - The post must contain **PURE TEXT ONLY** (plus system-generated images/mermaids).
+       - **Reason**: We prioritize clean formatting over potentially broken links.
     8. **NO DISCLAIMERS**: Do NOT add "This is a fictional post" or "For illustrative purposes". Write with authority.
     9. **Target Length**: Aim for ~300-350 characters (Korean) per section to keep the total length around 3,000 characters. Be concise and impactful.
     10. **NO TITLE REPETITION**: The H1 title is already rendered by the system. Do NOT include the Main Title or "Title: ..." at the beginning of your output. Start directly with the Introduction.
